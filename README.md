@@ -1,2 +1,0 @@
-# saikrishnarallabandi.github.io
-Blog
