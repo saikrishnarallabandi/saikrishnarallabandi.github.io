@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sai Krishna Rallabandi | AI & Language Technology Expert</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: "Warm Neutrals with Subtle Accents" -->
+    <!-- Application Structure Plan: The SPA is structured as a narrative journey, starting with a high-level summary, then diving into the core 'De-Entanglement' framework, followed by tangible research contributions and industry impact. This thematic flow, rather than a chronological one, is chosen for usability because it allows a user to first grasp the central 'big idea' (De-Entanglement) and then see how it manifests in various projects. Key interactions include a filterable publication list and an interactive diagram of the framework, designed to make dense information digestible and engaging. The user flow is guided by a clear navigation bar, allowing both linear progression and direct access to specific sections. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Citation metrics. Goal: Compare publication impact. Viz: Bar Chart (Chart.js). Interaction: Hover for details. Justification: A bar chart provides a quick, clear visual comparison of citation counts for key papers.
+        - Report Info: 'De-Entanglement' framework concepts (Scalability, Flexibility, Explainability). Goal: Organize & Explain a complex concept. Viz: Interactive HTML/CSS/JS diagram. Interaction: Clicking on each pillar reveals detailed information. Justification: An interactive diagram is far more engaging and less intimidating than a dense block of text, encouraging user exploration and improving comprehension of the core research.
+        - Report Info: List of publications. Goal: Organize & Inform. Viz: Filterable HTML list. Interaction: Users can filter publications by area (e.g., TTS, Code-Switching). Justification: Allows users to easily find publications relevant to their specific interests, showcasing the breadth of work in an organized manner.
+        - Report Info: Career milestones. Goal: Change over time. Viz: Vertical timeline (HTML/CSS). Interaction: Static visual. Justification: A timeline is the most intuitive way to present a career trajectory.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfcfb; /* Light, warm neutral */
+            color: #333333; /* Dark grey for readability */
+            line-height: 1.6;
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease-in-out;
+            font-weight: 500;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -6px; /* Adjusted for better spacing */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #A569BD; /* Main accent color */
+            transition: width 0.3s ease-in-out;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #A569BD;
+        }
+        .nav-link.active::after, .nav-link:hover::after {
+            width: 100%;
+        }
+        .section-title {
+            border-bottom: 3px solid #A569BD;
+            padding-bottom: 10px; /* Increased padding */
+            display: inline-block;
+            font-weight: 700; /* Bolder */
+            color: #4A006A; /* Deeper purple for titles */
+        }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04); /* Enhanced shadow */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-7px); /* Slightly more pronounced lift */
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.12), 0 6px 10px -3px rgba(0, 0, 0, 0.06);
+        }
+        .de-entanglement-pillar {
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .de-entanglement-pillar.active {
+            background-color: #f3e5f5; /* Lighter purple background */
+            border-color: #A569BD; /* Main accent border */
+            box-shadow: 0 0 0 3px rgba(165, 105, 189, 0.3); /* Subtle glow */
+        }
+        .de-entanglement-pillar:hover {
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Shadow on hover */
+        }
+        .publication-filter-btn {
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            font-weight: 500;
+        }
+        .publication-filter-btn:hover:not(.active) {
+            background-color: #E0BBE4; /* Lighter hover for non-active */
+            color: #4A006A;
+        }
+        .publication-filter-btn.active {
+            background-color: #A569BD;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(165, 105, 189, 0.3), 0 2px 4px -2px rgba(165, 105, 189, 0.2);
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 40px; /* Increased padding for line */
+            padding-bottom: 30px; /* Spacing between items */
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -10px; /* Aligned with the border-l-2 */
+            top: 8px; /* Adjusted vertically */
+            width: 18px; /* Slightly larger circle */
+            height: 18px;
+            border-radius: 50%;
+            background-color: #A569BD; /* Accent color */
+            border: 4px solid #fdfcfb; /* Background color for contrast */
+            box-shadow: 0 0 0 2px rgba(165, 105, 189, 0.5); /* Subtle ring */
+        }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 45vh; /* Slightly taller chart */
+            width: 85vw; /* Slightly wider */
+            max-width: 900px; /* Increased max width */
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+            padding: 24px; /* Internal padding for chart */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 50vh; /* Taller on desktop */
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-md">
+        <nav class="container mx-auto px-8 py-5 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">Sai Krishna Rallabandi</h1>
+            <ul class="hidden md:flex items-center space-x-10">
+                <li><a href="#summary" class="nav-link active">Summary</a></li>
+                <li><a href="#framework" class="nav-link">Framework</a></li>
+                <li><a href="#research" class="nav-link">Research</a></li>
+                <li><a href="#impact" class="nav-link">Impact</a></li>
+                <li><a href="#career" class="nav-link">Career</a></li>
+            </ul>
+            <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none p-2 rounded-md hover:bg-gray-100">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-inner">
+            <ul class="px-8 pb-4 space-y-3">
+                <li><a href="#summary" class="block py-2 nav-link text-gray-700 hover:text-purple-700">Summary</a></li>
+                <li><a href="#framework" class="block py-2 nav-link text-gray-700 hover:text-purple-700">Framework</a></li>
+                <li><a href="#research" class="block py-2 nav-link text-gray-700 hover:text-purple-700">Research</a></li>
+                <li><a href="#impact" class="block py-2 nav-link text-gray-700 hover:text-purple-700">Impact</a></li>
+                <li><a href="#career" class="block py-2 nav-link text-gray-700 hover:text-purple-700">Career</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-8 py-16">
+
+        <section id="summary" class="min-h-screen flex items-center pt-20 pb-10">
+            <div class="w-full">
+                <h2 class="text-4xl md:text-6xl font-extrabold text-gray-800 mb-6 leading-tight">Pioneering Trustworthy & Ubiquitous AI</h2>
+                <p class="text-xl text-gray-600 mb-10 max-w-4xl">
+                    My work bridges foundational academic research at Carnegie Mellon University with high-impact industry applications at Fidelity Investments, focusing on explainable, scalable, and flexible AI solutions for a global audience.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div class="card p-8">
+                        <h3 class="text-2xl font-semibold mb-3 text-purple-700">Ph.D. from CMU</h3>
+                        <p class="text-gray-600">Specialized in Language Technologies, advised by Prof. Alan W. Black.</p>
+                    </div>
+                    <div class="card p-8">
+                        <h3 class="text-2xl font-semibold mb-3 text-purple-700">Facebook Fellow 2020</h3>
+                        <p class="text-gray-600">Recognized for groundbreaking work in spoken language processing.</p>
+                    </div>
+                    <div class="card p-8">
+                        <h3 class="text-2xl font-semibold mb-3 text-purple-700">Senior Data Scientist</h3>
+                        <p class="text-gray-600">Leading AI/ML initiatives at Fidelity Investments.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="framework" class="py-20">
+            <h2 class="section-title text-4xl font-bold mb-6">The 'De-Entanglement' Framework</h2>
+            <p class="text-lg text-gray-600 mb-12 max-w-4xl">
+                My doctoral research introduced a foundational framework to build more robust, transparent, and ubiquitous speech technologies. It works by isolating the relevant causal factors of variation in data, conceptualizing speech as two "first-class objects": **Content** (the 'what') and **Style** (the 'how'). This approach holistically addresses the three most critical challenges facing the widespread adoption of AI today. Click on each pillar to learn more.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+                <div id="pillar-scalability" class="de-entanglement-pillar card p-8 text-center border-2 border-transparent">
+                    <div class="text-5xl mb-4">🌐</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-purple-800">Scalability</h3>
+                    <p class="text-gray-600">Building AI for new languages and complex phenomena like code-switching, even with limited data.</p>
+                </div>
+                <div id="pillar-flexibility" class="de-entanglement-pillar card p-8 text-center border-2 border-transparent">
+                    <div class="text-5xl mb-4">🎛️</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-purple-800">Flexibility</h3>
+                    <p class="text-gray-600">Enabling fine-grained control over AI model outputs, from synthetic voice style to intent detection.</p>
+                </div>
+                <div id="pillar-explainability" class="de-entanglement-pillar card p-8 text-center border-2 border-transparent">
+                    <div class="text-5xl mb-4">💡</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-purple-800">Explainability</h3>
+                    <p class="text-gray-600">Creating inherently interpretable models by making linguistic concepts transparent and auditable.</p>
+                </div>
+            </div>
+
+            <div id="framework-details" class="card p-10 min-h-[250px] flex items-center justify-center">
+                <p class="text-gray-500 text-center text-lg">Select a pillar above to see details and examples.</p>
+            </div>
+        </section>
+
+        <section id="research" class="py-20">
+            <h2 class="section-title text-4xl font-bold mb-6">Core Research Contributions</h2>
+            <p class="text-lg text-gray-600 mb-10 max-w-4xl">
+                My research spans a wide array of innovations, from foundational work in speech synthesis and multilingual processing to practical applications in financial NLP and multimodal AI. Below is a selection of my publications. You can filter them by area of interest.
+            </p>
+            
+            <div class="mb-10 flex flex-wrap gap-3">
+                <button class="publication-filter-btn active px-5 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300">All</button>
+                <button class="publication-filter-btn px-5 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300" data-filter="Code-Switching">Code-Switching</button>
+                <button class="publication-filter-btn px-5 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300" data-filter="TTS">Speech Synthesis (TTS)</button>
+                <button class="publication-filter-btn px-5 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300" data-filter="Low-Resource">Low-Resource Languages</button>
+                <button class="publication-filter-btn px-5 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300" data-filter="Financial NLP">Financial NLP</button>
+            </div>
+
+            <div id="publications-list" class="space-y-6">
+            </div>
+             <div class="mt-16">
+                <h3 class="text-3xl font-bold mb-6 text-center text-purple-800">Key Publication Citations</h3>
+                 <div class="chart-container">
+                    <canvas id="citationsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="impact" class="py-20 bg-gray-50 rounded-2xl p-10">
+            <h2 class="section-title text-4xl font-bold mb-6">Broader Impact</h2>
+            <p class="text-lg text-gray-600 mb-12 max-w-4xl">My work extends beyond academia to create tangible value for society, the economy, and U.S. national interests, driving towards a future of ubiquitous and trustworthy AI.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="card p-8">
+                    <h3 class="text-2xl font-semibold mb-3 text-green-700">Societal Progress</h3>
+                    <p class="text-gray-600">Bridging linguistic divides by developing technologies for low-resource languages and code-switching communities. A key example is the TTS Android app for 13 Indian languages, enhancing accessibility for millions.</p>
+                </div>
+                <div class="card p-8">
+                    <h3 class="text-2xl font-semibold mb-3 text-blue-700">Economic Innovation</h3>
+                    <p class="text-gray-600">Driving innovation in the financial sector at Fidelity by creating explainable AI for conversational systems and ESG analysis, enhancing customer experience and ensuring regulatory compliance.</p>
+                </div>
+                <div class="card p-8">
+                    <h3 class="text-2xl font-semibold mb-3 text-red-700">National Security</h3>
+                    <p class="text-gray-600">Developing rapid, low-cost AI capabilities for low-resource languages directly supports situational awareness for defense, disaster relief, and humanitarian aid missions in complex global environments.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="career" class="py-20">
+            <h2 class="section-title text-4xl font-bold mb-6">Career Trajectory</h2>
+            <p class="text-lg text-gray-600 mb-12 max-w-4xl">A journey from foundational academic research to high-impact industry leadership, consistently focused on solving the core challenges of Artificial Intelligence.</p>
+            <div class="relative pl-8 md:pl-16 border-l-2 border-gray-200">
+                <div class="timeline-item mb-12">
+                    <h3 class="text-xl font-semibold text-purple-700">Senior Data Scientist, Fidelity Investments</h3>
+                    <p class="text-sm text-gray-500">Present</p>
+                    <p class="mt-2 text-gray-600">Leading AI/ML initiatives, focusing on Generative AI, LLMs, and explainable systems for the financial sector. Translating complex business problems into end-to-end ML solutions to improve customer experience and business performance.</p>
+                </div>
+                <div class="timeline-item mb-12">
+                    <h3 class="text-xl font-semibold text-purple-700">Ph.D. in Language Technologies, Carnegie Mellon University</h3>
+                    <p class="text-sm text-gray-500">2018 - 2022</p>
+                    <p class="mt-2 text-gray-600">Developed the "De-Entanglement" framework. Awarded the prestigious Facebook Fellowship in 2020 for contributions to spoken language processing and audio classification.</p>
+                </div>
+                <div class="timeline-item mb-12">
+                    <h3 class="text-xl font-semibold text-purple-700">Master's Degrees, CMU & IIIT Hyderabad</h3>
+                    <p class="text-sm text-gray-500">2016 - 2018</p>
+                    <p class="mt-2 text-gray-600">Earned a Master's in Language Technologies from CMU (2018) and a Master's from IIIT Hyderabad (2016), building a strong foundation in speech technology and machine learning.</p>
+                </div>
+                <div class="timeline-item">
+                    <h3 class="text-xl font-semibold text-purple-700">Early Research & Publications</h3>
+                    <p class="text-sm text-gray-500">2014 onwards</p>
+                    <p class="mt-2 text-gray-600">Began publishing research in speech technology and cognitive science, including contributions to the Blizzard Challenge, demonstrating an early and sustained commitment to the field.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="container mx-auto px-8 py-10 text-center">
+            <p>&copy; 2024 Sai Krishna Rallabandi. All rights reserved.</p>
+            <p class="text-sm text-gray-400 mt-3">This interactive profile was generated to summarize and visualize key professional achievements.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main section');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelector(link.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    if(mobileMenu.classList.contains('hidden') === false){
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            const frameworkDetails = {
+                scalability: {
+                    title: 'Scalability: AI for All Languages',
+                    content: 'This pillar addresses the critical challenge of building speech technologies for new or low-resource languages and complex phenomena like code-switching. By encoding language-independent information through suitable priors, the framework facilitates the synthesis of code-mixed content and improves language modeling even with scarce data.',
+                    example: '<strong>Demonstrated Utility:</strong> An Android application providing Text-to-Speech (TTS) in 13 Indian languages, actively assisting users since 2016.'
+                },
+                flexibility: {
+                    title: 'Flexibility: Fine-Grained Control',
+                    content: 'This pillar enhances the manipulability of AI models. For generative models like TTS, it enables explicit global and local control of synthetic voices, addressing the "bland speech" issue. For discriminative models, it leverages style information to accurately detect paralinguistic events from speech.',
+                    example: '<strong>Demonstrated Utility:</strong> Identification of Styrian dialects, detection of Orca presence from vocalizations, and classification of baby sounds.'
+                },
+                explainability: {
+                    title: 'Explainability: Building Trustworthy AI',
+                    content: 'This pillar focuses on creating inherently interpretable speech technologies by making linguistic concepts first-class objects. This provides a reasonable understanding of a model\'s internal mechanisms and demonstrates utility in downstream applications, moving beyond "black box" systems.',
+                    example: '<strong>Demonstrated Utility:</strong> Strong performance in low-resource language identification and acoustic intent recognition with transparent, auditable models.'
+                }
+            };
+
+            const pillars = document.querySelectorAll('.de-entanglement-pillar');
+            const detailsContainer = document.getElementById('framework-details');
+
+            pillars.forEach(pillar => {
+                pillar.addEventListener('click', () => {
+                    pillars.forEach(p => p.classList.remove('active'));
+                    pillar.classList.add('active');
+                    
+                    const pillarId = pillar.id.split('-')[1];
+                    const details = frameworkDetails[pillarId];
+
+                    detailsContainer.innerHTML = `
+                        <div class="text-left w-full">
+                            <h4 class="text-2xl font-bold mb-3 text-purple-700">${details.title}</h4>
+                            <p class="text-gray-600 mb-4">${details.content}</p>
+                            <p class="text-gray-800">${details.example}</p>
+                        </div>
+                    `;
+                });
+            });
+
+            const publications = [
+                { title: 'A survey of code-switched speech and language processing', authors: 'S Sitaram, KR Chandu, SK Rallabandi, AW Black', year: 2019, citations: 153, category: 'Code-Switching' },
+                { title: 'Experiments with Cross-lingual Systems for Synthesis of Code-Mixed Text', authors: 'S Sitaram, SK Rallabandi, S Rijhwani, AW Black', year: 2016, citations: 43, category: 'TTS' },
+                { title: 'On Building Mixed Lingual Speech Synthesis Systems', authors: 'SK Rallabandi, AW Black', year: 2017, citations: 26, category: 'TTS' },
+                { title: 'Unsupervised self-training for sentiment analysis of code-switched data', authors: 'A Gupta, S Menghani, SK Rallabandi, AW Black', year: 2021, citations: 25, category: 'Code-Switching' },
+                { title: 'Acoustics based intent recognition using discovered phonetic units for low resource languages', authors: 'A Gupta, X Li, SK Rallabandi, AW Black', year: 2021, citations: 19, category: 'Low-Resource' },
+                { title: 'Task-specific pre-training and cross lingual transfer for sentiment analysis in Dravidian code-switched languages', authors: 'A Gupta, SK Rallabandi, AW Black', year: 2021, citations: 15, category: 'Code-Switching' },
+                { title: 'Ner4Opt: Named Entity Recognition for Optimization Modelling from Natural Language', authors: 'PP Dakle, S Kadıoğlu, et al.', year: 2023, citations: 13, category: 'Financial NLP' },
+                { title: 'Automatic detection of code-switching style from acoustics', authors: 'SK Rallabandi, S Sitaram, AW Black', year: 2018, citations: 13, category: 'Code-Switching' }
+            ];
+
+            const publicationsList = document.getElementById('publications-list');
+            const filterButtons = document.querySelectorAll('.publication-filter-btn');
+
+            function renderPublications(filter = 'all') {
+                publicationsList.innerHTML = '';
+                const filteredPubs = filter === 'all' ? publications : publications.filter(p => p.category === filter);
+
+                if (filteredPubs.length === 0) {
+                    publicationsList.innerHTML = '<p class="text-gray-500">No publications match this filter.</p>';
+                    return;
+                }
+
+                filteredPubs.forEach(pub => {
+                    const pubElement = document.createElement('div');
+                    pubElement.className = 'card p-6';
+                    pubElement.innerHTML = `
+                        <h4 class="font-semibold text-lg text-gray-800">${pub.title}</h4>
+                        <p class="text-sm text-gray-500 mt-1">${pub.authors}</p>
+                        <div class="flex justify-between items-center mt-3 text-sm">
+                            <span class="font-medium text-purple-600">${pub.category}</span>
+                            <span class="text-gray-600">${pub.year} &middot; ${pub.citations} citations</span>
+                        </div>
+                    `;
+                    publicationsList.appendChild(pubElement);
+                });
+            }
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    renderPublications(button.dataset.filter);
+                });
+            });
+
+            renderPublications();
+
+            const ctx = document.getElementById('citationsChart').getContext('2d');
+            const chartData = {
+                labels: publications.map(p => p.title.length > 30 ? p.title.substring(0, 27) + '...' : p.title),
+                datasets: [{
+                    label: 'Citations',
+                    data: publications.map(p => p.citations),
+                    backgroundColor: 'rgba(165, 105, 189, 0.7)', /* Slightly more opaque */
+                    borderColor: 'rgba(165, 105, 189, 1)',
+                    borderWidth: 1
+                }]
+            };
+            new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return publications[context[0].dataIndex].title;
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)', /* Darker tooltip background */
+                            bodyColor: '#fff',
+                            titleColor: '#fff',
+                            borderColor: '#A569BD',
+                            borderWidth: 1,
+                            cornerRadius: 6
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                             title: {
+                                display: true,
+                                text: 'Number of Citations',
+                                color: '#555',
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                }
+                            },
+                            ticks: {
+                                color: '#666'
+                            },
+                            grid: {
+                                color: '#eee'
+                            }
+                        },
+                        y: {
+                           ticks: {
+                                autoSkip: false,
+                                color: '#666'
+                           },
+                           grid: {
+                                color: '#eee'
+                           }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

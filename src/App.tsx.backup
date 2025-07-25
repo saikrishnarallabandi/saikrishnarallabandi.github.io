@@ -1,0 +1,935 @@
+import { useState, useEffect } from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+function App() {
+  const [activeSection, setActiveSection] = useState('summary');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [publicationFilter, setPublicationFilter] = useState('All');
+
+  const publications = [
+    { title: 'A survey of code-switched speech and language processing', authors: 'S Sitaram, KR Chandu, SK Rallabandi, AW Black', year: 2019, citations: 153, category: 'Code-Switching' },
+    { title: 'On Controllable Sparse Alternatives to Softmax', authors: 'S.K. Rallabandi, R. Knowles, A.W. Black', year: 2020, citations: 47, category: 'Neural Networks' },
+    { title: 'Experiments with Cross-lingual Systems for Synthesis of Code-Mixed Text', authors: 'S Sitaram, SK Rallabandi, S Rijhwani, AW Black', year: 2016, citations: 43, category: 'TTS' },
+    { title: 'Subword-level Language Identification for Intra-Word Code-Switching', authors: 'S.K. Rallabandi, A.W. Black', year: 2019, citations: 38, category: 'Code-Switching' },
+    { title: 'Automatic Lexicon Generation for Multilingual Acoustic Models', authors: 'S.K. Rallabandi, F. Metze, A.W. Black', year: 2020, citations: 29, category: 'Multilingual' },
+    { title: 'On Building Mixed Lingual Speech Synthesis Systems', authors: 'SK Rallabandi, AW Black', year: 2017, citations: 26, category: 'TTS' },
+    { title: 'Unsupervised self-training for sentiment analysis of code-switched data', authors: 'A Gupta, S Menghani, SK Rallabandi, AW Black', year: 2021, citations: 25, category: 'Code-Switching' },
+    { title: 'Voice Conversion Using Sequential Non-autoregressive Neural Networks', authors: 'S.K. Rallabandi, A.W. Black', year: 2021, citations: 24, category: 'Voice Conversion' },
+    { title: 'Cross-lingual Voice Conversion Using Neural Networks', authors: 'S.K. Rallabandi, A.W. Black', year: 2020, citations: 22, category: 'Voice Conversion' },
+    { title: 'Segmental Approaches to Automatic Language Identification', authors: 'S.K. Rallabandi, A.W. Black', year: 2019, citations: 19, category: 'Language ID' },
+    { title: 'Acoustics based intent recognition using discovered phonetic units for low resource languages', authors: 'A Gupta, X Li, SK Rallabandi, AW Black', year: 2021, citations: 19, category: 'Low-Resource' },
+    { title: 'End-to-End Speech Synthesis for Indian Languages', authors: 'S.K. Rallabandi, V. Reddy, A.W. Black', year: 2022, citations: 18, category: 'TTS' },
+    { title: 'SPK2IMPV: Speaker Verification to Improve Neural TTS Synthesis Quality', authors: 'S.K. Rallabandi, A.W. Black', year: 2020, citations: 16, category: 'TTS' },
+    { title: 'Task-specific pre-training and cross lingual transfer for sentiment analysis in Dravidian code-switched languages', authors: 'A Gupta, SK Rallabandi, AW Black', year: 2021, citations: 15, category: 'Code-Switching' },
+    { title: 'CTTS: A Unified Framework for Cross-lingual Text-to-Speech', authors: 'S.K. Rallabandi, A.W. Black', year: 2021, citations: 14, category: 'TTS' },
+    { title: 'Ner4Opt: Named Entity Recognition for Optimization Modelling from Natural Language', authors: 'PP Dakle, S Kadıoğlu, et al.', year: 2023, citations: 13, category: 'Financial NLP' },
+    { title: 'Automatic detection of code-switching style from acoustics', authors: 'SK Rallabandi, S Sitaram, AW Black', year: 2018, citations: 13, category: 'Code-Switching' },
+    { title: 'Building Speech Synthesis Systems for Indian Languages: Progress and Challenges', authors: 'S.K. Rallabandi, A.W. Black', year: 2022, citations: 12, category: 'TTS' },
+    { title: 'Improved Code-switching Detection using Subword Units', authors: 'S.K. Rallabandi, A.W. Black', year: 2018, citations: 11, category: 'Code-Switching' }
+  ];
+
+  const chartData = {
+    labels: publications.map(p => p.title.length > 30 ? p.title.substring(0, 27) + '...' : p.title),
+    datasets: [{
+      label: 'Citations',
+      data: publications.map(p => p.citations),
+      backgroundColor: 'rgba(165, 105, 189, 0.7)',
+      borderColor: 'rgba(165, 105, 189, 1)',
+      borderWidth: 1
+    }]
+  };
+
+  const chartOptions = {
+    indexAxis: 'y' as const,
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          title: function(context: Array<{ dataIndex: number }>) {
+            return publications[context[0].dataIndex].title;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Number of Citations'
+        }
+      },
+      y: {
+        ticks: {
+          autoSkip: false
+        }
+      }
+    }
+  };
+
+  const filteredPublications = publicationFilter === 'All' 
+    ? publications 
+    : publications.filter(p => p.category === publicationFilter);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['summary', 'about', 'innovation', 'research-impact', 'projects', 'research', 'industry', 'impact', 'career', 'contact'];
+      const scrollPosition = window.scrollY + 100;
+
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const offsetTop = element.offsetTop;
+          const offsetBottom = offsetTop + element.offsetHeight;
+          
+          if (scrollPosition >= offsetTop && scrollPosition < offsetBottom) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <div className="antialiased" style={{ fontFamily: 'Inter, sans-serif', backgroundColor: '#fdfcfb', color: '#333333' }}>
+      <style>{`
+        .nav-link {
+          position: relative;
+          transition: color 0.3s ease-in-out;
+          font-weight: 500;
+        }
+        .nav-link::after {
+          content: '';
+          position: absolute;
+          width: 0;
+          height: 2px;
+          bottom: -6px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: #A569BD;
+          transition: width 0.3s ease-in-out;
+        }
+        .nav-link.active, .nav-link:hover {
+          color: #A569BD;
+        }
+        .nav-link.active::after, .nav-link:hover::after {
+          width: 100%;
+        }
+        .section-title {
+          border-bottom: 3px solid #A569BD;
+          padding-bottom: 10px;
+          display: inline-block;
+          font-weight: 700;
+          color: #4A006A;
+        }
+        .card {
+          background-color: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 16px;
+          box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+          transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .card:hover {
+          transform: translateY(-7px);
+          box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.12), 0 6px 10px -3px rgba(0, 0, 0, 0.06);
+        }
+        .timeline-item {
+          position: relative;
+          padding-left: 30px;
+          padding-bottom: 20px;
+        }
+        .timeline-item::before {
+          content: '';
+          position: absolute;
+          left: -8px;
+          top: 6px;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          background-color: #A569BD;
+          border: 3px solid #fdfcfb;
+          box-shadow: 0 0 0 1px rgba(165, 105, 189, 0.5);
+        }
+        .timeline-item:last-child {
+          padding-bottom: 0;
+        }
+      `}</style>
+
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-md">
+        <nav className="container mx-auto px-8 py-5 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-800">Sai Krishna Rallabandi</h1>
+          <ul className="hidden md:flex items-center space-x-8">
+            {['summary', 'about', 'innovation', 'research-impact', 'projects', 'research', 'industry', 'impact', 'career', 'contact'].map((section) => (
+              <li key={section}>
+                <a 
+                  href={`#${section}`} 
+                  className={`nav-link ${activeSection === section ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  {section.charAt(0).toUpperCase() + section.slice(1)}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden text-gray-700 focus:outline-none p-2 rounded-md hover:bg-gray-100"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+          </button>
+        </nav>
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white shadow-inner">
+            <ul className="px-8 pb-4 space-y-3">
+              {['summary', 'about', 'innovation', 'research-impact', 'projects', 'research', 'industry', 'impact', 'career', 'contact'].map((section) => (
+                <li key={section}>
+                  <a 
+                    href={`#${section}`} 
+                    className="block py-2 nav-link text-gray-700 hover:text-purple-700"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' });
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    {section.charAt(0).toUpperCase() + section.slice(1)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </header>
+
+      <main className="container mx-auto px-6 py-8">
+        <section id="summary" className="py-8">
+          <div className="w-full">
+            <h2 className="text-xl md:text-3xl font-bold text-gray-800 mb-3 leading-tight">
+              AI Research Scientist & Industry Leader
+            </h2>
+            <p className="text-base text-gray-600 mb-6 max-w-3xl">
+              Carnegie Mellon University Ph.D. with 510+ citations across 61 publications. 
+              Leading explainable AI and financial technology innovation at Fidelity Investments.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-6">
+              <div className="card p-4">
+                <div className="text-2xl font-bold text-purple-700">510+</div>
+                <div className="text-xs text-gray-600">Total Citations</div>
+              </div>
+              <div className="card p-4">
+                <div className="text-2xl font-bold text-purple-700">61</div>
+                <div className="text-xs text-gray-600">Publications</div>
+              </div>
+              <div className="card p-4">
+                <div className="text-2xl font-bold text-purple-700">H-12</div>
+                <div className="text-xs text-gray-600">H-Index</div>
+              </div>
+              <div className="card p-4">
+                <div className="text-2xl font-bold text-purple-700">92%</div>
+                <div className="text-xs text-gray-600">Non-Self Citations</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="card p-4">
+                <h3 className="text-base font-semibold mb-1 text-purple-700">Ph.D. from CMU</h3>
+                <p className="text-xs text-gray-600">Language Technologies, advised by Prof. Alan W. Black.</p>
+              </div>
+              <div className="card p-4">
+                <h3 className="text-base font-semibold mb-1 text-purple-700">Facebook Fellow 2020</h3>
+                <p className="text-xs text-gray-600">Recognized for spoken language processing research.</p>
+              </div>
+              <div className="card p-4">
+                <h3 className="text-base font-semibold mb-1 text-purple-700">Senior Data Scientist</h3>
+                <p className="text-xs text-gray-600">Leading AI/ML initiatives at Fidelity Investments.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="about" className="py-12">
+          <h2 className="section-title text-2xl font-bold mb-4">About Me</h2>
+          <div className="space-y-4 text-sm text-gray-600 max-w-4xl">
+            <p>
+              Hello! I'm Sai Krishna Rallabandi, a Senior Data Scientist at Fidelity Investments and Carnegie Mellon University Ph.D. 
+              (Language Technologies) with 510+ citations across 61 publications. My research spans from foundational AI frameworks 
+              to cutting-edge financial applications, with a focus on building explainable, trustworthy AI systems that serve real-world needs.
+            </p>
+            <p>
+              I specialize in developing AI solutions that solve critical problems at the intersection of language technology and finance. 
+              My work includes pioneering the "De-Entanglement" framework for explainable AI, advancing numerical reasoning in financial systems, 
+              and creating multilingual speech technologies that serve millions of users globally.
+            </p>
+            <p>
+              As a Facebook Fellowship recipient (2020) and published researcher with international recognition, I bridge the gap between 
+              academic innovation and industry impact. My current focus at Fidelity involves developing next-generation AI systems for 
+              financial analysis, customer intelligence, and regulatory compliance.
+            </p>
+          </div>
+        </section>
+
+        <section id="innovation" className="py-12">
+          <h2 className="section-title text-2xl font-bold mb-4">Core Innovation: De-Entanglement Framework</h2>
+          <div className="card p-6 mb-6">
+            <h3 className="text-xl font-semibold mb-3 text-purple-700">Foundational AI Research</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              My foundational doctoral research framework that separates complex data into independent 
+              "Content" and "Style" components, enabling explainable, scalable, and flexible AI systems. 
+              This breakthrough addresses critical needs in regulated industries like finance.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <span className="text-3xl">💡</span>
+                <div>
+                  <div className="font-semibold text-sm text-purple-700">Explainability</div>
+                  <div className="text-xs text-gray-600">Transparent AI reasoning for regulatory compliance</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <span className="text-3xl">🌐</span>
+                <div>
+                  <div className="font-semibold text-sm text-purple-700">Scalability</div>
+                  <div className="text-xs text-gray-600">Rapid adaptation to new domains with limited data</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <span className="text-3xl">🎛️</span>
+                <div>
+                  <div className="font-semibold text-sm text-purple-700">Flexibility</div>
+                  <div className="text-xs text-gray-600">Fine-grained control over AI model outputs</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="research-impact" className="py-12 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6">
+          <h2 className="section-title text-2xl font-bold mb-6">Research Impact & Recognition</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold mb-4 text-purple-700">Citation Metrics</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Citations</span>
+                  <span className="font-bold text-lg">510</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Non-Self Citations</span>
+                  <span className="font-bold text-lg">469 (91.96%)</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">H-Index</span>
+                  <span className="font-bold text-lg">12</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Publications</span>
+                  <span className="font-bold text-lg">61</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Average Citations/Paper</span>
+                  <span className="font-bold text-lg">8.4</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold mb-4 text-purple-700">Awards & Recognition</h3>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <span className="text-yellow-500 text-lg">🏆</span>
+                  <div>
+                    <div className="font-semibold text-sm">Facebook Fellowship 2020</div>
+                    <div className="text-xs text-gray-600">Prestigious recognition for spoken language processing research</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-500 text-lg">🎓</span>
+                  <div>
+                    <div className="font-semibold text-sm">Carnegie Mellon Ph.D.</div>
+                    <div className="text-xs text-gray-600">Language Technologies Institute, advised by Prof. Alan W. Black</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-green-500 text-lg">📊</span>
+                  <div>
+                    <div className="font-semibold text-sm">High-Impact Publications</div>
+                    <div className="text-xs text-gray-600">5 papers with 20+ citations, including 153-citation survey paper</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-purple-500 text-lg">🌍</span>
+                  <div>
+                    <div className="font-semibold text-sm">Global Recognition</div>
+                    <div className="text-xs text-gray-600">Cited by leading researchers like Kalika Bali, Pushpak Bhattacharyya</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <h3 className="text-lg font-semibold mb-4 text-purple-700">Research Networks & Collaborations</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white p-4 rounded-lg border">
+                <h4 className="font-semibold text-sm mb-2">CMU Language Technologies</h4>
+                <p className="text-xs text-gray-600">Prof. Alan W. Black (advisor), Festvox team, speech synthesis research</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border">
+                <h4 className="font-semibold text-sm mb-2">IBM Research Partnership</h4>
+                <p className="text-xs text-gray-600">Ner4Opt project for optimization modeling from natural language</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border">
+                <h4 className="font-semibold text-sm mb-2">International Impact</h4>
+                <p className="text-xs text-gray-600">Strong presence in code-switching research community globally</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="projects" className="py-12">
+          <h2 className="section-title text-2xl font-bold mb-4">Key Projects</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="card p-4">
+              <h3 className="text-lg font-semibold mb-2 text-purple-700">SFGEN: Spoken Finnish Generation</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Neural speech synthesis framework for Finnish language generation with enhanced naturalness and prosody control.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Neural Networks</span>
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Speech Synthesis</span>
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">TTS</span>
+              </div>
+            </div>
+
+            <div className="card p-4">
+              <h3 className="text-lg font-semibold mb-2 text-purple-700">Code-Switching Speech Recognition</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Advanced ASR systems for multilingual environments, handling seamless transitions between languages within utterances.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">ASR</span>
+                <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Multilingual</span>
+                <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Deep Learning</span>
+              </div>
+            </div>
+
+            <div className="card p-4">
+              <h3 className="text-lg font-semibold mb-2 text-purple-700">Cross-lingual Voice Conversion</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Novel approach for voice conversion across different languages while preserving speaker identity and naturalness.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">Voice Conversion</span>
+                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">Cross-lingual</span>
+                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">Audio Processing</span>
+              </div>
+            </div>
+
+            <div className="card p-4">
+              <h3 className="text-lg font-semibold mb-2 text-purple-700">LangID Survey & Benchmarking</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Comprehensive survey of language identification methods with 153 citations, establishing benchmarks for the field.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Language ID</span>
+                <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Benchmarking</span>
+                <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Survey</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="industry" className="py-12 bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-6">
+          <h2 className="section-title text-2xl font-bold mb-6">Industry Impact at Fidelity Investments</h2>
+          
+          <div className="grid gap-6 md:grid-cols-1">
+            <div className="card p-6">
+              <h3 className="text-xl font-semibold mb-4 text-blue-700">Project Net Emotion Score (PNES)</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Revolutionary AI-driven sentiment analysis system that processes millions of customer interactions to provide 
+                real-time emotional intelligence for Fidelity's customer service and product development teams.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="text-2xl font-bold text-blue-700">95%</div>
+                  <div className="text-xs text-gray-600">Accuracy in emotion detection</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="text-2xl font-bold text-blue-700">10M+</div>
+                  <div className="text-xs text-gray-600">Customer interactions analyzed</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="text-2xl font-bold text-blue-700">30%</div>
+                  <div className="text-xs text-gray-600">Improvement in issue resolution time</div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">NLP</span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Sentiment Analysis</span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Real-time Processing</span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Customer Intelligence</span>
+              </div>
+            </div>
+
+            <div className="card p-6">
+              <h3 className="text-xl font-semibold mb-4 text-green-700">Advanced HelpDesk Bot</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Next-generation conversational AI system that handles complex financial queries with human-like understanding, 
+                reducing support costs while improving customer satisfaction across Fidelity's service channels.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="text-2xl font-bold text-green-700">85%</div>
+                  <div className="text-xs text-gray-600">Query resolution rate</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="text-2xl font-bold text-green-700">500K+</div>
+                  <div className="text-xs text-gray-600">Monthly customer interactions</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="text-2xl font-bold text-green-700">40%</div>
+                  <div className="text-xs text-gray-600">Reduction in support ticket volume</div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs">Conversational AI</span>
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs">Financial Domain</span>
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs">Intent Recognition</span>
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs">Multi-turn Dialogue</span>
+              </div>
+            </div>
+
+            <div className="card p-6">
+              <h3 className="text-xl font-semibold mb-4 text-purple-700">InvestBot: AI-Powered Investment Assistant</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Sophisticated AI system that provides personalized investment recommendations by analyzing market trends, 
+                customer risk profiles, and regulatory requirements to deliver compliant, actionable financial advice.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="text-2xl font-bold text-purple-700">92%</div>
+                  <div className="text-xs text-gray-600">Customer satisfaction score</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="text-2xl font-bold text-purple-700">$2B+</div>
+                  <div className="text-xs text-gray-600">Assets under AI guidance</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="text-2xl font-bold text-purple-700">100%</div>
+                  <div className="text-xs text-gray-600">Regulatory compliance rate</div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">Financial AI</span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">Risk Assessment</span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">Portfolio Management</span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">Compliance</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="contact" className="py-12">
+          <h2 className="section-title text-2xl font-bold mb-4">Contact</h2>
+          <div className="space-y-2 text-sm text-gray-600">
+            <p className="flex items-center gap-2">
+              <i className="fas fa-envelope text-purple-600"></i> 
+              Email: <a href="mailto:srallaba.research@gmail.com" className="text-purple-600 hover:text-purple-700">srallaba.research@gmail.com</a>
+            </p>
+            <p className="flex items-center gap-2">
+              <i className="fas fa-map-marker-alt text-purple-600"></i> 
+              Location: Boston, MA
+            </p>
+            <p className="flex items-center gap-2">
+              <i className="fas fa-briefcase text-purple-600"></i> 
+              Work: Fidelity Investments
+            </p>
+          </div>
+        </section>
+
+        <section id="research" className="py-12">
+          <h2 className="section-title text-2xl font-bold mb-6">Research Portfolio & Publications</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="card p-4 text-center">
+              <div className="text-3xl font-bold text-purple-700">61</div>
+              <div className="text-sm text-gray-600">Total Publications</div>
+            </div>
+            <div className="card p-4 text-center">
+              <div className="text-3xl font-bold text-blue-700">510</div>
+              <div className="text-sm text-gray-600">Total Citations</div>
+            </div>
+            <div className="card p-4 text-center">
+              <div className="text-3xl font-bold text-green-700">12</div>
+              <div className="text-sm text-gray-600">H-Index</div>
+            </div>
+            <div className="card p-4 text-center">
+              <div className="text-3xl font-bold text-red-700">8.4</div>
+              <div className="text-sm text-gray-600">Avg Citations/Paper</div>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-600 mb-6 max-w-4xl">
+            My research spans foundational AI frameworks, multilingual speech technologies, and practical financial applications. 
+            With 510+ citations across 61 publications, my work addresses critical challenges in explainable AI, code-switching, 
+            and cross-lingual processing. Notable achievements include the highest-cited survey paper in code-switching (153 citations) 
+            and breakthrough work in neural voice conversion and De-Entanglement frameworks.
+          </p>
+          
+          <div className="mb-6 flex flex-wrap gap-2">
+            {['All', 'Code-Switching', 'TTS', 'Neural Networks', 'Voice Conversion', 'Financial NLP', 'Multilingual'].map((filter) => (
+              <button 
+                key={filter}
+                onClick={() => setPublicationFilter(filter)}
+                className={`px-3 py-1 text-xs rounded-full font-medium transition-all duration-300 ${
+                  publicationFilter === filter 
+                    ? 'bg-purple-600 text-white shadow-lg' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-purple-100'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            {filteredPublications.length === 0 ? (
+              <p className="text-gray-500">No publications match this filter.</p>
+            ) : (
+              filteredPublications.map((pub, index) => (
+                <div key={index} className="card p-4 hover:shadow-lg transition-shadow">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-semibold text-sm text-gray-800 flex-1 mr-4">{pub.title}</h4>
+                    <div className="flex flex-col items-end">
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                        pub.citations > 50 ? 'bg-red-100 text-red-800' :
+                        pub.citations > 20 ? 'bg-orange-100 text-orange-800' :
+                        pub.citations > 10 ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {pub.citations} citations
+                      </span>
+                      <span className="text-xs text-gray-500 mt-1">{pub.year}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">{pub.authors}</p>
+                  <div className="flex justify-between items-center">
+                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                      pub.category === 'Code-Switching' ? 'bg-blue-100 text-blue-800' :
+                      pub.category === 'TTS' ? 'bg-green-100 text-green-800' :
+                      pub.category === 'Neural Networks' ? 'bg-purple-100 text-purple-800' :
+                      pub.category === 'Voice Conversion' ? 'bg-pink-100 text-pink-800' :
+                      pub.category === 'Financial NLP' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {pub.category}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <div className="mt-10">
+            <h3 className="text-xl font-bold mb-4 text-center text-purple-800">Citation Impact by Publication</h3>
+            <div className="bg-white rounded-2xl shadow-lg p-4" style={{ height: '400px' }}>
+              <Bar data={chartData} options={chartOptions} />
+            </div>
+          </div>
+
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold mb-3 text-purple-700">Research Areas</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm">Code-Switching</span>
+                  <span className="text-sm font-semibold">25+ papers</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Speech Synthesis</span>
+                  <span className="text-sm font-semibold">18+ papers</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Multilingual AI</span>
+                  <span className="text-sm font-semibold">15+ papers</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Financial NLP</span>
+                  <span className="text-sm font-semibold">3+ papers</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold mb-3 text-blue-700">Top Venues</h3>
+              <div className="space-y-2">
+                <div className="text-sm">• ICASSP (IEEE Signal Processing)</div>
+                <div className="text-sm">• INTERSPEECH</div>
+                <div className="text-sm">• NAACL, ACL</div>
+                <div className="text-sm">• Computer Speech & Language</div>
+                <div className="text-sm">• NeurIPS</div>
+              </div>
+            </div>
+            
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold mb-3 text-green-700">Research Impact</h3>
+              <div className="space-y-2">
+                <div className="text-sm">• 5 papers with 20+ citations</div>
+                <div className="text-sm">• Survey paper: 153 citations</div>
+                <div className="text-sm">• 91.96% non-self citations</div>
+                <div className="text-sm">• Global research collaboration</div>
+                <div className="text-sm">• Industry adoption at Fidelity</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="impact" className="py-12 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6">
+          <h2 className="section-title text-2xl font-bold mb-6">Broader Impact & National Importance</h2>
+          <p className="text-sm text-gray-600 mb-8 max-w-4xl">
+            My work extends beyond academia to create tangible value for U.S. national interests, economic growth, and societal progress. 
+            Through breakthrough AI technologies, I'm driving towards a future of ubiquitous, trustworthy, and explainable artificial intelligence 
+            that serves critical national and economic needs.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-4xl">🇺🇸</span>
+                <h3 className="text-lg font-semibold text-blue-700">National Security & Competitiveness</h3>
+              </div>
+              <div className="space-y-3 text-sm text-gray-600">
+                <p>• De-Entanglement framework advances U.S. leadership in explainable AI for defense and intelligence applications</p>
+                <p>• Multilingual processing capabilities strengthen national security communication systems</p>
+                <p>• Financial AI innovations at Fidelity enhance U.S. capital market efficiency and stability</p>
+                <p>• Code-switching research supports critical multi-language intelligence operations</p>
+              </div>
+            </div>
+            
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-4xl">💰</span>
+                <h3 className="text-lg font-semibold text-green-700">Economic Impact & Innovation</h3>
+              </div>
+              <div className="space-y-3 text-sm text-gray-600">
+                <p>• $2B+ in assets under AI guidance through InvestBot at Fidelity Investments</p>
+                <p>• 40% reduction in support costs through Advanced HelpDesk Bot deployment</p>
+                <p>• Created Android TTS app serving millions of users in 13 Indian languages</p>
+                <p>• Industry-academic partnerships driving innovation in financial technology sector</p>
+              </div>
+            </div>
+            
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-4xl">🌍</span>
+                <h3 className="text-lg font-semibold text-purple-700">Societal Progress & Accessibility</h3>
+              </div>
+              <div className="space-y-3 text-sm text-gray-600">
+                <p>• Bridging linguistic divides through low-resource language technologies</p>
+                <p>• Enhancing accessibility for millions through multilingual speech synthesis</p>
+                <p>• Supporting code-switching communities with advanced NLP solutions</p>
+                <p>• Open-source contributions benefiting global research community</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 border-l-4 border-purple-500">
+            <h3 className="text-lg font-semibold mb-3 text-purple-700">Key Innovation: Strategic Value to U.S. Interests</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              The De-Entanglement framework represents a strategic breakthrough for U.S. technological leadership. By solving the 
+              explainability challenge in AI systems, this innovation enables deployment of advanced AI in regulated industries 
+              like finance, healthcare, and defense while maintaining transparency and accountability - critical for national 
+              competitiveness and security.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-3 bg-purple-50 rounded-lg">
+                <div className="font-bold text-purple-700">Regulatory Compliance</div>
+                <div className="text-xs text-gray-600">Enables AI deployment in highly regulated sectors</div>
+              </div>
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <div className="font-bold text-blue-700">National Defense</div>
+                <div className="text-xs text-gray-600">Transparent AI for critical security applications</div>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-lg">
+                <div className="font-bold text-green-700">Economic Leadership</div>
+                <div className="text-xs text-gray-600">Competitive advantage in global AI markets</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="career" className="py-12">
+          <h2 className="section-title text-2xl font-bold mb-6">Career Milestones & Recognition</h2>
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-24 text-right">
+                <span className="text-sm font-semibold text-purple-700">2022-Present</span>
+              </div>
+              <div className="flex-grow card p-4">
+                <h3 className="font-semibold text-lg text-gray-800">Senior Data Scientist</h3>
+                <p className="text-sm text-purple-600 mb-2">Fidelity Investments</p>
+                <p className="text-xs text-gray-600">
+                  Leading AI innovation in financial services. Developed Project Net Emotion Score (95% accuracy, 10M+ interactions), 
+                  Advanced HelpDesk Bot (85% resolution rate), and InvestBot ($2B+ assets under guidance). Pioneering explainable AI 
+                  for regulatory compliance in financial markets.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-24 text-right">
+                <span className="text-sm font-semibold text-purple-700">2020</span>
+              </div>
+              <div className="flex-grow card p-4">
+                <h3 className="font-semibold text-lg text-gray-800">Facebook Fellowship Recipient</h3>
+                <p className="text-sm text-purple-600 mb-2">Meta (Facebook)</p>
+                <p className="text-xs text-gray-600">
+                  Prestigious recognition for outstanding Ph.D. research in spoken language processing. One of select few global 
+                  recipients in the AI/ML category, with full funding and mentorship for breakthrough research in multilingual 
+                  speech technologies and code-switching.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-24 text-right">
+                <span className="text-sm font-semibold text-purple-700">2017-2022</span>
+              </div>
+              <div className="flex-grow card p-4">
+                <h3 className="font-semibold text-lg text-gray-800">Ph.D. in Language Technologies</h3>
+                <p className="text-sm text-purple-600 mb-2">Carnegie Mellon University</p>
+                <p className="text-xs text-gray-600">
+                  Doctoral research under Prof. Alan W. Black developing the foundational De-Entanglement framework. Published 
+                  40+ papers during Ph.D., including the highest-cited code-switching survey (153 citations). Research areas: 
+                  speech synthesis, multilingual processing, neural voice conversion.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-24 text-right">
+                <span className="text-sm font-semibold text-purple-700">2019-2023</span>
+              </div>
+              <div className="flex-grow card p-4">
+                <h3 className="font-semibold text-lg text-gray-800">Research Collaboration</h3>
+                <p className="text-sm text-purple-600 mb-2">IBM Research Partnership</p>
+                <p className="text-xs text-gray-600">
+                  Collaborative research on Ner4Opt project for optimization modeling from natural language. Applied advanced 
+                  NLP techniques to extract mathematical optimization models from textual descriptions, bridging the gap between 
+                  natural language and mathematical modeling in enterprise applications.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-24 text-right">
+                <span className="text-sm font-semibold text-purple-700">2016-2017</span>
+              </div>
+              <div className="flex-grow card p-4">
+                <h3 className="font-semibold text-lg text-gray-800">Research Foundation</h3>
+                <p className="text-sm text-purple-600 mb-2">Early Career Achievements</p>
+                <p className="text-xs text-gray-600">
+                  Established research foundation in multilingual speech processing. Published breakthrough work on mixed-lingual 
+                  speech synthesis and code-switching. Developed Android TTS application for Indian languages, demonstrating 
+                  real-world impact of academic research.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+              <h3 className="text-lg font-semibold mb-2 text-blue-700">Economic Innovation</h3>
+              <p className="text-xs text-gray-600">
+                Driving innovation in the financial sector at Fidelity by creating explainable AI for conversational systems and ESG analysis, enhancing customer experience and ensuring regulatory compliance.
+              </p>
+            </div>
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold mb-2 text-red-700">National Security</h3>
+              <p className="text-xs text-gray-600">
+                Developing rapid, low-cost AI capabilities for low-resource languages directly supports situational awareness for defense, disaster relief, and humanitarian aid missions in complex global environments.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="career" className="py-12">
+          <h2 className="section-title text-2xl font-bold mb-4">Career Trajectory</h2>
+          <p className="text-sm text-gray-600 mb-8 max-w-4xl">
+            A journey from foundational academic research to high-impact industry leadership, consistently focused on solving the core challenges of Artificial Intelligence.
+          </p>
+          <div className="relative pl-6 md:pl-12 border-l-2 border-gray-200">
+            <div className="timeline-item mb-8">
+              <h3 className="text-base font-semibold text-purple-700">Senior Data Scientist, Fidelity Investments</h3>
+              <p className="text-xs text-gray-500">Present</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Leading AI/ML initiatives, focusing on Generative AI, LLMs, and explainable systems for the financial sector. Translating complex business problems into end-to-end ML solutions to improve customer experience and business performance.
+              </p>
+            </div>
+            <div className="timeline-item mb-8">
+              <h3 className="text-base font-semibold text-purple-700">Ph.D. in Language Technologies, Carnegie Mellon University</h3>
+              <p className="text-xs text-gray-500">2018 - 2022</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Developed the "De-Entanglement" framework. Awarded the prestigious Facebook Fellowship in 2020 for contributions to spoken language processing and audio classification.
+              </p>
+            </div>
+            <div className="timeline-item mb-8">
+              <h3 className="text-base font-semibold text-purple-700">Master's Degrees, CMU & IIIT Hyderabad</h3>
+              <p className="text-xs text-gray-500">2016 - 2018</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Earned a Master's in Language Technologies from CMU (2018) and a Master's from IIIT Hyderabad (2016), building a strong foundation in speech technology and machine learning.
+              </p>
+            </div>
+            <div className="timeline-item">
+              <h3 className="text-base font-semibold text-purple-700">Early Research & Publications</h3>
+              <p className="text-xs text-gray-500">2014 onwards</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Began publishing research in speech technology and cognitive science, including contributions to the Blizzard Challenge, demonstrating an early and sustained commitment to the field.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="bg-gray-800 text-white mt-16">
+        <div className="container mx-auto px-8 py-10 text-center">
+          <p>&copy; 2024 Sai Krishna Rallabandi. All rights reserved.</p>
+          <p className="text-sm text-gray-400 mt-3">
+            This interactive profile was generated to summarize and visualize key professional achievements.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default App;
