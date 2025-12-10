@@ -50,12 +50,57 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // --- Render Publications ---
+  // --- Render Publications ---
   const pubContainer = document.getElementById('publications-container');
   if (pubContainer && typeof publications !== 'undefined') {
-    publications.forEach(pub => {
-      const pubCard = document.createElement('div');
-      pubCard.className = 'pub-card';
-      pubCard.innerHTML = `
+    // Check if publications is an array (old format) or object (new format)
+    if (Array.isArray(publications)) {
+      // Fallback or old behavior if needed, but we are switching to categories
+      // For now, let's just wrap it in a "Selected Publications" category if it happens to be an array
+      const catTitle = document.createElement('h3');
+      catTitle.className = 'publication-category-title';
+      catTitle.textContent = "Selected Publications";
+      pubContainer.appendChild(catTitle);
+
+      const grid = document.createElement('div');
+      grid.className = 'project-list';
+      pubContainer.appendChild(grid);
+
+      publications.forEach(pub => {
+        grid.appendChild(createPubCard(pub));
+      });
+    } else {
+      // Categorized object
+      for (const [category, pubs] of Object.entries(publications)) {
+        const catContainer = document.createElement('div');
+        catContainer.className = 'publication-category';
+
+        const catTitle = document.createElement('h3');
+        catTitle.className = 'publication-category-title';
+        catTitle.textContent = category;
+        catTitle.style.marginTop = '2rem';
+        catTitle.style.marginBottom = '1rem';
+        catTitle.style.borderBottom = '2px solid var(--accent-color)';
+        catTitle.style.display = 'inline-block';
+        catContainer.appendChild(catTitle);
+
+        const grid = document.createElement('div');
+        grid.className = 'project-list'; // Reusing project-list grid style
+        catContainer.appendChild(grid);
+
+        pubs.forEach(pub => {
+          grid.appendChild(createPubCard(pub));
+        });
+
+        pubContainer.appendChild(catContainer);
+      }
+    }
+  }
+
+  function createPubCard(pub) {
+    const pubCard = document.createElement('div');
+    pubCard.className = 'pub-card';
+    pubCard.innerHTML = `
         <div class="pub-title">${pub.title}</div>
         <div class="pub-authors">${pub.authors}</div>
         <div class="pub-venue">${pub.venue} (${pub.year})</div>
@@ -66,8 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <a href="${pub.url}" class="project-link" target="_blank" style="padding: 5px 10px; font-size: 0.8rem;">View Paper</a>
         </div>
       `;
-      pubContainer.appendChild(pubCard);
-    });
+    return pubCard;
   }
 
   // --- Smooth Scroll (Existing) ---
