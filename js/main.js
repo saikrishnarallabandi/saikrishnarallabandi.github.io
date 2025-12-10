@@ -1,4 +1,3 @@
-// Add smooth scrolling for navigation
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
@@ -8,16 +7,23 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   });
-  
-  // Add animation on scroll
-  window.addEventListener('scroll', function() {
-    const sections = document.querySelectorAll('section');
-    sections.forEach(section => {
-      const sectionTop = section.getBoundingClientRect().top;
-      const windowHeight = window.innerHeight;
-      if (sectionTop < windowHeight * 0.75) {
-        section.style.opacity = '1';
+
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -100px 0px'
+  };
+
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.animation = 'fadeInUp 0.6s ease-out forwards';
+        observer.unobserve(entry.target);
       }
     });
+  }, observerOptions);
+
+  document.querySelectorAll('.project-card, .timeline-content, .about-section, .contact-section').forEach(el => {
+    el.style.opacity = '0';
+    observer.observe(el);
   });
 });
