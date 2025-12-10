@@ -49,6 +49,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // --- Render Publications ---
+  const pubContainer = document.getElementById('publications-container');
+  if (pubContainer && typeof publications !== 'undefined') {
+    publications.forEach(pub => {
+      const pubCard = document.createElement('div');
+      pubCard.className = 'pub-card';
+      pubCard.innerHTML = `
+        <div class="pub-title">${pub.title}</div>
+        <div class="pub-authors">${pub.authors}</div>
+        <div class="pub-venue">${pub.venue} (${pub.year})</div>
+        <div class="pub-meta">
+          <div class="pub-citations">
+            <i class="fas fa-quote-right"></i> ${pub.citations} Citations
+          </div>
+          <a href="#" class="project-link" style="padding: 5px 10px; font-size: 0.8rem;">View Paper</a>
+        </div>
+      `;
+      pubContainer.appendChild(pubCard);
+    });
+  }
+
   // --- Smooth Scroll (Existing) ---
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
