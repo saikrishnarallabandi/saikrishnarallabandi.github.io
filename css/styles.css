@@ -436,6 +436,13 @@ footer {
 
 
 /* Publications */
+.publication-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0 20px;
+}
+
 .pub-card {
   background: var(--bg-card);
   border-radius: 12px;
@@ -446,6 +453,7 @@ footer {
   position: relative;
   display: flex;
   flex-direction: column;
+  width: 100%; /* Ensure it takes full width */
 }
 
 .pub-card:hover {

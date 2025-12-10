@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
       pubContainer.appendChild(catTitle);
 
       const grid = document.createElement('div');
-      grid.className = 'project-list';
+      grid.className = 'publication-list'; // Switched to vertical list
       pubContainer.appendChild(grid);
 
       publications.forEach(pub => {
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
         catContainer.appendChild(catTitle);
 
         const grid = document.createElement('div');
-        grid.className = 'project-list'; // Reusing project-list grid style
+        grid.className = 'publication-list'; // Switched to vertical list
         catContainer.appendChild(grid);
 
         pubs.forEach(pub => {
