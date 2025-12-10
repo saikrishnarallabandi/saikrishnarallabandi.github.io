@@ -1,5 +1,5 @@
 const publications = {
-    "Speech": [
+    "Speech Processing": [
         {
             "title": "A survey of code-switched speech and language processing",
             "authors": "S Sitaram, KR Chandu, SK Rallabandi, AW Black",
