@@ -48,7 +48,7 @@ const publications = {
             "venue": "arXiv preprint",
             "year": "2024",
             "citations": 0,
-            "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
+            "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=7jXvu7MAAAAJ&sortby=pubdate&citation_for_view=7jXvu7MAAAAJ:RGFaLdJalmkC"
         }
     ],
     "Finance": [
@@ -57,35 +57,35 @@ const publications = {
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP-2025",
             "year": "2025",
-            "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
+            "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=7jXvu7MAAAAJ&sortby=pubdate&citation_for_view=7jXvu7MAAAAJ:J_g5lzvAfSwC"
         },
         {
             "title": "Investigating the effectiveness of length based rewards in DPO",
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP-2025",
             "year": "2025",
-            "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
+            "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=7jXvu7MAAAAJ&sortby=pubdate&citation_for_view=7jXvu7MAAAAJ:GnPB-g6toBAC"
         },
         {
             "title": "Jetsons at FinNLP 2024: Towards Understanding the ESG Impact",
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP 2024",
             "year": "2024",
-            "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
+            "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=7jXvu7MAAAAJ&sortby=pubdate&citation_for_view=7jXvu7MAAAAJ:M3NEmzRMIkIC"
         },
         {
             "title": "Jetsons at the FinNLP-2022 ERAI Task: BERT-Chinese for mining high MPP posts",
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP 2022",
             "year": "2022",
-            "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
+            "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=7jXvu7MAAAAJ&sortby=pubdate&citation_for_view=7jXvu7MAAAAJ:r0BpntZqJG4C"
         },
         {
             "title": "Using transformer-based models for taxonomy enrichment and sentence classification",
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP 2022",
             "year": "2022",
-            "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
+            "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=7jXvu7MAAAAJ&sortby=pubdate&citation_for_view=7jXvu7MAAAAJ:e5wmG9Sq2KIC"
         }
     ]
 };
