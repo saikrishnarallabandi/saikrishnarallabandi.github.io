@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="pub-citations">
             <i class="fas fa-quote-right"></i> ${pub.citations} Citations
           </div>
-          <a href="#" class="project-link" style="padding: 5px 10px; font-size: 0.8rem;">View Paper</a>
+          <a href="${pub.url}" class="project-link" target="_blank" style="padding: 5px 10px; font-size: 0.8rem;">View Paper</a>
         </div>
       `;
       pubContainer.appendChild(pubCard);
