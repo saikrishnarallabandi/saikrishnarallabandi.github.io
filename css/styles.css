@@ -262,11 +262,14 @@ a:hover {
 
 .timeline-year {
   position: absolute;
-  left: -20px;
-  /* Hidden or adjusted? existing design had it left */
-  top: 0;
-  display: none;
-  /* Simplifying layout */
+  left: -120px;
+  /* moved further left to accommodate range */
+  top: 10px;
+  width: 100px;
+  text-align: right;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .timeline-logo {
