@@ -57,7 +57,6 @@ const publications = {
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP-2025",
             "year": "2025",
-            "citations": 0,
             "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
         },
         {
@@ -65,7 +64,6 @@ const publications = {
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP-2025",
             "year": "2025",
-            "citations": 0,
             "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
         },
         {
@@ -73,7 +71,6 @@ const publications = {
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP 2024",
             "year": "2024",
-            "citations": 2,
             "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
         },
         {
@@ -81,7 +78,6 @@ const publications = {
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP 2022",
             "year": "2022",
-            "citations": 3,
             "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
         },
         {
@@ -89,7 +85,6 @@ const publications = {
             "authors": "SK Rallabandi, et al.",
             "venue": "FinNLP 2022",
             "year": "2022",
-            "citations": 4,
             "url": "https://scholar.google.com/citations?user=7jXvu7MAAAAJ"
         }
     ]

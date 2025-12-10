@@ -99,15 +99,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function createPubCard(pub) {
     const pubCard = document.createElement('div');
+
+    let citationHtml = '';
+    if (pub.citations !== undefined && pub.citations !== null) {
+      citationHtml = `
+          <div class="pub-citations">
+            <i class="fas fa-quote-right"></i> ${pub.citations} Citations
+          </div>`;
+    }
+
     pubCard.className = 'pub-card';
     pubCard.innerHTML = `
         <div class="pub-title">${pub.title}</div>
         <div class="pub-authors">${pub.authors}</div>
         <div class="pub-venue">${pub.venue} (${pub.year})</div>
         <div class="pub-meta">
-          <div class="pub-citations">
-            <i class="fas fa-quote-right"></i> ${pub.citations} Citations
-          </div>
+          ${citationHtml}
           <a href="${pub.url}" class="project-link" target="_blank" style="padding: 5px 10px; font-size: 0.8rem;">View Paper</a>
         </div>
       `;
