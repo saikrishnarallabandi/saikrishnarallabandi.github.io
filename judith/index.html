@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Judith — a self-hosted broadcast AI</title>
-<meta name="description" content="Judith is a self-hosted, voice-driven broadcast AI built by Sai Krishna Rallabandi — it reads the world, runs across a personal tailnet of machines, and presents the day as a live console.">
+<title>Judith — my self-hosted personal AI</title>
+<meta name="description" content="Judith is a self-hosted personal AI built by Sai Krishna Rallabandi — a voice in smart glasses, an assistant on every channel via OpenClaw, and a live on-screen newsroom, all running on owned hardware.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600;700&family=Spline+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -125,7 +125,7 @@
 <body>
 
 <header class="bar">
-  <div class="logo"><b>JUDITH</b><span class="tag">self-hosted broadcast AI</span></div>
+  <div class="logo"><b>JUDITH</b><span class="tag">self-hosted personal AI</span></div>
   <div class="spacer"></div>
   <span class="badge"><span class="dot"></span>runs on my own machines</span>
   <a class="back" href="/">← portfolio</a>
@@ -136,12 +136,13 @@
   <svg id="spiral" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
   <div class="vignette"></div>
   <div class="hero-in">
-    <div class="eyebrow">a personal AI, on the air</div>
+    <div class="eyebrow">my personal AI — voice, vision, on the air</div>
     <h1>JUDITH</h1>
-    <p class="sub">A <b>self-hosted, voice-driven broadcast AI</b>. She reads the world, runs across my own tailnet of machines, and presents the day as a live console — every exchange becomes an orbiting node, every answer fans out as exhibit cards.</p>
+    <p class="sub">My <b>self-hosted personal assistant</b>. She lives in my ear through smart glasses, runs my home lab across a private tailnet, reaches me on every channel I already use, and turns any question into a live, on-screen broadcast. One assistant — voice, vision, and a newsroom — all on hardware I own.</p>
     <div class="cta">
-      <a class="btn gold" href="#broadcast">▶ See a sample broadcast</a>
-      <a class="btn ghost" href="#what">What is Judith?</a>
+      <a class="btn gold" href="#glasses">▶ Friday in your ear</a>
+      <a class="btn ghost" href="#openclaw">The brain: OpenClaw</a>
+      <a class="btn ghost" href="#broadcast">See a broadcast</a>
     </div>
   </div>
   <div class="scrollhint">SCROLL</div>
@@ -151,8 +152,8 @@
 <section id="what">
   <div class="wrap">
     <div class="kicker">// what she is</div>
-    <h2 class="h2">Not a chatbot in a tab.<br>A broadcast desk that lives on my hardware.</h2>
-    <p class="lead">Judith is the anchor of a private newsroom. You speak; she transcribes, reasons over your world — news, markets, and the state of your own projects — then <b>speaks back and reconstructs the answer on screen</b>. Her reply splits into prose she narrates and <b>exhibit cards</b> that ignite as she talks, the way a live broadcast cuts to graphics. No cloud account, no API tab — the whole brain runs on machines I own.</p>
+    <h2 class="h2">Not a chatbot in a tab.<br>A personal AI that lives on my hardware.</h2>
+    <p class="lead">Judith is with me through the day — a voice in my glasses, an assistant on every channel, and the anchor of a private newsroom. She transcribes what I say, reasons over my world — news, markets, and the state of my own projects — then <b>speaks back and reconstructs the answer on screen</b>, prose she narrates plus <b>exhibit cards</b> that ignite as she talks. The broadcast desk below is just one of the things she does. No cloud account, no API tab — the whole brain runs on machines I own.</p>
     <div class="pillars">
       <div class="pill"><div class="ic">voice console</div><h3>Talk, don't type</h3><p>Speech in, speech out. Whisper transcribes, the brain answers, Kokoro speaks it back — hands-free.</p></div>
       <div class="pill"><div class="ic">reconstruction</div><h3>Answers you can see</h3><p>Every turn becomes a node on a spiral; the reply's evidence fans out as cards that reveal in time with her voice.</p></div>
@@ -223,6 +224,36 @@
           <div class="card"><div class="hd">DGX · active</div><div class="q" style="margin-top:12px">“a fresh Stage B run underway”</div><div class="sw">The heavier lane is still processing.</div><div class="kw"><span>DGX</span><span>Pythia</span></div></div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SMART GLASSES ===================== -->
+<section id="glasses">
+  <div class="wrap">
+    <div class="kicker">// in your ear · Friday Mode</div>
+    <h2 class="h2">She sees what I see.</h2>
+    <p class="lead">Judith rides along on a pair of smart glasses. Press the temple, ask anything, and her answer is back in my ear in about two seconds — no phone, no screen. In <b>Friday Mode</b> she watches the world through the glasses camera and quietly narrates what changes, hands-free. Everything — speech, vision, reasoning — runs on my home server over an encrypted tailnet; the glasses see what <b>I</b> see, not what a cloud wants.</p>
+    <div class="pillars">
+      <div class="pill"><div class="ic">ask</div><h3>Hands-free answers</h3><p>Tap the temple, ask, and Judith replies in your ear — local Whisper hears you, a custom voice answers, ~2s round trip.</p></div>
+      <div class="pill"><div class="ic">see</div><h3>Through her eyes</h3><p>Continuous POV camera; she notices when the scene changes and describes it aloud while your hands stay free.</p></div>
+      <div class="pill"><div class="ic">recall</div><h3>Knows your context</h3><p>“What did I just look at?” — she remembers the session, your place, your calendar and health signals.</p></div>
+      <div class="pill"><div class="ic">private</div><h3>Local-first</h3><p>Voice, vision and the model all run on owned hardware over Tailscale. Nothing is uploaded to anyone's cloud.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== OPENCLAW ===================== -->
+<section id="openclaw">
+  <div class="wrap">
+    <div class="kicker">// the brain · OpenClaw</div>
+    <h2 class="h2">One assistant, every channel.</h2>
+    <p class="lead">Under Judith runs <b>OpenClaw</b> — a personal AI gateway I host on my own devices. It reaches me wherever I already am — WhatsApp, Telegram, Slack, Signal, iMessage and 20+ more — speaks and listens, runs real tools (browser, shell, files, cron, webhooks), and can drive any model: Claude, local Ollama, and dozens more with automatic failover. Local by default, secure by design: the gateway lives on my machine, not a SaaS.</p>
+    <div class="stack">
+      <div class="chip"><div class="role">reach</div><div class="name">26+ channels</div></div>
+      <div class="chip"><div class="role">models</div><div class="name">58 backends · failover</div></div>
+      <div class="chip"><div class="role">act</div><div class="name">browser · shell · files · cron</div></div>
+      <div class="chip"><div class="role">trust</div><div class="name"><b>local-first</b> · sandboxed</div></div>
     </div>
   </div>
 </section>
