@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Judith — a self-hosted broadcast AI</title>
+<meta name="description" content="Judith is a self-hosted, voice-driven broadcast AI built by Sai Krishna Rallabandi — it reads the world, runs across a personal tailnet of machines, and presents the day as a live console.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600;700&family=Spline+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05070a; --bg2:#070b10; --panel:rgba(12,16,22,.82); --line:#1c262e; --line2:#26323c;
+    --text:#eef3f6; --muted:#8593a0; --dim:#5c6b78;
+    --gold:#e8b24a; --cyan:#57c7d6; --green:#52c97a; --red:#e0544b; --violet:#9b8cff;
+    --mono:"Spline Sans Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"Spline Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.55;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  h1,h2,h3,p{margin:0}
+  a{color:inherit;text-decoration:none}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+  /* ---------- top bar ---------- */
+  header.bar{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:14px;
+    padding:12px 22px;background:linear-gradient(180deg,rgba(5,7,10,.92),rgba(5,7,10,0));backdrop-filter:blur(4px)}
+  .logo{font-weight:900;letter-spacing:.14em;font-size:16px}
+  .logo b{color:var(--gold)}
+  .logo .tag{color:var(--muted);font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;margin-left:8px}
+  .bar .spacer{flex:1}
+  .badge{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:#9af0bf;border:1px solid #2f6b48;background:#0e2018;border-radius:999px;padding:4px 10px;display:flex;align-items:center;gap:7px}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(82,201,122,.7);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(82,201,122,.65)}70%{box-shadow:0 0 0 8px rgba(82,201,122,0)}100%{box-shadow:0 0 0 0 rgba(82,201,122,0)}}
+  .bar a.back{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 12px;transition:.2s}
+  .bar a.back:hover{color:var(--text);border-color:var(--line2)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+  #spiral{position:absolute;inset:0;z-index:0;width:100%;height:100%}
+  .vignette{position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(115% 80% at 50% 42%,transparent 38%,rgba(3,5,8,.74) 100%)}
+  .hero-in{position:relative;z-index:2;padding:90px 22px 40px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
+  .hero h1{font-size:clamp(58px,15vw,150px);font-weight:800;letter-spacing:.04em;line-height:.92;
+    background:linear-gradient(180deg,#fff,#cdd7df 60%,#7d8995);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{margin:22px auto 0;max-width:620px;font-size:clamp(16px,2.4vw,20px);color:#c2ccd4}
+  .hero .sub b{color:var(--text);font-weight:600}
+  .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+  .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;padding:12px 20px;border-radius:10px;
+    border:1px solid var(--line2);color:var(--text);transition:.2s;display:inline-flex;align-items:center;gap:9px}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.gold{background:linear-gradient(180deg,#f0c061,#d99a2e);color:#1a1206;border-color:transparent;font-weight:700;box-shadow:0 8px 30px rgba(232,178,74,.18)}
+  .btn.ghost:hover{border-color:var(--gold);color:var(--gold)}
+  .scrollhint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.2em;animation:bob 2.4s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
+
+  /* ---------- sections ---------- */
+  section{position:relative;padding:84px 0;border-top:1px solid rgba(28,38,46,.6)}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+  .h2{font-size:clamp(28px,4.4vw,40px);font-weight:800;letter-spacing:.01em;line-height:1.12}
+  .lead{margin-top:18px;max-width:680px;color:#bcc6ce;font-size:17px}
+  .lead b{color:var(--text);font-weight:600}
+
+  /* ---------- what / pillars ---------- */
+  .pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:36px}
+  .pill{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;transition:.2s}
+  .pill:hover{border-color:var(--line2);transform:translateY(-3px)}
+  .pill .ic{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase}
+  .pill h3{margin-top:12px;font-size:18px;font-weight:700}
+  .pill p{margin-top:8px;color:var(--muted);font-size:14.5px}
+
+  /* ---------- sample broadcast ---------- */
+  .console{margin-top:38px;background:linear-gradient(180deg,rgba(10,14,19,.9),rgba(7,10,14,.92));
+    border:1px solid var(--line2);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+  .console .chead{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(6,9,12,.7)}
+  .console .chead .d{width:11px;height:11px;border-radius:50%}
+  .console .chead .meta{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em}
+  .cbody{padding:22px 20px}
+  .ask{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;color:var(--muted);
+    border:1px solid var(--line);background:rgba(8,11,15,.6);border-radius:999px;padding:8px 14px}
+  .ask .arrow{color:var(--gold)}
+  .reply{margin-top:18px;display:flex;gap:14px}
+  .reply .orb{flex:none;width:34px;height:34px;border-radius:50%;margin-top:3px;
+    background:radial-gradient(circle at 38% 34%,#ffe7ad,#e8b24a 55%,#7a5413);box-shadow:0 0 22px rgba(232,178,74,.5)}
+  .reply .said{font-size:16.5px;color:#e7eef3}
+  .reply .said .who{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:7px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:22px}
+  .card{background:rgba(9,13,18,.8);border:1px solid var(--line);border-radius:13px;padding:15px;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan);opacity:.8}
+  .card.k-focus::before{background:var(--gold)}
+  .card.k-sec::before{background:var(--red)}
+  .card .hd{font-size:15px;font-weight:700;letter-spacing:.01em}
+  .card .stat{font-family:var(--mono);font-weight:700;font-size:26px;color:var(--gold);margin-top:10px;line-height:1}
+  .card .stat .lbl{display:block;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:6px}
+  .card .q{margin-top:10px;font-size:13.5px;color:#cdd6dd;font-style:italic}
+  .card .sw{margin-top:9px;font-size:12.5px;color:var(--muted)}
+  .card .kw{margin-top:11px;display:flex;flex-wrap:wrap;gap:5px}
+  .card .kw span{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--cyan);border:1px solid rgba(87,199,214,.28);border-radius:999px;padding:2px 8px;background:rgba(87,199,214,.06)}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  @media(max-width:760px){.twocol{grid-template-columns:1fr}}
+
+  /* ---------- stack strip ---------- */
+  .stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:34px}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .chip .role{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  .chip .name{margin-top:7px;font-weight:700;font-size:15px}
+  .chip .name b{color:var(--gold);font-weight:700}
+  .nodes{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+  .node{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:8px}
+  .node i{width:7px;height:7px;border-radius:50%;background:var(--cyan)}
+  .node b{color:var(--text);font-weight:600}
+
+  footer{padding:48px 0 60px;border-top:1px solid rgba(28,38,46,.6);text-align:center;color:var(--dim)}
+  footer .mono{font-size:12px}
+  footer a{color:var(--muted);border-bottom:1px solid transparent;transition:.2s}
+  footer a:hover{color:var(--gold);border-color:var(--gold)}
+  .note{margin-top:16px;font-size:12px;color:var(--dim);max-width:560px;margin-left:auto;margin-right:auto}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="logo"><b>JUDITH</b><span class="tag">self-hosted broadcast AI</span></div>
+  <div class="spacer"></div>
+  <span class="badge"><span class="dot"></span>runs on my own machines</span>
+  <a class="back" href="/">← portfolio</a>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<div class="hero">
+  <svg id="spiral" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+  <div class="vignette"></div>
+  <div class="hero-in">
+    <div class="eyebrow">a personal AI, on the air</div>
+    <h1>JUDITH</h1>
+    <p class="sub">A <b>self-hosted, voice-driven broadcast AI</b>. She reads the world, runs across my own tailnet of machines, and presents the day as a live console — every exchange becomes an orbiting node, every answer fans out as exhibit cards.</p>
+    <div class="cta">
+      <a class="btn gold" href="#broadcast">▶ See a sample broadcast</a>
+      <a class="btn ghost" href="#what">What is Judith?</a>
+    </div>
+  </div>
+  <div class="scrollhint">SCROLL</div>
+</div>
+
+<!-- ===================== WHAT ===================== -->
+<section id="what">
+  <div class="wrap">
+    <div class="kicker">// what she is</div>
+    <h2 class="h2">Not a chatbot in a tab.<br>A broadcast desk that lives on my hardware.</h2>
+    <p class="lead">Judith is the anchor of a private newsroom. You speak; she transcribes, reasons over your world — news, markets, and the state of your own projects — then <b>speaks back and reconstructs the answer on screen</b>. Her reply splits into prose she narrates and <b>exhibit cards</b> that ignite as she talks, the way a live broadcast cuts to graphics. No cloud account, no API tab — the whole brain runs on machines I own.</p>
+    <div class="pillars">
+      <div class="pill"><div class="ic">voice console</div><h3>Talk, don't type</h3><p>Speech in, speech out. Whisper transcribes, the brain answers, Kokoro speaks it back — hands-free.</p></div>
+      <div class="pill"><div class="ic">reconstruction</div><h3>Answers you can see</h3><p>Every turn becomes a node on a spiral; the reply's evidence fans out as cards that reveal in time with her voice.</p></div>
+      <div class="pill"><div class="ic">operator</div><h3>Knows your world</h3><p>News, markets, and live project status — Now, Next, Work, Signal — pulled into one operator board.</p></div>
+      <div class="pill"><div class="ic">self-hosted</div><h3>Your machines only</h3><p>Runs across a personal tailnet — judith, tara, astra, a DGX — orchestrated from home. Nothing leaves the network.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SAMPLE BROADCAST ===================== -->
+<section id="broadcast">
+  <div class="wrap">
+    <div class="kicker">// sample broadcast · captured from the live console</div>
+    <h2 class="h2">A morning briefing, the way Judith runs it</h2>
+    <p class="lead">A real exchange, rendered exactly as it appears on the console: the question, her spoken reply, and the exhibit cards that light up alongside it.</p>
+
+    <div class="console">
+      <div class="chead">
+        <span class="d" style="background:#e0544b"></span><span class="d" style="background:#e8b24a"></span><span class="d" style="background:#52c97a"></span>
+        <span class="meta mono">JUDITH · openclaw:sai · midday CT</span>
+      </div>
+      <div class="cbody">
+        <div class="ask"><span class="arrow mono">›</span> do my daily briefing</div>
+        <div class="reply">
+          <div class="orb"></div>
+          <div class="said"><span class="who">Judith</span>Your daily brief: Iran remains the global risk center, with inspection claims still disputed and the Pentagon asking for roughly eighty billion dollars tied to war costs. U.S. security news is serious — seven federal defendants are now tied to the alleged White House attack plot. Markets are mixed at midday Central: SPY basically flat, QQQ weaker, Bitcoin near sixty-two thousand five hundred. For work, Project Judith is the priority: the native operator board is active, with Now, Next, Work and Signal as the first cards.</div>
+        </div>
+        <div class="cards">
+          <div class="card k-sec">
+            <div class="hd">Iran Risk Leads</div>
+            <div class="stat">$80B<span class="lbl">Pentagon request</span></div>
+            <div class="q">“Iran remains the global risk center”</div>
+            <div class="sw">Geopolitics still drives market risk today.</div>
+            <div class="kw"><span>Iran</span><span>Pentagon</span><span>war</span></div>
+          </div>
+          <div class="card k-sec">
+            <div class="hd">Security Case Widens</div>
+            <div class="stat">7<span class="lbl">federal defendants</span></div>
+            <div class="q">“seven federal defendants are now tied”</div>
+            <div class="sw">Domestic security remains an active headline.</div>
+            <div class="kw"><span>security</span><span>White House</span></div>
+          </div>
+          <div class="card k-focus">
+            <div class="hd">Judith Focus</div>
+            <div class="q" style="margin-top:14px">“Project Judith is the priority”</div>
+            <div class="sw">Native operator board work is the clean next move.</div>
+            <div class="kw"><span>operator board</span><span>Signal</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- second exchange: she watches the home lab -->
+    <div class="console" style="margin-top:18px">
+      <div class="chead">
+        <span class="d" style="background:#e0544b"></span><span class="d" style="background:#e8b24a"></span><span class="d" style="background:#52c97a"></span>
+        <span class="meta mono">JUDITH · operator · tailnet</span>
+      </div>
+      <div class="cbody">
+        <div class="ask"><span class="arrow mono">›</span> I'm running a few experiments via Claude Code. Check status.</div>
+        <div class="reply">
+          <div class="orb"></div>
+          <div class="said"><span class="who">Judith</span>Status is healthy. Stage B sentiment experiments are split across three lanes. Tara finished Stage B. Astra is still running the Qwen 0.6B toxicity section. The DGX has a fresh Stage B run underway, pushing through Qwen and Pythia jobs. I don't see a failure marker yet.</div>
+        </div>
+        <div class="cards">
+          <div class="card"><div class="hd">Tara · complete</div><div class="q" style="margin-top:12px">“Tara finished Stage B.”</div><div class="sw">One compute lane is done cleanly.</div><div class="kw"><span>Tara</span><span>Stage B</span></div></div>
+          <div class="card"><div class="hd">Astra · running</div><div class="q" style="margin-top:12px">“still running the Qwen 0.6B toxicity section”</div><div class="sw">Progress is active, not stalled.</div><div class="kw"><span>Astra</span><span>Qwen</span><span>toxicity</span></div></div>
+          <div class="card"><div class="hd">DGX · active</div><div class="q" style="margin-top:12px">“a fresh Stage B run underway”</div><div class="sw">The heavier lane is still processing.</div><div class="kw"><span>DGX</span><span>Pythia</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STACK ===================== -->
+<section id="stack">
+  <div class="wrap">
+    <div class="kicker">// under the hood</div>
+    <h2 class="h2">Open models, owned compute</h2>
+    <p class="lead">Judith is wired from open components and runs entirely on a private network — the same setup that powers the broadcast above.</p>
+    <div class="stack">
+      <div class="chip"><div class="role">hearing · ASR</div><div class="name">faster-whisper</div></div>
+      <div class="chip"><div class="role">reasoning · LLM</div><div class="name"><b>OpenClaw</b> bridge</div></div>
+      <div class="chip"><div class="role">voice · TTS</div><div class="name">Kokoro</div></div>
+      <div class="chip"><div class="role">stage · render</div><div class="name">SVG reconstruction</div></div>
+    </div>
+    <div class="nodes">
+      <span class="node"><i></i><b>judith</b> · orchestrator</span>
+      <span class="node"><i></i><b>tara</b> · compute</span>
+      <span class="node"><i></i><b>astra</b> · M-series</span>
+      <span class="node"><i></i><b>dgx</b> · GB10</span>
+      <span class="node"><i style="background:var(--gold)"></i>linked over <b>tailnet</b></span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="mono">JUDITH — built &amp; hosted by Sai Krishna Rallabandi</div>
+    <div style="margin-top:14px">
+      <a href="/">portfolio</a> &nbsp;·&nbsp;
+      <a href="https://github.com/saikrishnarallabandi">github</a>
+    </div>
+    <p class="note">A self-hosted personal project. This page is a static showcase — the live voice console runs privately on the home tailnet.</p>
+  </div>
+</footer>
+
+<script>
+/* ---- decorative Fermat-spiral starfield, lifted in spirit from the live console ---- */
+(function(){
+  const svg = document.getElementById('spiral');
+  const NS = 'http://www.w3.org/2000/svg';
+  const CX = 500, CY = 470, GOLD = '#e8b24a';
+  const PALETTE = ['#57c7d6','#e8b24a','#9b8cff','#52c97a','#57c7d6','#e8b24a'];
+  const g = document.createElementNS(NS,'g'); svg.appendChild(g);
+
+  // faint concentric rings
+  for(let r=90;r<=540;r+=90){
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('cx',CX);c.setAttribute('cy',CY);c.setAttribute('r',r);
+    c.setAttribute('fill','none');c.setAttribute('stroke','rgba(120,140,158,.08)');
+    c.setAttribute('stroke-width','1');
+    if(r%180===0){c.setAttribute('stroke-dasharray','2 9');c.setAttribute('stroke','rgba(120,140,158,.11)');}
+    g.appendChild(c);
+  }
+
+  // spiral nodes (golden angle)
+  const N=120, GA=Math.PI*(3-Math.sqrt(5)), spread=44;
+  const ring=document.createElementNS(NS,'g'); g.appendChild(ring);
+  const nodes=[];
+  for(let i=1;i<=N;i++){
+    const r=spread*Math.sqrt(i), a=i*GA;
+    const x=CX+r*Math.cos(a), y=CY+r*Math.sin(a);
+    if(r>560) continue;
+    const col=PALETTE[i%PALETTE.length];
+    const dot=document.createElementNS(NS,'circle');
+    const rad=Math.max(1.1, 3.4-r/240);
+    dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.setAttribute('r',rad);
+    dot.setAttribute('fill',col);
+    dot.setAttribute('opacity', (0.18+0.62*(1-r/560)).toFixed(2));
+    ring.appendChild(dot); nodes.push({dot,base:+dot.getAttribute('opacity'),ph:Math.random()*6.28});
+    // thin connecting thread to a near neighbor
+    if(i>1 && i%2===0){
+      const p=nodes[Math.max(0,nodes.length-3)];
+      if(p){const ln=document.createElementNS(NS,'line');
+        ln.setAttribute('x1',x);ln.setAttribute('y1',y);
+        ln.setAttribute('x2',+p.dot.getAttribute('cx'));ln.setAttribute('y2',+p.dot.getAttribute('cy'));
+        ln.setAttribute('stroke',col);ln.setAttribute('stroke-width','0.6');
+        ln.setAttribute('opacity','0.10');ring.insertBefore(ln,ring.firstChild);}
+    }
+  }
+
+  // central hub
+  const halo=document.createElementNS(NS,'circle');
+  halo.setAttribute('cx',CX);halo.setAttribute('cy',CY);halo.setAttribute('r',16);
+  halo.setAttribute('fill','none');halo.setAttribute('stroke',GOLD);halo.setAttribute('stroke-width','1.2');
+  halo.setAttribute('opacity','.5');g.appendChild(halo);
+  const hub=document.createElementNS(NS,'circle');
+  hub.setAttribute('cx',CX);hub.setAttribute('cy',CY);hub.setAttribute('r',7);
+  hub.setAttribute('fill',GOLD);g.appendChild(hub);
+
+  let t=0, rot=0;
+  function frame(){
+    t+=0.016; rot+=0.018;
+    ring.setAttribute('transform',`rotate(${rot} ${CX} ${CY})`);
+    const hr=7+Math.sin(t*1.6)*1.6;
+    hub.setAttribute('r',hr.toFixed(2));
+    hub.setAttribute('filter','');
+    halo.setAttribute('r',(16+Math.sin(t*1.6)*4).toFixed(2));
+    halo.setAttribute('opacity',(0.32+0.2*Math.abs(Math.sin(t*1.6))).toFixed(2));
+    for(const n of nodes){
+      n.dot.setAttribute('opacity',(n.base*(0.6+0.4*Math.sin(t*1.2+n.ph))).toFixed(2));
+    }
+    requestAnimationFrame(frame);
+  }
+  // glow on hub via SVG filter
+  const defs=document.createElementNS(NS,'defs');
+  defs.innerHTML='<filter id="glow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+  svg.insertBefore(defs,svg.firstChild);
+  hub.setAttribute('filter','url(#glow)');
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
