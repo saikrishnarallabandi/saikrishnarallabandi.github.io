@@ -327,26 +327,33 @@ XXXX XXXX XXXX XXXX to grab the tickets.</div>
 <!-- ===================== USE IT ===================== -->
 <section id="use">
   <div class="wrap">
-    <div class="kicker">// use it · one import, two guards</div>
+    <div class="kicker">// use it · guard the actions, not just the text</div>
     <h2 class="h2">Drop it into your agent</h2>
-    <p class="lead">A library first — call it before your agent acts on external content, and again before it sends anything to a shared surface. Also ships as a CLI and an MCP gateway hook.</p>
+    <p class="lead">Checking text in and text out is only the cheap outer layer — an adaptive attacker just rewrites the string. The <b>real</b> integration point is the <b>effect boundary</b>: wrap every tool call your agent is about to make, so Jataayu authorizes it by the <b>surface it touches</b> — shell, network, file, secrets — and the provenance of the values driving it. An injection that slips past the text checks still can't get a high-effect action committed.</p>
     <div class="codecard">
       <div class="chead">
         <span class="d" style="background:#e0544b"></span><span class="d" style="background:#e8b24a"></span><span class="d" style="background:#52c97a"></span>
         <span class="fn mono">agent.py</span>
       </div>
-<pre><span class="k">from</span> jataayu <span class="k">import</span> jataayu_check_inbound, jataayu_check_outbound
+<pre><span class="k">from</span> jataayu <span class="k">import</span> jataayu_authorize_action, jataayu_check_outbound
 
-<span class="c"># --- INBOUND: detect injection before your agent acts ---</span>
-res = <span class="f">jataayu_check_inbound</span>(issue_body, surface=<span class="s">"github-issue"</span>)
-<span class="k">if</span> res[<span class="s">"status"</span>] == <span class="s">"HIGH"</span>:
-    <span class="k">raise</span> <span class="r">SecurityError</span>(res[<span class="s">"findings"</span>])   <span class="c"># blocked</span>
+<span class="c"># THE BOUNDARY — authorize by what the action does, before any tool runs.</span>
+<span class="c"># Same content; the verdict depends on the SURFACE the call touches.</span>
+auth = <span class="f">jataayu_authorize_action</span>(
+    tool_name=<span class="s">"bash"</span>,                  <span class="c"># effect: shell / code-exec</span>
+    params={<span class="s">"cmd"</span>: cmd_from_issue},   <span class="c"># value derived from an untrusted issue</span>
+    untrusted=<span class="k">True</span>,
+)
+<span class="k">if</span> auth[<span class="s">"decision"</span>] == <span class="s">"deny"</span>:           <span class="c"># untrusted → shell ⇒ DENIED</span>
+    <span class="k">raise</span> <span class="r">SecurityError</span>(auth[<span class="s">"reason"</span>])
+<span class="k">if</span> auth[<span class="s">"decision"</span>] == <span class="s">"needs_approval"</span>: <span class="c"># e.g. untrusted → network / file</span>
+    require_human(auth[<span class="s">"commit_token"</span>])   <span class="c"># token binds the exact request</span>
 
-<span class="c"># --- OUTBOUND: strip PII/secrets before you send ---</span>
-res = <span class="f">jataayu_check_outbound</span>(reply, surface=<span class="s">"discord-channel"</span>,
-                            protected_names=PROTECTED)
+<span class="c"># OUTBOUND is still a real surface — strip private data before it leaves.</span>
+res = <span class="f">jataayu_check_outbound</span>(reply, surface=<span class="s">"discord-channel"</span>)
 safe_text = res[<span class="s">"redacted"</span>] <span class="k">if</span> res[<span class="s">"status"</span>] != <span class="s">"SAFE"</span> <span class="k">else</span> reply</pre>
     </div>
+    <p class="lead" style="margin-top:20px;font-size:15px;color:var(--muted)">Wrapping every tool call by hand is optional — the <b>MCP gateway hook</b> applies the same effect-boundary check to <i>all</i> tool calls automatically. Inbound text screening (<span class="mono">jataayu_check_inbound</span>) still runs as the cheap pre-filter on the way in.</p>
     <div class="stack" style="margin-top:18px">
       <div class="chip"><div class="role">install</div><div class="name mono" style="font-size:13px">pip install jataayu</div></div>
       <div class="chip"><div class="role">cli</div><div class="name mono" style="font-size:13px">jataayu check …</div></div>
