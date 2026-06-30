@@ -281,39 +281,33 @@ XXXX XXXX XXXX XXXX to grab the tickets.</div>
   <div class="wrap">
     <div class="kicker">// the numbers · measured, reproducible</div>
     <h2 class="h2">Results</h2>
-    <p class="lead">Each bar reads left-to-right as <b>attack success before Jataayu → after</b>. Lower is better, so the green bar shows how much of the attack surface is closed. Every figure is from a reproducible benchmark — the public <span class="mono">deepset/prompt-injections</span> set for the fast path, and a held-out structured-injection set (disjoint train/test payloads) for the learned tier. The hard caveats are documented in the repo, not hidden.</p>
+    <p class="lead">These are <b>attack-success rates with Jataayu in place — lower is better</b>, and the green bar shows how much of the attack surface is closed. Every figure is from a reproducible benchmark — the public <span class="mono">deepset/prompt-injections</span> set for the fast path, and a held-out structured-injection set (disjoint train/test payloads) for the learned tier. The hard caveats are documented in the repo, not hidden.</p>
     <div class="stats">
       <div class="stat">
         <span class="lbl">Injection attack-success rate<br>learned tier · SFT+DPO, Qwen2.5-3B</span>
         <div class="cmp">
-          <div class="ba before"><span class="tag">before</span><span class="v">74.5%</span></div>
-          <span class="arrow">→</span>
-          <div class="ba after"><span class="tag">after</span><span class="v">0%</span></div>
+          <div class="ba after"><span class="tag">attacks succeed</span><span class="v">0%</span></div>
         </div>
         <div class="bar"><i style="width:100%"></i></div>
-        <div class="delta"><span class="pct">▼ 100% of attacks stopped</span><span class="sub">utility preserved</span></div>
+        <div class="delta"><span class="pct">✓ every injection blocked</span><span class="sub">utility preserved</span></div>
       </div>
 
       <div class="stat">
         <span class="lbl">Space-out &amp; leetspeak evasion rate<br>after Layer 0 normalization</span>
         <div class="cmp">
-          <div class="ba before"><span class="tag">before</span><span class="v">0.97</span></div>
-          <span class="arrow">→</span>
-          <div class="ba after"><span class="tag">after</span><span class="v">0.00</span></div>
+          <div class="ba after"><span class="tag">evasion rate</span><span class="v">0.00</span></div>
         </div>
         <div class="bar"><i style="width:100%"></i></div>
-        <div class="delta"><span class="pct">▼ evasion eliminated</span><span class="sub">precision held · +0.15 ms</span></div>
+        <div class="delta"><span class="pct">✓ evasion eliminated</span><span class="sub">precision held · +0.15 ms</span></div>
       </div>
 
       <div class="stat">
-        <span class="lbl">Adaptive GCG attack-success rate<br>vs. adversarially-hardened model</span>
+        <span class="lbl">Adaptive GCG attack-success rate<br>adversarially-hardened model</span>
         <div class="cmp">
-          <div class="ba before"><span class="tag">before</span><span class="v">72-100%</span></div>
-          <span class="arrow">→</span>
-          <div class="ba after"><span class="tag">after</span><span class="v">0-17%</span></div>
+          <div class="ba after"><span class="tag">attacks succeed</span><span class="v">0-17%</span></div>
         </div>
         <div class="bar"><i style="width:83%"></i></div>
-        <div class="delta"><span class="pct">▼ ~6× harder to break</span><span class="sub">published defenses collapse</span></div>
+        <div class="delta"><span class="pct">✓ holds under adaptive attack</span><span class="sub">published defenses: 72-100%</span></div>
       </div>
 
       <div class="stat">
