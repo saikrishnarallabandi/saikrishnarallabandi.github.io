@@ -110,6 +110,26 @@
   .layer p{margin-top:9px;color:var(--muted);font-size:14px}
   .layer .floor{display:inline-block;margin-top:12px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--gold);border:1px solid rgba(232,178,74,.3);border-radius:999px;padding:3px 9px}
 
+  /* ---------- literature ---------- */
+  .litgroup{margin-top:40px}
+  .litgroup:first-of-type{margin-top:32px}
+  .lithead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:11px}
+  .lithead .n{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.08em}
+  .lithead h3{font-size:18px;font-weight:700}
+  .lithead .sub{color:var(--dim);font-size:13px}
+  .papers{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:13px;margin-top:16px}
+  .paper{display:block;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:17px;transition:.2s}
+  .paper:hover{border-color:var(--gold);transform:translateY(-3px)}
+  .paper .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .paper .nick{font-weight:700;font-size:16px}
+  .paper .aid{font-family:var(--mono);font-size:11px;color:var(--cyan);white-space:nowrap}
+  .paper:hover .aid{color:var(--gold)}
+  .paper .title{margin-top:3px;font-size:12px;color:var(--dim);font-style:italic}
+  .paper .desc{margin-top:11px;font-size:14px;color:#bcc6ce;line-height:1.5}
+  .paper .map{margin-top:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--muted)}
+  .paper .map b{color:var(--gold);font-weight:600}
+  .litnote{margin-top:30px;font-size:12.5px;color:var(--dim);font-style:italic;max-width:760px;border-left:2px solid var(--line2);padding-left:14px}
+
   /* ---------- stats ---------- */
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:36px}
   .stat{background:rgba(9,13,18,.8);border:1px solid var(--line);border-radius:14px;padding:20px;position:relative;overflow:hidden}
@@ -182,6 +202,7 @@
     <div class="cta">
       <a class="btn gold" href="https://github.com/saikrishnarallabandi/jataayu">★ View on GitHub</a>
       <a class="btn ghost" href="#how">How it works</a>
+      <a class="btn ghost" href="#research">The research</a>
       <a class="btn ghost" href="#results">The numbers</a>
     </div>
   </div>
@@ -273,6 +294,105 @@ XXXX XXXX XXXX XXXX to grab the tickets.</div>
       <div class="layer l2"><div class="lv">Layer 2 · learned</div><h3>A model that ignores injection</h3><p>SecAlign-style SFT+DPO tuning of a structured-query model that obeys the instruction channel and ignores instructions buried in data. Defense-in-depth, never the floor.</p></div>
       <div class="layer"><div class="lv">fast path · regex</div><h3>Microsecond pre-filter</h3><p>100+ patterns across injection, command-exec, social engineering, encoding. Sub-millisecond; escalates ambiguous cases to an LLM slow path.</p></div>
     </div>
+  </div>
+</section>
+
+<!-- ===================== LITERATURE ===================== -->
+<section id="research">
+  <div class="wrap">
+    <div class="kicker">// the literature · what the research says</div>
+    <h2 class="h2">Why guard the action, not the text</h2>
+    <p class="lead">Jataayu's design follows a clear consensus in the 2026 agent-security literature: <b>you can't secure an agent by checking its final answer — you have to watch what it touches.</b> Matching the attack string is the weakest tier; an adaptive attacker rewrites it. The durable defenses move the boundary onto the <b>action and its effect</b>. The papers below, grouped by the argument they make, are what Jataayu is built on.</p>
+
+    <!-- group 1: the shift -->
+    <div class="litgroup">
+      <div class="lithead"><span class="n">01</span><h3>Execution is the attack surface</h3><span class="sub">stop grading the final answer</span></div>
+      <div class="papers">
+        <a class="paper" href="https://arxiv.org/abs/2606.18356" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">SafeClawBench</span><span class="aid">arXiv:2606.18356</span></div>
+          <div class="title">measuring harm in stages, not words</div>
+          <div class="desc">Separates what an agent <i>says</i> from what it actually <i>does</i> in a sandbox. The authors report 291 of 347 real harms occurred in cases that passed the text-level check — so grading the answer badly undercounts real harm.</div>
+          <div class="map">grounds → <b>Layer 1 effect boundary</b></div>
+        </a>
+        <a class="paper" href="https://arxiv.org/abs/2605.11047" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">DeepTrap</span><span class="aid">arXiv:2605.11047</span></div>
+          <div class="title">red-teaming agent execution contexts</div>
+          <div class="desc">Attackers poison the mutable execution context — files, memory, tool returns — not the prompt. The agent completes the user's task perfectly while doing harm underneath, proving final-response evaluation is insufficient.</div>
+          <div class="map">motivates → <b>value-level taint + provenance</b></div>
+        </a>
+      </div>
+    </div>
+
+    <!-- group 2: defend by design -->
+    <div class="litgroup">
+      <div class="lithead"><span class="n">02</span><h3>Defend by design — the action is the boundary</h3><span class="sub">the architectural tier Jataayu's Layer 1 implements</span></div>
+      <div class="papers">
+        <a class="paper" href="https://arxiv.org/abs/2503.18813" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">CaMeL</span><span class="aid">arXiv:2503.18813</span></div>
+          <div class="title">defeating prompt injections by design</div>
+          <div class="desc">Extracts control and data flow from the <i>trusted</i> query so untrusted data can never change what the program does, and enforces capability policies at each tool call. The canonical defend-by-design anchor.</div>
+          <div class="map">model for → <b>capability + provenance policy</b></div>
+        </a>
+        <a class="paper" href="https://arxiv.org/abs/2606.09549" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">SecureClaw</span><span class="aid">arXiv:2606.09549</span></div>
+          <div class="title">dual boundary — confine reads, authorize effects</div>
+          <div class="desc">Two walls: secrets become opaque handles the agent plans over but never dereferences, and external writes follow a PREVIEW→COMMIT protocol where a trusted executor commits only the exact authorized request. Authors report 0% ASR on Agent Security Bench.</div>
+          <div class="map">direct model for → <b>Layer 1 (handles + commit-token)</b></div>
+        </a>
+        <a class="paper" href="https://arxiv.org/abs/2505.23643" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">FIDES</span><span class="aid">arXiv:2505.23643</span></div>
+          <div class="title">information-flow control for agents</div>
+          <div class="desc">Tracks how information is allowed to flow through an agent and enforces it deterministically — one of the durable defenses that move the security boundary off the text and onto the action.</div>
+          <div class="map">aligns with → <b>deterministic, no-LLM boundary</b></div>
+        </a>
+      </div>
+    </div>
+
+    <!-- group 3: the skill surface -->
+    <div class="litgroup">
+      <div class="lithead"><span class="n">03</span><h3>The skill surface — vet, audit, isolate</h3><span class="sub">install-time and compositional threats</span></div>
+      <div class="papers">
+        <a class="paper" href="https://arxiv.org/abs/2606.15899" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">SkillVetBench</span><span class="aid">arXiv:2606.15899</span></div>
+          <div class="title">vet skills, don't just filter content</div>
+          <div class="desc">Community skills are an unvetted install-time surface; code-layer scanners are blind to instruction-layer threats and, the authors report, miss 89–100% of them. An LLM-as-Judge risk score caught every malicious skill they tested.</div>
+          <div class="map">grounds → <b>skill vetting (guards/skill_vet)</b></div>
+        </a>
+        <a class="paper" href="https://arxiv.org/abs/2606.11671" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">RSA</span><span class="aid">arXiv:2606.11671</span></div>
+          <div class="title">runtime skill audit — judge it running</div>
+          <div class="desc">A skill can read clean in static code and turn harmful only when invoked. The authors report static detectors collapse after 1–2 rounds of self-evolving attacks while runtime trace auditing holds — evidence for watching behavior, not source.</div>
+          <div class="map">motivates → <b>session-trace auditing</b></div>
+        </a>
+        <a class="paper" href="https://arxiv.org/abs/2606.00448" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">Safe Skills Collide</span><span class="aid">arXiv:2606.00448</span></div>
+          <div class="title">composition turns safe skills unsafe</div>
+          <div class="desc">One skill that reads secrets plus one that writes to the network compose into an exfiltration channel no per-skill scan can see. Motivates install-time compositional checks and capability isolation.</div>
+          <div class="map">grounds → <b>compositional analysis</b></div>
+        </a>
+      </div>
+    </div>
+
+    <!-- group 4: the learned tier -->
+    <div class="litgroup">
+      <div class="lithead"><span class="n">04</span><h3>The learned tier — strong, but never the floor</h3><span class="sub">what Jataayu's Layer 2 reproduces, and its honest limit</span></div>
+      <div class="papers">
+        <a class="paper" href="https://arxiv.org/abs/2410.05451" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">SecAlign</span><span class="aid">arXiv:2410.05451</span></div>
+          <div class="title">preference-tuning a structured-query model</div>
+          <div class="desc">DPO over a structured front end with separate instruction and data channels, so the model learns to ignore instructions buried in data. The strongest training-time defense against optimization-based attacks — the recipe Jataayu's Layer 2 reproduces (with a StruQ-style SFT warmup).</div>
+          <div class="map">implemented as → <b>Layer 2 (SFT + DPO)</b></div>
+        </a>
+        <a class="paper" href="https://arxiv.org/abs/2510.09023" target="_blank" rel="noopener">
+          <div class="top"><span class="nick">Attacker Moves Second</span><span class="aid">arXiv:2510.09023</span></div>
+          <div class="title">the honest limit of learned defenses</div>
+          <div class="desc">Published fine-tuning defenses collapse under adaptive attack; adversarial training raises the bar ~6× but does not make a learned model unbreakable — a re-adapting attacker still breaks roughly 1-in-6. Exactly why the deterministic Layer 1, not the learned layer, is the security floor.</div>
+          <div class="map">why → <b>Layer 2 is defense-in-depth, not the boundary</b></div>
+        </a>
+      </div>
+    </div>
+
+    <p class="litnote">Note: several of these are fresh 2026 preprints, mostly not yet peer-reviewed — presented here as threat reports on the agent stack, not as independent validation of Jataayu. Self-reported figures are attributed to their authors. Full per-paper gap → upgrade notes live in the repo (<span class="mono">docs/upgrades-from-arxiv-2026-06.md</span>).</p>
   </div>
 </section>
 
