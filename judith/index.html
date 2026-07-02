@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Judith — my self-hosted personal AI</title>
-<meta name="description" content="Judith is a self-hosted personal AI built by Sai Krishna Rallabandi — a voice in smart glasses, an assistant on every channel via OpenClaw, and a live on-screen newsroom, all running on owned hardware.">
+<title>Judith — a group agent</title>
+<meta name="description" content="Judith is a group agent by Sai Krishna Rallabandi — one agent across the people and channels I already use, and in my glasses all day. The model is the easy part; the work is the harness: guard, memory, route.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600;700&family=Spline+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -48,7 +48,7 @@
   .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
   .hero h1{font-size:clamp(58px,15vw,150px);font-weight:800;letter-spacing:.04em;line-height:.92;
     background:linear-gradient(180deg,#fff,#cdd7df 60%,#7d8995);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .hero .sub{margin:22px auto 0;max-width:620px;font-size:clamp(16px,2.4vw,20px);color:#c2ccd4}
+  .hero .sub{margin:22px auto 0;max-width:640px;font-size:clamp(16px,2.4vw,20px);color:#c2ccd4}
   .hero .sub b{color:var(--text);font-weight:600}
   .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px}
   .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;padding:12px 20px;border-radius:10px;
@@ -63,10 +63,10 @@
   section{position:relative;padding:84px 0;border-top:1px solid rgba(28,38,46,.6)}
   .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
   .h2{font-size:clamp(28px,4.4vw,40px);font-weight:800;letter-spacing:.01em;line-height:1.12}
-  .lead{margin-top:18px;max-width:680px;color:#bcc6ce;font-size:17px}
+  .lead{margin-top:18px;max-width:700px;color:#bcc6ce;font-size:17px}
   .lead b{color:var(--text);font-weight:600}
 
-  /* ---------- what / pillars ---------- */
+  /* ---------- pillars ---------- */
   .pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:36px}
   .pill{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;transition:.2s}
   .pill:hover{border-color:var(--line2);transform:translateY(-3px)}
@@ -74,60 +74,33 @@
   .pill h3{margin-top:12px;font-size:18px;font-weight:700}
   .pill p{margin-top:8px;color:var(--muted);font-size:14.5px}
 
-  /* ---------- sample broadcast ---------- */
-  .console{margin-top:38px;background:linear-gradient(180deg,rgba(10,14,19,.9),rgba(7,10,14,.92));
-    border:1px solid var(--line2);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.45)}
-  .console .chead{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(6,9,12,.7)}
-  .console .chead .d{width:11px;height:11px;border-radius:50%}
-  .console .chead .meta{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em}
-  .cbody{padding:22px 20px}
-  .ask{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;color:var(--muted);
-    border:1px solid var(--line);background:rgba(8,11,15,.6);border-radius:999px;padding:8px 14px}
-  .ask .arrow{color:var(--gold)}
-  .reply{margin-top:18px;display:flex;gap:14px}
-  .reply .orb{flex:none;width:34px;height:34px;border-radius:50%;margin-top:3px;
-    background:radial-gradient(circle at 38% 34%,#ffe7ad,#e8b24a 55%,#7a5413);box-shadow:0 0 22px rgba(232,178,74,.5)}
-  .reply .said{font-size:16.5px;color:#e7eef3}
-  .reply .said .who{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:7px}
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:22px}
-  .card{background:rgba(9,13,18,.8);border:1px solid var(--line);border-radius:13px;padding:15px;position:relative;overflow:hidden}
-  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan);opacity:.8}
-  .card.k-focus::before{background:var(--gold)}
-  .card.k-sec::before{background:var(--red)}
-  .card .hd{font-size:15px;font-weight:700;letter-spacing:.01em}
-  .card .stat{font-family:var(--mono);font-weight:700;font-size:26px;color:var(--gold);margin-top:10px;line-height:1}
-  .card .stat .lbl{display:block;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:6px}
-  .card .q{margin-top:10px;font-size:13.5px;color:#cdd6dd;font-style:italic}
-  .card .sw{margin-top:9px;font-size:12.5px;color:var(--muted)}
-  .card .kw{margin-top:11px;display:flex;flex-wrap:wrap;gap:5px}
-  .card .kw span{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--cyan);border:1px solid rgba(87,199,214,.28);border-radius:999px;padding:2px 8px;background:rgba(87,199,214,.06)}
-  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
-  @media(max-width:760px){.twocol{grid-template-columns:1fr}}
-
-  /* ---------- stack strip ---------- */
-  .stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:34px}
-  .chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-  .chip .role{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
-  .chip .name{margin-top:7px;font-weight:700;font-size:15px}
-  .chip .name b{color:var(--gold);font-weight:700}
-  .nodes{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
-  .node{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:8px}
-  .node i{width:7px;height:7px;border-radius:50%;background:var(--cyan)}
-  .node b{color:var(--text);font-weight:600}
+  /* ---------- harness: three jobs ---------- */
+  .flow{display:flex;align-items:stretch;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .endcap{flex:0 0 auto;align-self:center;text-align:center;min-width:118px}
+  .endcap .lab{font-weight:800;letter-spacing:.05em;font-size:14px}
+  .endcap .cap{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.4}
+  .jobs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:1;min-width:280px}
+  @media(max-width:760px){.jobs{grid-template-columns:1fr}}
+  .job{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--jc);border-radius:14px;padding:18px}
+  .job .num{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--jc);font-weight:700}
+  .job .prob{margin-top:10px;font-size:13.5px;color:#cdd6dd;border-left:2px solid var(--jc);padding-left:10px;line-height:1.4}
+  .job .verb{margin-top:14px;font-size:24px;font-weight:800;letter-spacing:.02em;color:var(--jc)}
+  .job .mod{margin-top:2px;font-family:var(--mono);font-size:12.5px;color:var(--muted);font-style:italic}
+  .job .did{margin-top:10px;font-size:13px;color:var(--muted)}
 
   footer{padding:48px 0 60px;border-top:1px solid rgba(28,38,46,.6);text-align:center;color:var(--dim)}
   footer .mono{font-size:12px}
   footer a{color:var(--muted);border-bottom:1px solid transparent;transition:.2s}
   footer a:hover{color:var(--gold);border-color:var(--gold)}
-  .note{margin-top:16px;font-size:12px;color:var(--dim);max-width:560px;margin-left:auto;margin-right:auto}
+  .note{margin-top:16px;font-size:12px;color:var(--dim);max-width:600px;margin-left:auto;margin-right:auto}
 </style>
 </head>
 <body>
 
 <header class="bar">
-  <div class="logo"><b>JUDITH</b><span class="tag">self-hosted personal AI</span></div>
+  <div class="logo"><b>JUDITH</b><span class="tag">a group agent</span></div>
   <div class="spacer"></div>
-  <span class="badge"><span class="dot"></span>runs on my own machines</span>
+  <span class="badge"><span class="dot"></span>in production</span>
   <a class="back" href="/">← portfolio</a>
 </header>
 
@@ -136,158 +109,90 @@
   <svg id="spiral" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
   <div class="vignette"></div>
   <div class="hero-in">
-    <div class="eyebrow">my personal AI — voice, vision, on the air</div>
+    <div class="eyebrow">from group chats to glasses</div>
     <h1>JUDITH</h1>
-    <p class="sub">My <b>self-hosted personal assistant</b>. She lives in my ear through smart glasses, runs my home lab across a private tailnet, reaches me on every channel I already use, and turns any question into a live, on-screen broadcast. One assistant — voice, vision, and a newsroom — all on hardware I own.</p>
+    <p class="sub">A <b>group agent</b>. Not one human and one assistant in a private thread — one agent across the people I actually live and work with, on the channels they already use, and in my glasses all day. The model is the easy part. The work is the <b>harness</b>.</p>
     <div class="cta">
-      <a class="btn gold" href="#glasses">▶ Friday in your ear</a>
-      <a class="btn ghost" href="#openclaw">The brain: OpenClaw</a>
-      <a class="btn ghost" href="#broadcast">See a broadcast</a>
+      <a class="btn gold" href="#harness">The harness — three jobs</a>
+      <a class="btn ghost" href="#glasses">In the glasses</a>
     </div>
   </div>
   <div class="scrollhint">SCROLL</div>
 </div>
 
-<!-- ===================== WHAT ===================== -->
-<section id="what">
+<!-- ===================== THE SHIFT ===================== -->
+<section id="shift">
   <div class="wrap">
-    <div class="kicker">// what she is</div>
-    <h2 class="h2">Not a chatbot in a tab.<br>A personal AI that lives on my hardware.</h2>
-    <p class="lead">Judith is with me through the day — a voice in my glasses, an assistant on every channel, and the anchor of a private newsroom. She transcribes what I say, reasons over my world — news, markets, and the state of my own projects — then <b>speaks back and reconstructs the answer on screen</b>, prose she narrates plus <b>exhibit cards</b> that ignite as she talks. The broadcast desk below is just one of the things she does. No cloud account, no API tab — the whole brain runs on machines I own.</p>
-    <div class="pillars">
-      <div class="pill"><div class="ic">voice console</div><h3>Talk, don't type</h3><p>Speech in, speech out. Whisper transcribes, the brain answers, Kokoro speaks it back — hands-free.</p></div>
-      <div class="pill"><div class="ic">reconstruction</div><h3>Answers you can see</h3><p>Every turn becomes a node on a spiral; the reply's evidence fans out as cards that reveal in time with her voice.</p></div>
-      <div class="pill"><div class="ic">operator</div><h3>Knows your world</h3><p>News, markets, and live project status — Now, Next, Work, Signal — pulled into one operator board.</p></div>
-      <div class="pill"><div class="ic">self-hosted</div><h3>Your machines only</h3><p>Runs across a personal tailnet — judith, tara, astra, a DGX — orchestrated from home. Nothing leaves the network.</p></div>
-    </div>
+    <div class="kicker">// the shift</div>
+    <h2 class="h2">An agent for one person is a feature.<br>An agent for a group is a new social contract.</h2>
+    <p class="lead">We can build agents today — a model, a loop, a few tools; you can stand one up this afternoon. Almost every one serves <b>one person</b>. Judith serves a group: it answers in the family thread, remembers across collaborators, and speaks first on the glasses. The moment an agent joins a group, it inherits problems a personal one never had — and <b>trust becomes the whole product</b>.</p>
   </div>
 </section>
 
-<!-- ===================== SAMPLE BROADCAST ===================== -->
-<section id="broadcast">
+<!-- ===================== THE HARNESS ===================== -->
+<section id="harness">
   <div class="wrap">
-    <div class="kicker">// sample broadcast · captured from the live console</div>
-    <h2 class="h2">A morning briefing, the way Judith runs it</h2>
-    <p class="lead">A real exchange, rendered exactly as it appears on the console: the question, her spoken reply, and the exhibit cards that light up alongside it.</p>
-
-    <div class="console">
-      <div class="chead">
-        <span class="d" style="background:#e0544b"></span><span class="d" style="background:#e8b24a"></span><span class="d" style="background:#52c97a"></span>
-        <span class="meta mono">JUDITH · openclaw:sai · midday CT</span>
+    <div class="kicker">// the harness — three jobs</div>
+    <h2 class="h2">Join a group, and the harness takes on three jobs.</h2>
+    <p class="lead">Each job is a problem the group creates — and a module that answers it. One message flows in from the group, through three modules, out to the room.</p>
+    <div class="flow">
+      <div class="endcap">
+        <div class="lab">THE GROUP</div>
+        <div class="cap">many people,<br>one or many agents</div>
       </div>
-      <div class="cbody">
-        <div class="ask"><span class="arrow mono">›</span> do my daily briefing</div>
-        <div class="reply">
-          <div class="orb"></div>
-          <div class="said"><span class="who">Judith</span>Your daily brief: Iran remains the global risk center, with inspection claims still disputed and the Pentagon asking for roughly eighty billion dollars tied to war costs. U.S. security news is serious — seven federal defendants are now tied to the alleged White House attack plot. Markets are mixed at midday Central: SPY basically flat, QQQ weaker, Bitcoin near sixty-two thousand five hundred. For work, Project Judith is the priority: the native operator board is active, with Now, Next, Work and Signal as the first cards.</div>
+      <div class="jobs">
+        <div class="job" style="--jc:var(--red)">
+          <div class="num">Job 1</div>
+          <div class="prob">anyone in it can <b>hijack</b> the agent</div>
+          <div class="verb">GUARD</div>
+          <div class="mod">jataayu</div>
+          <div class="did">vet actions by effect</div>
         </div>
-        <div class="cards">
-          <div class="card k-sec">
-            <div class="hd">Iran Risk Leads</div>
-            <div class="stat">$80B<span class="lbl">Pentagon request</span></div>
-            <div class="q">“Iran remains the global risk center”</div>
-            <div class="sw">Geopolitics still drives market risk today.</div>
-            <div class="kw"><span>Iran</span><span>Pentagon</span><span>war</span></div>
-          </div>
-          <div class="card k-sec">
-            <div class="hd">Security Case Widens</div>
-            <div class="stat">7<span class="lbl">federal defendants</span></div>
-            <div class="q">“seven federal defendants are now tied”</div>
-            <div class="sw">Domestic security remains an active headline.</div>
-            <div class="kw"><span>security</span><span>White House</span></div>
-          </div>
-          <div class="card k-focus">
-            <div class="hd">Judith Focus</div>
-            <div class="q" style="margin-top:14px">“Project Judith is the priority”</div>
-            <div class="sw">Native operator board work is the clean next move.</div>
-            <div class="kw"><span>operator board</span><span>Signal</span></div>
-          </div>
+        <div class="job" style="--jc:var(--green)">
+          <div class="num">Job 2</div>
+          <div class="prob">it accumulates <b>everyone's</b> memory, forever</div>
+          <div class="verb">MEMORY</div>
+          <div class="mod">smriti</div>
+          <div class="did">keep · validate · forget</div>
+        </div>
+        <div class="job" style="--jc:var(--violet)">
+          <div class="num">Job 3</div>
+          <div class="prob">one reply lands in front of <b>many circles</b></div>
+          <div class="verb">ROUTE</div>
+          <div class="mod">seema</div>
+          <div class="did">answer by who's asking</div>
         </div>
       </div>
-    </div>
-
-    <!-- second exchange: she watches the home lab -->
-    <div class="console" style="margin-top:18px">
-      <div class="chead">
-        <span class="d" style="background:#e0544b"></span><span class="d" style="background:#e8b24a"></span><span class="d" style="background:#52c97a"></span>
-        <span class="meta mono">JUDITH · operator · tailnet</span>
-      </div>
-      <div class="cbody">
-        <div class="ask"><span class="arrow mono">›</span> I'm running a few experiments via Claude Code. Check status.</div>
-        <div class="reply">
-          <div class="orb"></div>
-          <div class="said"><span class="who">Judith</span>Status is healthy. Stage B sentiment experiments are split across three lanes. Tara finished Stage B. Astra is still running the Qwen 0.6B toxicity section. The DGX has a fresh Stage B run underway, pushing through Qwen and Pythia jobs. I don't see a failure marker yet.</div>
-        </div>
-        <div class="cards">
-          <div class="card"><div class="hd">Tara · complete</div><div class="q" style="margin-top:12px">“Tara finished Stage B.”</div><div class="sw">One compute lane is done cleanly.</div><div class="kw"><span>Tara</span><span>Stage B</span></div></div>
-          <div class="card"><div class="hd">Astra · running</div><div class="q" style="margin-top:12px">“still running the Qwen 0.6B toxicity section”</div><div class="sw">Progress is active, not stalled.</div><div class="kw"><span>Astra</span><span>Qwen</span><span>toxicity</span></div></div>
-          <div class="card"><div class="hd">DGX · active</div><div class="q" style="margin-top:12px">“a fresh Stage B run underway”</div><div class="sw">The heavier lane is still processing.</div><div class="kw"><span>DGX</span><span>Pythia</span></div></div>
-        </div>
+      <div class="endcap">
+        <div class="lab">THE ROOM</div>
+        <div class="cap">right answer to<br>the right circle</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===================== SMART GLASSES ===================== -->
+<!-- ===================== GLASSES ===================== -->
 <section id="glasses">
   <div class="wrap">
-    <div class="kicker">// in your ear · Friday Mode</div>
-    <h2 class="h2">She sees what I see.</h2>
-    <p class="lead">Judith rides along on a pair of smart glasses. Press the temple, ask anything, and her answer is back in my ear in about two seconds — no phone, no screen. In <b>Friday Mode</b> she watches the world through the glasses camera and quietly narrates what changes, hands-free. Everything — speech, vision, reasoning — runs on my home server over an encrypted tailnet; the glasses see what <b>I</b> see, not what a cloud wants.</p>
+    <div class="kicker">// in your glasses · all day</div>
+    <h2 class="h2">She sees what I see — and speaks first.</h2>
+    <p class="lead">On the glasses, Judith rides along, watches the scene, and <b>speaks first</b> only when it matters — hands-free, and the answer is for me alone. Same agent as the group threads; a different room, with a different rule for who's allowed to hear.</p>
     <div class="pillars">
-      <div class="pill"><div class="ic">ask</div><h3>Hands-free answers</h3><p>Tap the temple, ask, and Judith replies in your ear — local Whisper hears you, a custom voice answers, ~2s round trip.</p></div>
-      <div class="pill"><div class="ic">see</div><h3>Through her eyes</h3><p>Continuous POV camera; she notices when the scene changes and describes it aloud while your hands stay free.</p></div>
-      <div class="pill"><div class="ic">recall</div><h3>Knows your context</h3><p>“What did I just look at?” — she remembers the session, your place, your calendar and health signals.</p></div>
-      <div class="pill"><div class="ic">private</div><h3>Local-first</h3><p>Voice, vision and the model all run on owned hardware over Tailscale. Nothing is uploaded to anyone's cloud.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== OPENCLAW ===================== -->
-<section id="openclaw">
-  <div class="wrap">
-    <div class="kicker">// the brain · OpenClaw</div>
-    <h2 class="h2">One assistant, every channel.</h2>
-    <p class="lead">Under Judith runs <b>OpenClaw</b> — a personal AI gateway I host on my own devices. It reaches me wherever I already am — WhatsApp, Telegram, Slack, Signal, iMessage and 20+ more — speaks and listens, runs real tools (browser, shell, files, cron, webhooks), and can drive any model: Claude, local Ollama, and dozens more with automatic failover. Local by default, secure by design: the gateway lives on my machine, not a SaaS.</p>
-    <div class="stack">
-      <div class="chip"><div class="role">reach</div><div class="name">26+ channels</div></div>
-      <div class="chip"><div class="role">models</div><div class="name">58 backends · failover</div></div>
-      <div class="chip"><div class="role">act</div><div class="name">browser · shell · files · cron</div></div>
-      <div class="chip"><div class="role">trust</div><div class="name"><b>local-first</b> · sandboxed</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== STACK ===================== -->
-<section id="stack">
-  <div class="wrap">
-    <div class="kicker">// under the hood</div>
-    <h2 class="h2">Open models, owned compute</h2>
-    <p class="lead">Judith is wired from open components and runs entirely on a private network — the same setup that powers the broadcast above.</p>
-    <div class="stack">
-      <div class="chip"><div class="role">hearing · ASR</div><div class="name">faster-whisper</div></div>
-      <div class="chip"><div class="role">reasoning · LLM</div><div class="name"><b>OpenClaw</b> bridge</div></div>
-      <div class="chip"><div class="role">voice · TTS</div><div class="name">Kokoro</div></div>
-      <div class="chip"><div class="role">stage · render</div><div class="name">SVG reconstruction</div></div>
-    </div>
-    <div class="nodes">
-      <span class="node"><i></i><b>judith</b> · orchestrator</span>
-      <span class="node"><i></i><b>tara</b> · compute</span>
-      <span class="node"><i></i><b>astra</b> · M-series</span>
-      <span class="node"><i></i><b>dgx</b> · GB10</span>
-      <span class="node"><i style="background:var(--gold)"></i>linked over <b>tailnet</b></span>
+      <div class="pill"><div class="ic">speak first</div><h3>Proactive, not chatty</h3><p>It only opens its mouth when the moment earns it — a marginal road, a signal worth surfacing.</p></div>
+      <div class="pill"><div class="ic">see</div><h3>Through her eyes</h3><p>Continuous point-of-view; she reads the scene and fuses what she already knows about the day.</p></div>
+      <div class="pill"><div class="ic">only I hear it</div><h3>Routed to one circle</h3><p>The glasses answer lands with me and no one else — the same routing job the harness does everywhere.</p></div>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <div class="mono">JUDITH — built &amp; hosted by Sai Krishna Rallabandi</div>
+    <div class="mono">JUDITH — a group agent by Sai Krishna Rallabandi</div>
     <div style="margin-top:14px">
       <a href="/">portfolio</a> &nbsp;·&nbsp;
       <a href="https://github.com/saikrishnarallabandi">github</a>
     </div>
-    <p class="note">A self-hosted personal project. This page is a static showcase — the live voice console runs privately on the home tailnet.</p>
+    <p class="note">Companion to the AIEWF 2026 talk <i>Wearing the Agent</i>. Examples are real exchanges shown with relationship labels only; private details removed.</p>
   </div>
 </footer>
 
