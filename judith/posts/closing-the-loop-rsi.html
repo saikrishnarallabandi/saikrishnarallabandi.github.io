@@ -35,9 +35,10 @@
     --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C; --quote:#D6D9E2;
   }
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
+  html{-webkit-text-size-adjust:100%; overflow-x:hidden}
   body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--serif);
-    font-size:1.19rem; line-height:1.72; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;}
+    font-size:1.19rem; line-height:1.72; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    overflow-wrap:break-word; word-break:break-word;}
   .wrap{max-width:var(--measure); margin:0 auto; padding:0 24px}
   a{color:var(--accent-ink); text-decoration:none; border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
   a:hover{border-bottom-color:var(--accent)}
@@ -56,7 +57,7 @@
     @keyframes spin{to{transform:rotate(360deg)}}
   }
   h1{font-family:var(--sans); font-weight:800; letter-spacing:-.03em; line-height:.98;
-    font-size:clamp(3rem,10vw,5.4rem); margin:0 0 22px; text-wrap:balance;}
+    font-size:clamp(2.4rem,8vw,5.2rem); margin:0 0 22px; text-wrap:balance; overflow-wrap:break-word;}
   .dek{font-family:var(--serif); font-style:italic; font-size:clamp(1.2rem,2.6vw,1.5rem);
     line-height:1.42; color:var(--muted); margin:0; max-width:34ch; text-wrap:pretty;}
   .byline{font-family:var(--mono); font-size:.76rem; letter-spacing:.04em; color:var(--faint);
@@ -150,6 +151,22 @@
   .foot-in{max-width:var(--measure); margin:0 auto; padding:32px 24px 60px;
     font-family:var(--mono); font-size:.78rem; letter-spacing:.02em; color:var(--faint); line-height:1.7;}
   .foot-in a{color:var(--accent-ink)}
+
+  /* ---------- small screens ---------- */
+  @media (max-width:560px){
+    .wrap, .hero-in, .foot-in{padding-left:18px; padding-right:18px}
+    .hero-in{padding-top:52px; padding-bottom:28px}
+    body{font-size:1.1rem; line-height:1.66}
+    .lead{font-size:1.16rem}
+    .lead::first-letter{-webkit-initial-letter:2; initial-letter:2}
+    .dek{font-size:1.15rem}
+    blockquote{font-size:1.28rem; padding-left:.9em}
+    .mech, .aside{padding:15px 16px; font-size:.96rem}
+    .recipe{padding:22px 18px}
+    ol.recipe-list li{padding-left:2.3em; font-size:1.02rem}
+    .subscribe{padding:24px 18px}
+    .subscribe p{font-size:1.06rem}
+  }
 </style>
 </head>
 <body>
