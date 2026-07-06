@@ -22,11 +22,11 @@ Without all three, it isn't a loop. It's a system that edits itself and hopes.
 
 ## The measurement problem
 
-The first edge is the hardest to build. The well-known self-improvement methods — the ones that learn from their own attempts — lean on a cheap oracle to tell them whether an attempt was any good: a unit test, a gold label, a benchmark score. A deployed assistant has none of those. The question that matters isn't "does the model think this is better," but "did the thing the person kept complaining about stop happening."
+The first edge is the hardest to build, and it's worth seeing why. The well-known self-improvement methods all lean on a cheap oracle to tell them whether an attempt was any good. STaR keeps the reasoning traces that happen to reach the gold answer. A coding agent keeps the patch that turns a red test suite green. Reflexion retries a task, again and again, until the environment reports success. In each case the verdict is instant and unarguable — the test passes or it doesn't. A deployed assistant has nothing like it: there is no suite that goes green when it writes a decent morning briefing, and no gold label for whether it should have nudged you about a deadline. The question that matters isn't "does the model think this is better," but "did the thing the person kept complaining about stop happening" — and only time, and the person, can answer that.
 
 Which points to a simple discipline: tie each change back to the complaint that caused it. When a change exists because someone keeps correcting the same mistake, the test is almost embarrassingly plain — did the correction stop coming back?
 
-Which meant first learning to *hear* the friction — turning a stream of messages into named signals: corrections, frustrations, wishes, the same request asked a third time. A small model reading each message does this well enough.
+Which meant first learning to *hear* the friction — turning a stream of messages into named signals. A correction: "not the monthly figure, the weekly one." A flash of impatience: "why is this still wrong." A wish: "can it just do this without me asking." A standing preference: "always give me the time in Central." The same request surfacing for the third time. A small model reading each message can sort these well enough, which is what turns a vague sense that "the assistant keeps getting X wrong" into a signal you can actually count.
 
 *Public data — the signal & its recurrence:*
 
@@ -51,13 +51,13 @@ This will, and should, throw out plenty of changes that look like wins. A fricti
 
 When the human signal is too thin to train on, we thicken it: a model judges quality and stands in for the missing human. But "auto-rater" hides a lie of the singular. There isn't one judge; there's a bench of them, each asked a different question, each needing a different temperament — and we found that getting each one's *nerve* right mattered more than which model sat in the chair.
 
-**The usefulness judge** asks: did this help? The most subjective seat, and the hardest, because helpfulness has grades, not a switch. It wants a fine scale — a good/bad judge ties on everything and decays into a coin toss. Better than scoring one answer in a vacuum is asking it which of two is better; judges, like people, agree far more on the comparison than the number, and enough comparisons give a ranking — a Bradley–Terry order — steadier than any single grade. It's a reward, so it has to be calibrated hard against real preference, and watched for vanity: a judge left alone will flatter its own kind.
+**The usefulness judge** asks: did this help — did it answer the question, or merely sound like it did? The most subjective seat, and the hardest, because helpfulness has grades, not a switch. It wants a fine scale — a good/bad judge ties on everything and decays into a coin toss. Better than scoring one answer in a vacuum is asking it which of two is better; judges, like people, agree far more on the comparison than the number, and enough comparisons give a ranking — a Bradley–Terry order — steadier than any single grade. It's a reward, so it has to be calibrated hard against real preference, and watched for vanity: a judge left alone will flatter its own kind.
 
 **The quality judge** asks: is this good work — a report, a plan, a piece of code? A more objective seat, because it can be handed explicit criteria: is the code correct, is the analysis sound, did it answer the question asked. Here the nuance lives in the rubric, not the scale; the sharper the criteria, the closer the judge sits to an expert.
 
-**The faithfulness judge** asks: is this true, or invented? This one behaves like a strict clerk, not a critic — it doesn't grade prose, it catches fabrication, and it stays near-binary, flagging when it isn't sure.
+**The faithfulness judge** asks: is this true, or invented — does the summary quietly report a figure the source never contained? This one behaves like a strict clerk, not a critic — it doesn't grade prose, it catches fabrication, and it stays near-binary, flagging when it isn't sure.
 
-**The safety judge** asks: does this spill someone's private life, or step over a line? A different animal — not a reward but a *veto*. It stays nervous, preferring a false alarm to a miss, and it never becomes a score the loop can bargain against. A guardrail you can optimize is not a guardrail.
+**The safety judge** asks the question a shared assistant is always one careless sentence from getting wrong: does this reply spill someone's private life — repeat to one person what another told it in confidence — or cross a hard line? A different animal — not a reward but a *veto*. It stays nervous, preferring a false alarm to a miss, and it never becomes a score the loop can bargain against. A guardrail you can optimize is not a guardrail.
 
 > Grade what you want to improve. Gate what you can't allow.
 
@@ -74,7 +74,7 @@ The pattern under the whole bench is to match a judge's answer to the decision i
 
 Autonomy is where these loops most often seize up — not for lack of problems to fix, but because the only sanctioned way to adopt anything is a human replying *yes*, and human attention is the one resource that always runs dry. A loop gated entirely on approval improves only as fast as someone answers, which in practice is barely at all.
 
-The answer isn't "let it do anything." It's to make autonomy something a change earns, sorted by two questions: can it be measured, and can it be taken back? The changes that answer yes to both — a tightened instruction, a nudged threshold, a repaired routine — can be adopted alone, *because* the result is watched and the mistake is reversible. The ones that reach outside the sandbox go to a human. The ones that can't be walked back — deletions, credentials, anything final — always wait for a yes.
+The answer isn't "let it do anything." It's to make autonomy something a change earns, sorted by two questions: can it be measured, and can it be taken back? The changes that answer yes to both can be adopted alone, *because* the result is watched and the mistake is reversible: a scheduled job that keeps running out of time gets a bigger budget; an instruction the user keeps correcting gets tightened; an over-eager notification has its threshold nudged down. The ones that reach outside the sandbox — standing up a new integration, messaging someone new — go to a human. The ones that can't be walked back — deletions, credentials, anything final — always wait for a yes.
 
 And silence gets a plan of its own: a low-risk change that's proposed and then meets no answer falls through to the measured, reversible path rather than dying in a queue. Autonomy earned by measurement and reversibility, with a human kept where they matter and nowhere they don't.
 
@@ -95,7 +95,7 @@ That shape — spot a failure, apply a scoped fix, prove it worked, else roll it
 
 An agent that applies changes is automation. An agent that gets *better at choosing which changes to make* is the recursive part — the self-improvement finally improving itself.
 
-We wire that by feeding the verdict back as a reward to whatever does the choosing; in time it learns which kinds of change tend to pay, and reaches for them. The reward comes late — weeks after the fact — but late feedback is still feedback. We remember what was chosen, and settle the account when the verdict lands.
+The wiring is to feed the verdict back as a reward to whatever does the choosing; in time it learns which kinds of change tend to pay — that tightening an over-eager notification usually helps, say, while a shiny new capability rarely clears the bar — and it reaches for the ones that do. The reward comes late, weeks after the fact, but late feedback is still feedback: the context and the choice are stored at the moment of adoption, and the account is settled when the verdict finally lands.
 
 **⚙ Mechanism — delayed-reward contextual bandit.** Model the choice as a contextual bandit: featurize each candidate change, and a policy like `LinUCB` picks *adopt* or *defer*. The convenient part for a deployed loop is that LinUCB's whole state is two running sums — a matrix and a vector. Because they're sums, folding a reward in weeks late lands in exactly the same place as if it had arrived on time; order doesn't matter. So you stash the context and the arm you chose at adoption, and *replay* the update when the verdict resolves. Map the categorical verdict to a bounded reward — helped positive, regressed negative *even if you auto-reverted* (the decision was still wrong) — subtract a clipped penalty for any guardrail you dented, and skip the update entirely when the verdict was insufficient evidence. Keep the reward bounded and the prior strong, or a single noisy outcome will swing a policy you've barely begun to train.
 
@@ -119,7 +119,7 @@ And one line we hold to: the gate is the one thing the loop can't edit. A safety
 
 Everything so far edits an agent's *files* — its instructions, its routines, its dials. The real frontier is editing the model's own weights, and we haven't crossed it yet: doing that unattended is properly frightening, because a single bad edit can quietly break everything, for everyone.
 
-But there's a beautiful idea sitting in the personalization literature that looks like the right shape. Store each person's knowledge as small, local, isolated edits to the model — undone by dropping them, unable to reach anyone else, unable to dent the base — and the properties you'd want for *personalization* turn out to be, almost word for word, the properties you'd need for *safe self-modification*: reversible, isolated, non-degrading, by construction.
+But there's a beautiful idea sitting in the personalization literature that looks like the right shape. Store each person's knowledge as small, local, isolated edits to the model — undone by dropping them, unable to reach anyone else (the birthday one person mentions can never surface in another's chat), unable to dent the base — and the properties you'd want for *personalization* turn out to be, almost word for word, the properties you'd need for *safe self-modification*: reversible, isolated, non-degrading, by construction.
 
 The safest place to change a mind is one where "undo" and "harms no one else" aren't things you watch for — they're things the storage guarantees. That's where we think the parametric loop should go, once we build it.
 
