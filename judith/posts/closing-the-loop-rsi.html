@@ -177,7 +177,7 @@
       Field notes · recursive self-improvement (RSI)
     </p>
     <h1>Closing the Loop</h1>
-    <p class="dek">How to build an RSI agent — one that actually improves itself — and why the machinery is the easy half.</p>
+    <p class="dek">Every self-improving agent is drawn as a circle. Most of them never close it. What it takes to wire the last edge — and why the machinery is the easy half.</p>
     <p class="byline">From building Judith · Sai Krishna Rallabandi</p>
     <a class="sub-pill" href="https://onrallabandiradar.substack.com/">Subscribe on Substack →</a>
   </div>
@@ -186,29 +186,29 @@
 <article>
   <div class="wrap">
 
-    <p class="lead">There's a pattern every &ldquo;self-improving&rdquo; agent seems to ship with. It keeps a memory of what happened, reflects on that memory, proposes a change to its own behavior, and applies it. Reflect, propose, apply. Draw it on a whiteboard and it's a beautiful closed loop.</p>
+    <p class="lead">The ouroboros — the serpent devouring its own tail — is the oldest picture we have of a thing that feeds on itself to keep living. It is also, whether we say so or not, the picture every &ldquo;self-improving&rdquo; agent ships with. Keep a memory. Reflect on it. Propose a change to yourself. Apply it. Reflect, propose, apply — around and around, forever.</p>
 
-    <p>Run it in production for a while and you notice something uncomfortable: the loop is closed in <em>shape</em>, not in <em>substance</em>. It never checks whether a change actually helped. It can't adopt anything without a human in the hot path, so it stalls the moment attention runs out. And when a change makes things worse, there's no way to take it back.</p>
+    <p>Draw it on a whiteboard and it's beautiful. Run it in production and you notice the serpent's jaws never actually close. The change goes out, and nothing checks whether it helped. Nothing adopts it without a human standing over the loop. And nothing pulls it back when it makes things worse.</p>
 
-    <p>That's not a self-improvement loop. It's a self-<em>modification</em> loop with the feedback edge drawn in but never wired up. The gap between those two is the whole game.</p>
+    <p>That is not a self-improving agent. It is a self-<em>modifying</em> one — the feedback edge drawn in, never wired up. The whole game lives in that one missing edge.</p>
 
     <p class="sec-kick">The three edges</p>
     <h2>What "closed" actually requires</h2>
-    <p>A real loop needs three edges the demo version skips. Everything else is detail.</p>
+    <p>A loop you can draw is not a loop that closes. Three edges make the difference, and the demo version skips all three.</p>
     <ul class="body">
-      <li><strong>Outcome attribution.</strong> Did the change reduce the problem it was meant to fix — out in the world, not in the model's own opinion?</li>
-      <li><strong>A safe way to adopt on its own.</strong> So progress doesn't depend on a human saying "yes" to every micro-change.</li>
-      <li><strong>A way to undo.</strong> A captured before-state and an automatic rollback when a signal moves the wrong way.</li>
+      <li><strong>Outcome attribution.</strong> Did the change kill the problem it was born to fix — in the world, not in the model's own opinion?</li>
+      <li><strong>A way to adopt on its own.</strong> Or the loop only ever moves as fast as a human says yes.</li>
+      <li><strong>A way to undo.</strong> A remembered before, and an automatic hand to pull the change back the moment a number turns.</li>
     </ul>
-    <p>Miss any one and you don't have a loop — you have an agent editing itself and hoping.</p>
+    <p>Skip one and you don't have a loop. You have an agent editing itself and hoping.</p>
 
     <p class="sec-kick">The keystone</p>
     <h2>Measure outcomes, not applause</h2>
-    <p>The hardest and most important edge is the first one. Most self-improvement systems that <em>do</em> measure improvement measure it against a cheap oracle — a unit test, a benchmark, the model grading its own work. A deployed assistant has no such oracle. The question isn't "does the model think this is better." It's "did the thing the user kept complaining about stop happening."</p>
+    <p>The first edge is the hardest, and it is the one everyone fakes. Most systems that claim to measure improvement measure it against a cheap oracle — a unit test, a benchmark, the model grading its own homework. A deployed assistant has no such oracle. The only question that counts is not "does the model think this is better." It is "did the thing the person kept complaining about stop happening."</p>
 
-    <p>So tie every shipped change back to the signal that motivated it. If a change was born because someone kept correcting the agent about the same thing, the measure of that change is simple: did that correction stop recurring, after, compared to before?</p>
+    <p>So bind every change to the complaint that caused it. If a change was born because someone kept correcting the same mistake, the test is almost embarrassingly simple: did the correction stop coming back?</p>
 
-    <p>Which means you first need to <em>read</em> the friction — turn a stream of messages into typed signals: corrections, frustrations, unmet wishes, repeated asks. A small model classifying each message does this well. To build and test that on public data, and to check the recurrence idea:</p>
+    <p>Which means you first have to <em>hear</em> the friction — turn a river of messages into named signals: corrections, frustrations, wishes, the same request asked a third time. A small model, reading each message, does this well. To build and check it on public ground:</p>
 
     <div class="aside">
       <span class="lbl">Public data — the signal &amp; its recurrence</span>
@@ -221,11 +221,11 @@
       <p class="gap">No public set gives you the real thing — a live deployment with labeled friction and a <em>controlled</em> change. That gap is exactly why the deployment matters.</p>
     </div>
 
-    <blockquote>Optimize applause and you get a crowd-pleaser. Optimize the real outcome and you get an agent that helps.</blockquote>
+    <blockquote>Optimize the applause and you build a crowd-pleaser. Optimize the outcome and you build an agent that helps.</blockquote>
 
-    <p>This is also your defense against the oldest failure in optimization — <strong>Goodhart's law.</strong> The instant your reward becomes "the judge liked it" or "we adopted a lot of changes," the system learns to farm the judge and inflate the count. The fix is to keep the thing you actually optimize an <em>independent</em> signal of real behavior, something the agent doesn't get to grade, and to hold it off the optimization path — used as a verdict, not a dial.</p>
+    <p>This is also your only defense against the oldest trap in optimization — <strong>Goodhart's law.</strong> The moment your reward becomes "the judge liked it" or "we shipped a lot of changes," the system learns to please the judge and pad the count. So keep the thing you actually optimize honest: an <em>independent</em> signal of real behavior, one the agent never gets to grade, held off to the side as a verdict — never handed to it as a dial.</p>
 
-    <p>One caveat that bites hard in the real world: you get very little data per signal. A single person produces a handful of instances of any one friction. A naive rule — "recurrence dropped by half, ship it" — will crown noise as success constantly. Use a conservative test, and when the evidence isn't there yet, prefer <em>"insufficient evidence, keep watching"</em> over a confident wrong answer. A false "it helped" is the expensive mistake: it teaches the loop the wrong lesson, and lessons compound.</p>
+    <p>One more thing the real world does to you: it starves you of data. One person throws off a handful of any single friction, not a thousand. A greedy rule — "it dropped by half, ship it" — will crown noise as triumph all day long. So test conservatively, and when the evidence hasn't arrived, say so and wait. A false <em>"it helped"</em> is the expensive lie: it teaches the loop the wrong lesson, and lessons compound.</p>
 
     <div class="mech">
       <span class="lbl">Mechanism · the attribution test</span>
@@ -235,19 +235,19 @@
 
     <p class="sec-kick">The judges</p>
     <h2>One rater is not enough</h2>
-    <p>When the human signal is too sparse to train on directly, you can <em>densify</em> it — have a model judge quality and use that as a stand-in reward. But "auto-rater" makes it sound like a single thing. It isn't. You need a small panel of judges, each answering a different question, each tuned differently — and getting the <em>granularity</em> right for each one matters more than which model you pick.</p>
+    <p>When the human signal is too thin to train on, you thicken it: let a model judge quality and stand in for the missing human. But "auto-rater" hides a lie of the singular. There is no one judge. There is a bench of them, each asked a different question, each tuned to a different temperament — and getting each one's <em>nerve</em> right matters more than which model you sit in the chair.</p>
 
-    <p><strong>The usefulness judge</strong> asks: did this actually help the person? It's the most subjective and the hardest, because helpfulness is graded, not binary. Give it a fine scale — a coarse good/bad judge ties on nearly everything and collapses to a coin flip, teaching the loop nothing. Better still, ask it to <em>compare</em> two responses rather than score one in a vacuum; judges, like people, agree far more on "which is better" than on "what number." Aggregate enough pairwise comparisons and you recover a ranking — a Bradley–Terry score — that's far steadier than any single absolute rating. This one is a reward, so it has to be calibrated hard against real human preference: measure agreement on pairwise sets and rank-correlation on scalar ones, and watch for the self-preference bias where a judge favors its own model's family.</p>
+    <p><strong>The usefulness judge</strong> asks: did this help? The most subjective seat, and the hardest, because helpfulness has grades, not a switch. Give it a fine scale — a good/bad judge ties on everything and decays into a coin toss. Better: don't ask it to score one answer in a vacuum; ask it which of two is better. Judges, like people, agree far more on the comparison than the number. Stack enough comparisons and a ranking falls out — a Bradley–Terry order — steadier than any single grade. This seat is a reward, so calibrate it hard against real preference, and watch it for vanity: a judge left alone will flatter its own kind.</p>
 
-    <p><strong>The deliverable-quality judge</strong> asks: is this good work — a report, a plan, a piece of code? More objective than usefulness, because you can hand it explicit, domain-specific criteria: is the code correct, is the analysis sound, did it answer the question asked. Here the nuance lives in the rubric, not the scale; the sharper the criteria, the more the judge agrees with an expert.</p>
+    <p><strong>The quality judge</strong> asks: is this good work — a report, a plan, a piece of code? A more objective seat, because you can hand it explicit criteria: is the code correct, is the analysis sound, did it answer the question asked. Here the nuance lives in the rubric, not the scale; the sharper the criteria, the closer the judge sits to an expert.</p>
 
-    <p><strong>The faithfulness judge</strong> asks: is this true and grounded in the source, or quietly made up? This one you want <em>strict</em>, not nuanced. It doesn't grade eloquence; it catches fabrication. Run it near-binary, and when in doubt, flag.</p>
+    <p><strong>The faithfulness judge</strong> asks: is this true, or invented? Here you want a strict clerk, not a critic. It doesn't grade prose; it catches fabrication. Keep it near-binary. When it isn't sure, it flags.</p>
 
-    <p><strong>The safety judge</strong> asks: does this leak someone's private information, or cross a hard line? It's different in kind — not a reward but a <em>veto</em>. You want it conservative: high recall on real violations even at the cost of some false alarms. And you must never let it become a positive score the loop can trade away. A guardrail you can optimize against is not a guardrail.</p>
+    <p><strong>The safety judge</strong> asks: does this spill someone's private life, or step over a line? A different animal — not a reward but a <em>veto</em>. Keep it nervous: better a false alarm than a miss. And never, ever let it become a score the loop can bargain against. A guardrail you can optimize is not a guardrail.</p>
 
-    <blockquote>Grade the things you're trying to improve. Gate the things you can't allow.</blockquote>
+    <blockquote>Grade what you want to improve. Gate what you can't allow.</blockquote>
 
-    <p>The rule that ties the panel together: match a judge's output to the decision it feeds. A reward needs a fine, calibrated scale — or, better, a pairwise comparison. A veto needs a crisp boundary. And never let the model that wrote an answer be the only judge of it: a generator grading its own work drifts toward flattering itself.</p>
+    <p>The rule beneath the whole bench: match a judge's answer to the decision it feeds. A reward wants a fine, calibrated scale — or a comparison. A veto wants a hard edge. And never seat the author as the only judge of their own work: a model grading itself drifts, slowly, toward applause.</p>
 
     <div class="aside">
       <span class="lbl">Public data — calibrating the judges</span>
@@ -261,13 +261,13 @@
 
     <p class="sec-kick">Autonomy</p>
     <h2>Earn it; don't grant it</h2>
-    <p>The stall — waiting for a human to approve everything — is fatal, because attention is the one resource that always runs out. But the fix isn't "let it do anything." It's to make autonomy something a change has to <em>earn</em>.</p>
+    <p>Waiting for a human to bless every change is a quiet death, because attention is the one resource that always runs dry. But the cure is not "let it loose." It is to make autonomy a thing a change has to <em>earn</em>.</p>
 
-    <p>Sort changes by how reversible and measurable they are. The reversible, scoped, measurable ones — a tightened instruction, an adjusted threshold, a repaired routine — the agent can adopt on its own, <em>because</em> it can measure the result and undo it if it's wrong. The consequential ones — new capabilities, anything reaching outside its own sandbox — get proposed to a human. The irreversible ones — deletions, credentials, anything that can't be walked back — always require an explicit yes.</p>
+    <p>Sort every change by two questions: can you measure it, and can you take it back? The ones that answer yes to both — a tightened instruction, a nudged threshold, a repaired routine — the agent may adopt alone, <em>because</em> it can watch the result and undo its own mistake. The ones that reach outside the sandbox go to a human. The ones that can't be walked back — deletions, credentials, anything final — always wait for a yes.</p>
 
-    <p>Then add one more thing: a fallback for silence. If a low-risk change is proposed and no one answers, don't let it die in a queue — downgrade it to the measured-and-reversible path. Autonomy earned by measurability plus reversibility, with a human kept firmly in the loop exactly where it matters and nowhere it doesn't.</p>
+    <p>Then give silence a plan. If a low-risk change is proposed and no one answers, don't let it rot in a queue — let it fall through to the measured, reversible path. Autonomy earned by measurement and reversibility, and a human kept exactly where they matter and nowhere they don't.</p>
 
-    <p>Underneath sits the part that actually applies a change and can take it back — reversible, declarative operations behind a safety check, with a verify-and-rollback window.</p>
+    <p>Underneath all of it sits the part that actually lays a change down and can lift it back off — reversible, declarative operations behind a safety check, wrapped in a verify-and-rollback window.</p>
 
     <div class="mech">
       <span class="lbl">Mechanism · a reversible change</span>
@@ -275,7 +275,7 @@
       <p>Before applying, snapshot the exact prior bytes as a <em>pre-image</em>. Adopt, then open the verify window; if the target metric regresses, restore the pre-image automatically. Undo is a file copy, not a heuristic — which is what makes "auto-adopt" safe to say out loud.</p>
     </div>
 
-    <p>That machinery — detect a failure, apply a scoped fix, prove the fix worked, else roll back — is exactly the shape of program-repair benchmarks, so you can build and stress it on public data:</p>
+    <p>That shape — spot a failure, apply a scoped fix, prove it worked, else roll it back — is the exact shape of program-repair benchmarks, which is where you can harden it on public ground:</p>
 
     <div class="aside">
       <span class="lbl">Public data — apply, verify, undo</span>
@@ -288,9 +288,9 @@
 
     <p class="sec-kick">Learning</p>
     <h2>Make it choose better, not just act</h2>
-    <p>An agent that applies changes is automation. An agent that gets <em>better at choosing which changes to make</em> is the recursive part — the self-improvement actually improving itself.</p>
+    <p>An agent that applies changes is automation. An agent that gets <em>better at choosing which changes to make</em> is the recursive part — the self-improvement finally improving itself.</p>
 
-    <p>Close that edge by feeding the outcome verdict back as a reward for whatever picks the changes. Over time it learns which kinds of changes tend to help, and leans toward them. The reward arrives late — you only learn weeks later whether a change worked — but late feedback is still feedback. You just remember what you chose, and credit it when the verdict finally lands.</p>
+    <p>Wire that by feeding the verdict back as a reward to whatever does the choosing. In time it learns which kinds of change tend to pay, and reaches for them. The reward comes late — you learn weeks after the fact — but late feedback is still feedback. You remember what you chose, and settle the account when the verdict lands.</p>
 
     <div class="mech">
       <span class="lbl">Mechanism · delayed-reward contextual bandit</span>
@@ -309,19 +309,19 @@
 
     <p class="sec-kick">Safety</p>
     <h2>Fail closed on an ungated floor</h2>
-    <p>Here's an uncomfortable truth about most agent platforms: the thing running your agent's commands does so with full permissions and no per-action approval. Nothing underneath is going to stop a runaway loop.</p>
+    <p>An uncomfortable truth about the ground most agents stand on: the thing that runs their commands runs them with full permissions and nobody asking. Nothing beneath your agent is going to stop a runaway.</p>
 
-    <p>Which means safety can't be inherited from the substrate. It has to live in <em>your</em> controller, and it has to <strong>fail closed</strong>: a kill switch checked before anything happens, an allowlist of exactly what a change may touch, a reversibility precondition, rate limits, and an audit trail of every action.</p>
+    <p>So safety can't be borrowed from the floor. It has to live in <em>your</em> controller, and it has to <strong>fail closed</strong>: a kill switch checked before a finger moves, an allowlist of exactly what a change may touch, a reversibility clause, a rate limit, a ledger of every act.</p>
 
-    <p>And one rule that sounds obvious and is easy to get wrong — <strong>the safety gate must never be able to weaken itself.</strong> A self-modifying system whose safety checks are also freely self-modifiable has no safety checks. Make the gate the one thing the loop can't autonomously touch.</p>
+    <p>And the rule that is obvious and still gets broken — <strong>the gate can never be allowed to loosen itself.</strong> A safety check that is also freely self-editable is not a safety check. Make the gate the one room the loop can't autonomously enter.</p>
 
     <p class="sec-kick">The frontier</p>
     <h2>Changing the weights, safely</h2>
-    <p>Everything above works on an agent's <em>files</em> — instructions, routines, thresholds. The deeper frontier is changing the model's own parameters, and doing that autonomously is genuinely frightening, because one weight edit can silently wreck everything.</p>
+    <p>Everything so far edits an agent's <em>files</em> — its instructions, its routines, its dials. The real frontier is editing the model's own weights, and doing it unattended is properly frightening, because a single bad edit can quietly break everything, for everyone.</p>
 
-    <p>There's a lovely idea from the personalization literature that turns out to be the answer. If you store each person's knowledge as small, local, isolated edits to the model — reversible by simply dropping them, unable to touch anyone else's, provably unable to degrade the base — then the properties you wanted for <em>personalization</em> are exactly the properties you need for <em>safe self-modification</em>: reversible, isolated, non-degrading, by construction.</p>
+    <p>There's a beautiful idea sitting in the personalization literature that turns out to be the key. Store each person's knowledge as small, local, isolated edits to the model — undone by dropping them, unable to reach anyone else, unable to dent the base — and the properties you wanted for <em>personalization</em> turn out to be, almost word for word, the properties you need for <em>safe self-modification</em>: reversible, isolated, non-degrading, by construction.</p>
 
-    <p>The safest parametric change surface is one where "undo" and "can't hurt anyone else" aren't things you monitor — they're guaranteed by how the change is stored. That's the direction the parametric loop should go.</p>
+    <p>The safest place to change a mind is one where "undo" and "harms no one else" aren't things you watch for — they're things the storage guarantees. That's where the parametric loop should go.</p>
 
     <div class="mech">
       <span class="lbl">Mechanism · hash-keyed memory edits</span>
@@ -340,13 +340,15 @@
 
     <p class="sec-kick">The honest part</p>
     <h2>The machinery is the easy half</h2>
-    <p>If you build all of this, you'll have something that looks impressive: a controller, a scoreboard, safety gates, a policy that learns. Here's the thing nobody tells you — that's the easy half.</p>
+    <p>Build all of this and you'll have something that photographs well: a controller, a scoreboard, a bank of gates, a policy that learns. Here is what nobody tells you at the demo — that was the easy half.</p>
 
-    <p>The machinery is buildable in a few weeks. The real question is whether the outcomes actually move — whether, six weeks in, the things people complained about happen <em>less</em>. That takes patience, honest measurement, and the discipline to say "not yet proven" about your own system.</p>
+    <p>The machinery is a few weeks. The question underneath it — did the outcomes actually move, do the old complaints come less often now — is a season of patience, honest measurement, and the discipline to say "not yet proven" about your own work.</p>
 
-    <blockquote>An agent that can measure whether it's improving is worth more than one that merely claims to be.</blockquote>
+    <blockquote>An agent that can measure whether it's improving is worth more than one that only says it is.</blockquote>
 
-    <p>Build the ruler first. Then let it tell you the truth.</p>
+    <p>Build the ruler first. Then let it tell you the truth, even when the truth is no.</p>
+
+    <p>The serpent only lives if its jaws truly close. In a self-improving agent, the thing that closes them is measurement — a real outcome, honestly counted, feeding back into the next choice. Wire that edge and the drawing becomes a loop. Skip it, and you've only drawn a circle around a hope.</p>
 
     <hr class="rule">
 
@@ -354,13 +356,13 @@
       <p class="sec-kick">The recipe</p>
       <h2>If you're building one</h2>
       <ol class="recipe-list">
-        <li>Wire the outcome edge before anything else. If you can't measure whether a change helped, you're not closing a loop.</li>
-        <li>Optimize a real-world signal, never the applause. Keep it independent, and off the dial.</li>
-        <li>Earn autonomy through reversibility and measurement. Auto-adopt only what you can undo.</li>
-        <li>Always capture a before-state. Auto-revert the moment a signal regresses.</li>
-        <li>Feed outcomes back into the choosing, so the loop learns to pick.</li>
-        <li>Put safety in your own code and make it fail closed — and never let it edit itself.</li>
-        <li>Prefer "insufficient evidence" to a confident wrong answer.</li>
+        <li>Wire the outcome edge first. If you can't tell whether a change helped, you aren't closing a loop — you're editing yourself in the dark.</li>
+        <li>Optimize a real outcome, never the applause. Keep it independent, keep it off the dial.</li>
+        <li>Make autonomy earned: measurable and reversible, or it waits for a human.</li>
+        <li>Remember every before. Roll back the moment a number turns.</li>
+        <li>Feed outcomes into the choosing, so the loop learns taste.</li>
+        <li>Put safety in your own code, make it fail closed, and never let it edit itself.</li>
+        <li>Say "insufficient evidence" out loud. It's cheaper than a confident lie.</li>
         <li>Build the ruler before you claim you've grown.</li>
       </ol>
     </div>
