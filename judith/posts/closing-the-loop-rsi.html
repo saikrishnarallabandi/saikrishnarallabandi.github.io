@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="How to build a recursively self-improving (RSI) agent: the closed-loop pattern, outcome attribution, safe autonomy, and the datasets that ground each piece.">
+<title>Closing the Loop — Building an RSI Agent</title>
+<style>
+  :root{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB;
+    --quote:#2A2E38;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,"Cascadia Code",monospace;
+    --sans:"Helvetica Neue",Helvetica,"Segoe UI",system-ui,Arial,sans-serif;
+    --serif:Charter,"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --measure:40rem;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0C0E13; --surface:#13161D;
+      --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+      --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C;
+      --quote:#D6D9E2;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB; --quote:#2A2E38;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C0E13; --surface:#13161D;
+    --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+    --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C; --quote:#D6D9E2;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--serif);
+    font-size:1.19rem; line-height:1.72; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;}
+  .wrap{max-width:var(--measure); margin:0 auto; padding:0 24px}
+  a{color:var(--accent-ink); text-decoration:none; border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
+  a:hover{border-bottom-color:var(--accent)}
+  a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+  /* ---------- hero ---------- */
+  header.hero{border-bottom:1px solid var(--hair)}
+  .hero-in{max-width:var(--measure); margin:0 auto; padding:clamp(56px,10vw,104px) 24px clamp(30px,5vw,48px)}
+  .kicker{font-family:var(--mono); font-size:.74rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--accent-ink); display:flex; align-items:center; gap:12px; margin:0 0 26px}
+  .kicker .ring{width:22px; height:22px; flex:none}
+  .kicker .ring circle{fill:none; stroke:var(--accent); stroke-width:2.4; stroke-linecap:round;
+    stroke-dasharray:52; stroke-dashoffset:14; transform-origin:center;}
+  @media (prefers-reduced-motion:no-preference){
+    .kicker .ring circle{animation:spin 4.5s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  }
+  h1{font-family:var(--sans); font-weight:800; letter-spacing:-.03em; line-height:.98;
+    font-size:clamp(3rem,10vw,5.4rem); margin:0 0 22px; text-wrap:balance;}
+  .dek{font-family:var(--serif); font-style:italic; font-size:clamp(1.2rem,2.6vw,1.5rem);
+    line-height:1.42; color:var(--muted); margin:0; max-width:34ch; text-wrap:pretty;}
+  .byline{font-family:var(--mono); font-size:.76rem; letter-spacing:.04em; color:var(--faint);
+    margin:30px 0 0; padding-top:20px; border-top:1px solid var(--hair);}
+
+  /* ---------- article ---------- */
+  article{padding:clamp(36px,6vw,64px) 0 20px}
+  article > .wrap > p{margin:0 0 1.35em; text-wrap:pretty}
+  .lead{font-size:1.32rem; line-height:1.62; color:var(--ink)}
+  .lead::first-letter{initial-letter:2.2; font-family:var(--sans); font-weight:800;
+    color:var(--accent); margin-right:.08em; -webkit-initial-letter:2.2;}
+  strong{font-weight:700; color:var(--ink)}
+  em{font-style:italic}
+
+  h2{font-family:var(--sans); font-weight:750; letter-spacing:-.02em; line-height:1.1;
+    font-size:clamp(1.5rem,4vw,2rem); margin:2.4em 0 .1em; text-wrap:balance;}
+  .sec-kick{font-family:var(--mono); font-size:.72rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 .5em; display:flex; align-items:center; gap:9px;}
+  .sec-kick::before{content:"↻"; font-size:1.05em; line-height:1; color:var(--accent);}
+  h2 + p{margin-top:.5em}
+
+  ul.body{list-style:none; margin:0 0 1.5em; padding:0; display:flex; flex-direction:column; gap:.7em}
+  ul.body li{position:relative; padding-left:1.6em}
+  ul.body li::before{content:""; position:absolute; left:0; top:.62em; width:.6em; height:.6em;
+    border:2px solid var(--accent); border-radius:50%;}
+  ul.body li strong{color:var(--ink)}
+
+  blockquote{margin:1.8em 0; padding:.1em 0 .1em 1.3em; border-left:3px solid var(--accent);
+    font-family:var(--sans); font-weight:600; font-style:normal; font-size:clamp(1.45rem,3.2vw,1.9rem);
+    line-height:1.28; letter-spacing:-.015em; color:var(--quote); text-wrap:balance;}
+
+  hr.rule{border:0; height:1px; background:var(--hair); margin:2.6em 0;}
+
+  /* recipe */
+  .recipe{background:var(--surface); border:1px solid var(--hair); border-radius:16px;
+    padding:clamp(24px,4vw,36px); margin:1.4em 0 0;}
+  .recipe h2{margin-top:0}
+  ol.recipe-list{list-style:none; counter-reset:r; margin:1.2em 0 0; padding:0;
+    display:flex; flex-direction:column; gap:1em;}
+  ol.recipe-list li{counter-increment:r; position:relative; padding-left:2.6em; font-size:1.08rem; line-height:1.5;}
+  ol.recipe-list li::before{content:counter(r,decimal-leading-zero); position:absolute; left:0; top:.05em;
+    font-family:var(--mono); font-size:.82rem; font-weight:600; color:var(--accent);
+    border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); border-radius:6px;
+    width:1.9em; height:1.7em; display:flex; align-items:center; justify-content:center;}
+
+  /* inline "public data" aside — set apart from the prose, attached to its section */
+  .aside{background:var(--accent-soft); border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);
+    border-radius:13px; padding:16px 20px 18px; margin:1.7em 0; font-family:var(--sans);
+    font-size:1.02rem; line-height:1.5;}
+  .aside .lbl{font-family:var(--mono); font-size:.68rem; letter-spacing:.15em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 .7em; display:block;}
+  .aside ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.45em;}
+  .aside li{position:relative; padding-left:1.2em; color:var(--muted);}
+  .aside li::before{content:""; position:absolute; left:0; top:.6em; width:5px; height:5px;
+    border-radius:50%; background:var(--accent);}
+  .aside .dn{font-family:var(--mono); font-size:.85em; letter-spacing:.01em; color:var(--accent-ink); font-weight:600;}
+  .aside .gap{margin:.7em 0 0; padding-left:0; font-style:italic; font-size:.94rem; color:var(--muted);}
+  .aside .gap::before{display:none;}
+
+  footer{border-top:1px solid var(--hair); margin-top:clamp(48px,7vw,80px)}
+  .foot-in{max-width:var(--measure); margin:0 auto; padding:32px 24px 60px;
+    font-family:var(--mono); font-size:.78rem; letter-spacing:.02em; color:var(--faint); line-height:1.7;}
+  .foot-in a{color:var(--accent-ink)}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <p class="kicker">
+      <svg class="ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
+      Field notes · recursive self-improvement (RSI)
+    </p>
+    <h1>Closing the Loop</h1>
+    <p class="dek">How to build an RSI agent — one that actually improves itself — and why the machinery is the easy half.</p>
+    <p class="byline">From building Judith · Sai Krishna Rallabandi</p>
+  </div>
+</header>
+
+<article>
+  <div class="wrap">
+
+    <p class="lead">There's a pattern every &ldquo;self-improving&rdquo; agent seems to ship with. It keeps a memory of what happened, reflects on that memory, proposes a change to its own behavior, and applies it. Reflect, propose, apply. Draw it on a whiteboard and it's a beautiful closed loop.</p>
+
+    <p>Run it in production for a while and you notice something uncomfortable: the loop is closed in <em>shape</em>, not in <em>substance</em>. It never checks whether a change actually helped. It can't adopt anything without a human in the hot path, so it stalls the moment attention runs out. And when a change makes things worse, there's no way to take it back.</p>
+
+    <p>That's not a self-improvement loop. It's a self-<em>modification</em> loop with the feedback edge drawn in but never wired up. The gap between those two is the whole game.</p>
+
+    <p class="sec-kick">The three edges</p>
+    <h2>What "closed" actually requires</h2>
+    <p>A real loop needs three edges the demo version skips. Everything else is detail.</p>
+    <ul class="body">
+      <li><strong>Outcome attribution.</strong> Did the change reduce the problem it was meant to fix — out in the world, not in the model's own opinion?</li>
+      <li><strong>A safe way to adopt on its own.</strong> So progress doesn't depend on a human saying "yes" to every micro-change.</li>
+      <li><strong>A way to undo.</strong> A captured before-state and an automatic rollback when a signal moves the wrong way.</li>
+    </ul>
+    <p>Miss any one and you don't have a loop — you have an agent editing itself and hoping.</p>
+
+    <p class="sec-kick">The keystone</p>
+    <h2>Measure outcomes, not applause</h2>
+    <p>The hardest and most important edge is the first one. Most self-improvement systems that <em>do</em> measure improvement measure it against a cheap oracle — a unit test, a benchmark, the model grading its own work. A deployed assistant has no such oracle. The question isn't "does the model think this is better." It's "did the thing the user kept complaining about stop happening."</p>
+
+    <p>So tie every shipped change back to the signal that motivated it. If a change was born because someone kept correcting the agent about the same thing, the measure of that change is simple: did that correction stop recurring, after, compared to before?</p>
+
+    <p>Which means you first need to <em>read</em> the friction — turn a stream of messages into typed signals: corrections, frustrations, unmet wishes, repeated asks. A small model classifying each message does this well. To build and test that on public data, and to check the recurrence idea:</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — the signal &amp; its recurrence</span>
+      <ul>
+        <li><span class="dn">WildChat</span> — real assistant conversations to run a distiller over.</li>
+        <li><span class="dn">WildFeedback</span> — in-conversation (dis)satisfaction mined from those chats; the closest label scaffold.</li>
+        <li><span class="dn">USS · EmoWOZ · SAIF</span> — dialogues labeled with satisfaction, and real human–AI correction pairs, for training the signal detector.</li>
+        <li><span class="dn">MSC · Conversation Chronicles · LoCoMo</span> — same-user-over-time corpora, to measure recurrence before versus after.</li>
+      </ul>
+      <p class="gap">No public set gives you the real thing — a live deployment with labeled friction and a <em>controlled</em> change. That gap is exactly why the deployment matters.</p>
+    </div>
+
+    <blockquote>Optimize applause and you get a crowd-pleaser. Optimize the real outcome and you get an agent that helps.</blockquote>
+
+    <p>This is also your defense against the oldest failure in optimization — <strong>Goodhart's law.</strong> The instant your reward becomes "the judge liked it" or "we adopted a lot of changes," the system learns to farm the judge and inflate the count. The fix is to keep the thing you actually optimize an <em>independent</em> signal of real behavior, something the agent doesn't get to grade, and to hold it off the optimization path — used as a verdict, not a dial.</p>
+
+    <p>One caveat that bites hard in the real world: you get very little data per signal. A single person produces a handful of instances of any one friction. A naive rule — "recurrence dropped by half, ship it" — will crown noise as success constantly. Use a conservative test, and when the evidence isn't there yet, prefer <em>"insufficient evidence, keep watching"</em> over a confident wrong answer. A false "it helped" is the expensive mistake: it teaches the loop the wrong lesson, and lessons compound.</p>
+
+    <p class="sec-kick">The judges</p>
+    <h2>One rater is not enough</h2>
+    <p>When the human signal is too sparse to train on directly, you can <em>densify</em> it — have a model judge quality and use that as a stand-in reward. But "auto-rater" makes it sound like a single thing. It isn't. You need a small panel of judges, each answering a different question, each tuned differently — and getting the <em>granularity</em> right for each one matters more than which model you pick.</p>
+
+    <p><strong>The usefulness judge</strong> asks: did this actually help the person? It's the most subjective and the hardest, because helpfulness is graded, not binary. Give it a fine scale — a coarse good/bad judge ties on nearly everything and collapses to a coin flip, teaching the loop nothing. Better still, ask it to <em>compare</em> two responses rather than score one in a vacuum; judges, like people, agree far more on "which is better" than on "what number." This one is a reward, so it has to be calibrated hard against real human preference.</p>
+
+    <p><strong>The deliverable-quality judge</strong> asks: is this good work — a report, a plan, a piece of code? More objective than usefulness, because you can hand it explicit, domain-specific criteria: is the code correct, is the analysis sound, did it answer the question asked. Here the nuance lives in the rubric, not the scale; the sharper the criteria, the more the judge agrees with an expert.</p>
+
+    <p><strong>The faithfulness judge</strong> asks: is this true and grounded in the source, or quietly made up? This one you want <em>strict</em>, not nuanced. It doesn't grade eloquence; it catches fabrication. Run it near-binary, and when in doubt, flag.</p>
+
+    <p><strong>The safety judge</strong> asks: does this leak someone's private information, or cross a hard line? It's different in kind — not a reward but a <em>veto</em>. You want it conservative: high recall on real violations even at the cost of some false alarms. And you must never let it become a positive score the loop can trade away. A guardrail you can optimize against is not a guardrail.</p>
+
+    <blockquote>Grade the things you're trying to improve. Gate the things you can't allow.</blockquote>
+
+    <p>The rule that ties the panel together: match a judge's output to the decision it feeds. A reward needs a fine, calibrated scale — or, better, a pairwise comparison. A veto needs a crisp boundary. And never let the model that wrote an answer be the only judge of it: a generator grading its own work drifts toward flattering itself.</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — calibrating the judges</span>
+      <ul>
+        <li><span class="dn">MT-Bench (human)</span> — pairwise human votes; the standard "does my judge agree with people" check.</li>
+        <li><span class="dn">HelpSteer2 / 3 · PRISM</span> — human quality ratings and per-turn scores; the best public stand-ins for a real reward.</li>
+        <li><span class="dn">RewardBench · LLMBar</span> — meta-benchmarks that stress a judge for bias and gameability.</li>
+        <li><span class="dn">ai4privacy</span> — labeled PII spans, for the safety judge's leak detection.</li>
+      </ul>
+    </div>
+
+    <p class="sec-kick">Autonomy</p>
+    <h2>Earn it; don't grant it</h2>
+    <p>The stall — waiting for a human to approve everything — is fatal, because attention is the one resource that always runs out. But the fix isn't "let it do anything." It's to make autonomy something a change has to <em>earn</em>.</p>
+
+    <p>Sort changes by how reversible and measurable they are. The reversible, scoped, measurable ones — a tightened instruction, an adjusted threshold, a repaired routine — the agent can adopt on its own, <em>because</em> it can measure the result and undo it if it's wrong. The consequential ones — new capabilities, anything reaching outside its own sandbox — get proposed to a human. The irreversible ones — deletions, credentials, anything that can't be walked back — always require an explicit yes.</p>
+
+    <p>Then add one more thing: a fallback for silence. If a low-risk change is proposed and no one answers, don't let it die in a queue — downgrade it to the measured-and-reversible path. Autonomy earned by measurability plus reversibility, with a human kept firmly in the loop exactly where it matters and nowhere it doesn't.</p>
+
+    <p>Underneath sits the part that actually applies a change and can take it back — reversible, declarative operations behind a safety check, with a verify-and-rollback window. To build the "detect a failure, fix it, prove the fix worked" cycle on public data:</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — apply, verify, undo</span>
+      <ul>
+        <li><span class="dn">BugSwarm · Defects4J</span> — reproducible failing-then-fixed pairs with an automatic pass/fail gate; the gold standard for "did the fix actually work."</li>
+        <li><span class="dn">IDoFT</span> — real intermittent failures with their fixes; the closest analog to something that flakes for no code change.</li>
+      </ul>
+      <p class="gap">There's no public corpus of scheduled-job failures paired with their fixes — that intersection is novel ground.</p>
+    </div>
+
+    <p class="sec-kick">Learning</p>
+    <h2>Make it choose better, not just act</h2>
+    <p>An agent that applies changes is automation. An agent that gets <em>better at choosing which changes to make</em> is the recursive part — the self-improvement actually improving itself.</p>
+
+    <p>Close that edge by feeding the outcome verdict back as a reward for whatever picks the changes. Over time it learns which kinds of changes tend to help, and leans toward them. The reward arrives late — you only learn weeks later whether a change worked — but late feedback is still feedback. You just remember what you chose, and credit it when the verdict finally lands.</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — learning to choose</span>
+      <ul>
+        <li><span class="dn">RecoGym</span> — a recommender simulator with exact logged probabilities; clean off-policy evaluation, permissively licensed.</li>
+        <li><span class="dn">Yahoo front-page logs</span> — the classic bandit dataset with true random-exploration logging.</li>
+        <li><span class="dn">OpenML → bandit</span> — classification tasks reduced to bandit problems; reproducible, ground-truth known.</li>
+      </ul>
+    </div>
+
+    <p class="sec-kick">Safety</p>
+    <h2>Fail closed on an ungated floor</h2>
+    <p>Here's an uncomfortable truth about most agent platforms: the thing running your agent's commands does so with full permissions and no per-action approval. Nothing underneath is going to stop a runaway loop.</p>
+
+    <p>Which means safety can't be inherited from the substrate. It has to live in <em>your</em> controller, and it has to <strong>fail closed</strong>: a kill switch checked before anything happens, an allowlist of exactly what a change may touch, a reversibility precondition, rate limits, and an audit trail of every action.</p>
+
+    <p>And one rule that sounds obvious and is easy to get wrong — <strong>the safety gate must never be able to weaken itself.</strong> A self-modifying system whose safety checks are also freely self-modifiable has no safety checks. Make the gate the one thing the loop can't autonomously touch.</p>
+
+    <p class="sec-kick">The frontier</p>
+    <h2>Changing the weights, safely</h2>
+    <p>Everything above works on an agent's <em>files</em> — instructions, routines, thresholds. The deeper frontier is changing the model's own parameters, and doing that autonomously is genuinely frightening, because one weight edit can silently wreck everything.</p>
+
+    <p>There's a lovely idea from the personalization literature that turns out to be the answer. If you store each person's knowledge as small, local, isolated edits to the model — reversible by simply dropping them, unable to touch anyone else's, provably unable to degrade the base — then the properties you wanted for <em>personalization</em> are exactly the properties you need for <em>safe self-modification</em>: reversible, isolated, non-degrading, by construction.</p>
+
+    <p>The safest parametric change surface is one where "undo" and "can't hurt anyone else" aren't things you monitor — they're guaranteed by how the change is stored. That's the direction the parametric loop should go.</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — personalize &amp; isolate</span>
+      <ul>
+        <li><span class="dn">LaMP · LongMemEval</span> — per-user personalization and long-term recall.</li>
+        <li><span class="dn">PerLTQA · CIMemories</span> — isolated per-user memory, and the utility-versus-leakage trade-off.</li>
+        <li><span class="dn">Federated corpora + canary tests</span> — per-user partitions with inserted secrets, to prove one person's data can't leak into another's answers.</li>
+      </ul>
+    </div>
+
+    <p class="sec-kick">The honest part</p>
+    <h2>The machinery is the easy half</h2>
+    <p>If you build all of this, you'll have something that looks impressive: a controller, a scoreboard, safety gates, a policy that learns. Here's the thing nobody tells you — that's the easy half.</p>
+
+    <p>The machinery is buildable in a few weeks. The real question is whether the outcomes actually move — whether, six weeks in, the things people complained about happen <em>less</em>. That takes patience, honest measurement, and the discipline to say "not yet proven" about your own system.</p>
+
+    <blockquote>An agent that can measure whether it's improving is worth more than one that merely claims to be.</blockquote>
+
+    <p>Build the ruler first. Then let it tell you the truth.</p>
+
+    <hr class="rule">
+
+    <div class="recipe">
+      <p class="sec-kick">The recipe</p>
+      <h2>If you're building one</h2>
+      <ol class="recipe-list">
+        <li>Wire the outcome edge before anything else. If you can't measure whether a change helped, you're not closing a loop.</li>
+        <li>Optimize a real-world signal, never the applause. Keep it independent, and off the dial.</li>
+        <li>Earn autonomy through reversibility and measurement. Auto-adopt only what you can undo.</li>
+        <li>Always capture a before-state. Auto-revert the moment a signal regresses.</li>
+        <li>Feed outcomes back into the choosing, so the loop learns to pick.</li>
+        <li>Put safety in your own code and make it fail closed — and never let it edit itself.</li>
+        <li>Prefer "insufficient evidence" to a confident wrong answer.</li>
+        <li>Build the ruler before you claim you've grown.</li>
+      </ol>
+    </div>
+
+  </div>
+</article>
+
+<footer>
+  <div class="foot-in">
+    Notes from turning Judith — a deployed personal assistant — into a system that improves itself, safely.<br>
+    Written by Sai Krishna Rallabandi · <a href="https://saikrishnarallabandi.github.io/judith">saikrishnarallabandi.github.io/judith</a>
+  </div>
+</footer>
+
+</body>
+</html>
