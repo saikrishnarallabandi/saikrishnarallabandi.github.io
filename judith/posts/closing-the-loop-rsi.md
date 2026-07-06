@@ -1,18 +1,18 @@
 # Closing the Loop — Building an RSI Agent
 
-*Every self-improving agent is drawn as a circle. Most of them never close it. What it takes to wire the last edge — and why the machinery is the easy half.*
+*The reflect–propose–apply loop is easy to build and hard to close. Notes on wiring the edge that turns it from a workflow into a system that improves — and why the machinery is the easy half.*
 
 ---
 
-The ouroboros — the serpent devouring its own tail — is the oldest picture we have of a thing that feeds on itself to keep living. It is also, whether we say so or not, the picture every "self-improving" agent ships with. Keep a memory. Reflect on it. Propose a change to yourself. Apply it. Reflect, propose, apply — around and around, forever.
+A self-improvement loop is easy to describe. Keep a memory of what happened. Reflect on it. Propose a change to your own behavior. Apply it. Reflect, propose, apply — a sound design, and the one most self-improving agents are built on.
 
-Draw it on a whiteboard and it's beautiful. Run it in production and you notice the serpent's jaws never actually close. The change goes out, and nothing checks whether it helped. Nothing adopts it without a human standing over the loop. And nothing pulls it back when it makes things worse.
+The hard part isn't any of those steps. It's the edge that turns the sequence into a *loop*: the one that feeds back whether the change actually helped, so the next round can be better than the last. For a deployed assistant that edge is genuinely difficult, because — unlike a model training against a benchmark — it has no test to check itself against.
 
-That is not a self-improving agent. It is a self-*modifying* one — the feedback edge drawn in, never wired up. The whole game lives in that one missing edge.
+These are notes on wiring that edge, and the two that travel with it: a safe way to adopt a change on its own, and a way to undo one that made things worse. Together they're what separate a loop that improves from a workflow that merely edits itself.
 
 ## What "closed" actually requires
 
-A loop you can draw is not a loop that closes. Three edges make the difference, and the demo version skips all three.
+A loop that improves needs three edges. Skip them and the workflow still runs — it reflects, proposes, applies — it just never gets better at it.
 
 - **Outcome attribution.** Did the change kill the problem it was born to fix — in the world, not in the model's own opinion?
 - **A way to adopt on its own.** Or the loop only ever moves as fast as a human says yes.
@@ -22,7 +22,7 @@ Skip one and you don't have a loop. You have an agent editing itself and hoping.
 
 ## Measure outcomes, not applause
 
-The first edge is the hardest, and it is the one everyone fakes. Most systems that claim to measure improvement measure it against a cheap oracle — a unit test, a benchmark, the model grading its own homework. A deployed assistant has no such oracle. The only question that counts is not "does the model think this is better." It is "did the thing the person kept complaining about stop happening."
+The first edge is the hardest to build. The well-known self-improvement methods — the ones that learn from their own attempts — lean on a cheap oracle to tell them whether an attempt was any good: a unit test, a gold label, a benchmark score. A deployed assistant has none of those. The only question that counts here isn't "does the model think this is better." It's "did the thing the person kept complaining about stop happening."
 
 So bind every change to the complaint that caused it. If a change was born because someone kept correcting the same mistake, the test is almost embarrassingly simple: did the correction stop coming back?
 
@@ -135,7 +135,7 @@ The machinery is a few weeks. The question underneath it — did the outcomes ac
 
 Build the ruler first. Then let it tell you the truth, even when the truth is no.
 
-The serpent only lives if its jaws truly close. In a self-improving agent, the thing that closes them is measurement — a real outcome, honestly counted, feeding back into the next choice. Wire that edge and the drawing becomes a loop. Skip it, and you've only drawn a circle around a hope.
+The edge that closes the loop is the same one that's hardest to build: an honest measurement of whether the last change helped, fed back into the next. Wire it, and reflect–propose–apply becomes a system that improves. Leave it out, and you have a system that changes — which is not the same thing.
 
 ---
 
