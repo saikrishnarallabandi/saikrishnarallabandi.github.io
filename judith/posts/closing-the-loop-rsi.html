@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Field notes on building a recursively self-improving (RSI) agent: closing the reflect-propose-apply loop with outcome measurement, safe autonomy, and reversibility.">
+<meta name="description" content="On building a recursively self-improving (RSI) agent: closing the reflect-propose-apply loop with outcome measurement, safe autonomy, and reversibility.">
 <title>Closing the Loop — Building an RSI Agent</title>
 <style>
   :root{
@@ -193,20 +193,20 @@
     <p>These are notes on wiring that edge, and the two that travel with it: a safe way to adopt a change on its own, and a way to undo one that made things worse. Together they're what separate a loop that improves from a workflow that merely edits itself.</p>
 
     <p class="sec-kick">The three edges</p>
-    <h2>Three edges we didn't have</h2>
-    <p>When we looked hard at our own loop, it was really a workflow: it reflected, proposed, applied — and never got better at it. Three edges were missing, the three that turn <em>changing</em> into <em>improving</em>.</p>
+    <h2>The three edges</h2>
+    <p>Three edges separate a loop that <em>improves</em> from a workflow that merely <em>changes</em>. A diagram tends to leave them out, because the workflow runs fine without them — it reflects, proposes, applies, and never gets any better at it.</p>
     <ul class="body">
       <li><strong>Outcome attribution.</strong> Did the change kill the problem it was born to fix — in the world, not in the model's own opinion?</li>
       <li><strong>A way to adopt on its own.</strong> Or the loop only ever moves as fast as a human says yes.</li>
       <li><strong>A way to undo.</strong> A remembered before, and an automatic hand to pull the change back the moment a number turns.</li>
     </ul>
-    <p>Missing all three, as we were, you don't have a loop. You have an agent editing itself and hoping.</p>
+    <p>Without all three, it isn't a loop. It's a system that edits itself and hopes.</p>
 
     <p class="sec-kick">The keystone</p>
     <h2>The measurement problem</h2>
-    <p>The first edge is the hardest to build. The well-known self-improvement methods — the ones that learn from their own attempts — lean on a cheap oracle to tell them whether an attempt was any good: a unit test, a gold label, a benchmark score. A deployed assistant has none of those. The question we cared about wasn't "does the model think this is better," but "did the thing the person kept complaining about stop happening."</p>
+    <p>The first edge is the hardest to build. The well-known self-improvement methods — the ones that learn from their own attempts — lean on a cheap oracle to tell them whether an attempt was any good: a unit test, a gold label, a benchmark score. A deployed assistant has none of those. The question that matters isn't "does the model think this is better," but "did the thing the person kept complaining about stop happening."</p>
 
-    <p>So we bind each change to the complaint that caused it. When a change is born because someone keeps correcting the same mistake, the test is almost embarrassingly simple: did the correction stop coming back?</p>
+    <p>Which points to a simple discipline: tie each change back to the complaint that caused it. When a change exists because someone keeps correcting the same mistake, the test is almost embarrassingly plain — did the correction stop coming back?</p>
 
     <p>Which meant first learning to <em>hear</em> the friction — turning a stream of messages into named signals: corrections, frustrations, wishes, the same request asked a third time. A small model reading each message does this well enough. To build and check it on public ground:</p>
 
@@ -233,7 +233,7 @@
       <p>Because friction can fall for reasons unrelated to your change, run it as a <strong>difference-in-differences</strong>: compare the target signal's drop against the drop in <em>all other</em> friction over the same window, and credit the change only if it beats that background. When even a perfect result couldn't clear significance, return <code>insufficient_evidence</code> and widen the window rather than guess.</p>
     </div>
 
-    <p>The first time this ran over our own history it embarrassed us, usefully. A recurring nag had dropped by roughly two-thirds after a change we were rather proud of — but every other kind of friction had fallen about as much that week; the person was simply busy elsewhere. The honest verdict was <em>no effect</em>, and it was right. A cruder rule would have handed us a trophy.</p>
+    <p>This will, and should, throw out plenty of changes that look like wins. A friction can drop by two-thirds and still mean nothing — if every other friction fell as far that week, the person was simply busy elsewhere, and the change earned no credit. A cruder rule hands you the trophy anyway; this one returns <em>no effect</em>, and the loop is better for hearing it.</p>
 
     <p class="sec-kick">The judges</p>
     <h2>One rater is not enough</h2>
@@ -262,12 +262,12 @@
     </div>
 
     <p class="sec-kick">Autonomy</p>
-    <h2>Why the loop stalled</h2>
-    <p>The first thing we learned about autonomy, we learned by not having enough of it. Our loop had quietly stalled — not for lack of problems, but because its one way to adopt anything was to wait for a human to reply <em>yes</em>, and the replies mostly didn't come. Attention is the resource that always runs dry.</p>
+    <h2>The approval bottleneck</h2>
+    <p>Autonomy is where these loops most often seize up — not for lack of problems to fix, but because the only sanctioned way to adopt anything is a human replying <em>yes</em>, and human attention is the one resource that always runs dry. A loop gated entirely on approval improves only as fast as someone answers, which in practice is barely at all.</p>
 
-    <p>The cure isn't "let it do anything." It's to make autonomy something a change earns. We sort every change by two questions: can we measure it, and can we take it back? The ones that answer yes to both — a tightened instruction, a nudged threshold, a repaired routine — the agent adopts alone, <em>because</em> it can watch the result and undo its own mistake. The ones that reach outside the sandbox go to a human. The ones that can't be walked back — deletions, credentials, anything final — always wait for a yes.</p>
+    <p>The answer isn't "let it do anything." It's to make autonomy something a change earns, sorted by two questions: can it be measured, and can it be taken back? The changes that answer yes to both — a tightened instruction, a nudged threshold, a repaired routine — can be adopted alone, <em>because</em> the result is watched and the mistake is reversible. The ones that reach outside the sandbox go to a human. The ones that can't be walked back — deletions, credentials, anything final — always wait for a yes.</p>
 
-    <p>For the low-risk changes that get proposed and then meet silence, we gave silence a plan: rather than let them rot in a queue, they fall through to the measured, reversible path. Autonomy earned by measurement and reversibility, and a human kept where they matter and nowhere they don't.</p>
+    <p>And silence gets a plan of its own: a low-risk change that's proposed and then meets no answer falls through to the measured, reversible path rather than dying in a queue. Autonomy earned by measurement and reversibility, with a human kept where they matter and nowhere they don't.</p>
 
     <p>Underneath all of it is the part that lays a change down and can lift it back off — reversible, declarative operations behind a safety check, wrapped in a verify-and-rollback window.</p>
 
@@ -313,9 +313,9 @@
     <h2>Safety has to live in your own code</h2>
     <p>An uncomfortable fact about the ground most agents stand on: the thing that runs their commands runs them with full permissions and nobody asking. Nothing beneath the agent will stop a runaway.</p>
 
-    <p>We hit a small, telling version of this. We'd told the agent, in plain language, to treat a certain bookkeeping failure as non-fatal — keep going, it doesn't matter. It kept failing runs anyway, because the platform decides a run failed by a tool's <em>exit code</em>, not by the agent's good intentions. The fix had to live in code: make the tool exit clean. Prose is not a safety mechanism.</p>
+    <p>It's tempting to think you can instruct your way to safety — tell the agent to treat a certain failure as non-fatal and carry on. It doesn't hold. A platform decides a run failed by a tool's <em>exit code</em>, not by the agent's good intentions, so a guarantee written into a prompt is only a suggestion. The fix has to live in code. Prose is not a safety mechanism.</p>
 
-    <p>So safety can't be borrowed from the floor. In our system it lives in the controller and <strong>fails closed</strong>: a kill switch checked before a finger moves, an allowlist of exactly what a change may touch, a reversibility clause, a rate limit, a ledger of every act.</p>
+    <p>So safety can't be borrowed from the floor. It lives in the controller and <strong>fails closed</strong>: a kill switch checked before a finger moves, an allowlist of exactly what a change may touch, a reversibility clause, a rate limit, a ledger of every act.</p>
 
     <p>And one line we hold to: the gate is the one thing the loop can't edit. A safety check that is freely self-editable is not a safety check.</p>
 
@@ -344,22 +344,22 @@
 
     <p class="sec-kick">The honest part</p>
     <h2>The machinery is the easy half</h2>
-    <p>Build all of this and you have something that photographs well: a controller, a scoreboard, a bank of gates, a policy that learns. What nobody tells you at the demo is that this was the easy half.</p>
+    <p>Build all of this and you have something that photographs well: a controller, a scoreboard, a bank of gates, a policy that learns. What nobody tells you at the demo is that this is the easy half.</p>
 
-    <p>The machinery took us a few weeks. The question underneath it — did the outcomes actually move, do the old complaints come less often now — is a season of patience, honest measurement, and the discipline to say "not yet proven" about your own work. We're still in that season.</p>
+    <p>The machinery is a few weeks of work. The question underneath it — did the outcomes actually move, do the old complaints come less often now — is a season of patience, honest measurement, and the discipline to say "not yet proven" of one's own work.</p>
 
     <blockquote>An agent that can measure whether it's improving is worth more than one that only says it is.</blockquote>
 
-    <p>We built the ruler first, and we're letting it tell us the truth — even when the truth is no.</p>
+    <p>The ruler comes first. Only then can it tell you the truth — even when the truth is no.</p>
 
     <p class="sec-kick">Open questions</p>
     <h2>What we don't know yet</h2>
-    <p>A few things we genuinely can't answer.</p>
+    <p>The honest part of a framework at this stage is the list of things it can't yet answer.</p>
     <ul class="body">
-      <li><strong>Does any of it move the outcomes?</strong> The machinery runs; whether the complaints actually come less often is a verdict that resolves over weeks, and as we write this it hasn't yet.</li>
-      <li><strong>Is the judge good enough?</strong> We checked our quality judge against public human ratings and it agreed with people only weakly. That's uncomfortable to write down — and it's exactly why we don't let the judge be the thing we optimize.</li>
-      <li><strong>Did the obvious fix work?</strong> One of the most common frictions we see is simply being asked "any update?" We tried the obvious answer — push updates before they're requested — and our own test declined to call it a win: too few instances, too confounded to say. We still don't know.</li>
-      <li><strong>How far should autonomy reach?</strong> Everything the loop can touch on its own is deliberately low-stakes; the higher-leverage changes stay gated. Whether that line sits in the right place, we'll only learn by moving it, carefully.</li>
+      <li><strong>Whether it moves the outcomes.</strong> The machinery runs; whether the complaints actually come less often is a verdict that resolves over weeks, not one anyone can claim on day one.</li>
+      <li><strong>Whether the judge is good enough.</strong> Checked against public human ratings, a quality judge of this kind agrees with people only weakly — which is precisely why it isn't the thing being optimized.</li>
+      <li><strong>Whether the obvious fixes work.</strong> One of the most common frictions is simply being asked "any update?" The obvious answer — send updates before they're requested — is one the test won't yet call a win: too few instances, too confounded to say.</li>
+      <li><strong>How far autonomy should reach.</strong> Everything the loop can touch on its own is deliberately low-stakes; the higher-leverage changes stay gated. Whether that line sits in the right place, only careful movement will tell.</li>
     </ul>
 
     <p>The edge that closes the loop is the same one that's hardest to build: an honest measurement of whether the last change helped, fed back into the next. Wire it, and reflect–propose–apply becomes a system that improves. Leave it out, and you have a system that changes — which is not the same thing.</p>
@@ -367,17 +367,17 @@
     <hr class="rule">
 
     <div class="recipe">
-      <p class="sec-kick">In hindsight</p>
-      <h2>What we'd tell ourselves, starting over</h2>
+      <p class="sec-kick">The short version</p>
+      <h2>What it comes down to</h2>
       <ol class="recipe-list">
-        <li>Wire the outcome edge first. If you can't tell whether a change helped, you aren't closing a loop — you're editing yourself in the dark.</li>
-        <li>Optimize a real outcome, never the applause. Keep it independent, keep it off the dial.</li>
-        <li>Make autonomy earned: measurable and reversible, or it waits for a human.</li>
-        <li>Remember every before. Roll back the moment a number turns.</li>
-        <li>Feed outcomes into the choosing, so the loop learns taste.</li>
-        <li>Put safety in your own code, make it fail closed, and never let it edit itself.</li>
-        <li>Say "insufficient evidence" out loud. It's cheaper than a confident lie.</li>
-        <li>Build the ruler before you claim you've grown.</li>
+        <li>The outcome edge comes first — everything else is easy to build, and easy to fool yourself with, until you can measure whether a change helped.</li>
+        <li>Optimize a real outcome, not the applause; keep it independent and off the dial.</li>
+        <li>Autonomy is earned — measurable and reversible, or it waits for a human.</li>
+        <li>Every change keeps a before; a regression rolls it back on its own.</li>
+        <li>Outcomes feed the choosing, so the loop learns taste.</li>
+        <li>Safety lives in your own code, fails closed, and never edits itself.</li>
+        <li>"Insufficient evidence" is cheaper than a confident lie.</li>
+        <li>The ruler comes before the claim of growth.</li>
       </ol>
     </div>
 
