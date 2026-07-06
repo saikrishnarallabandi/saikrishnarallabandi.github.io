@@ -116,6 +116,16 @@
   .aside .gap{margin:.7em 0 0; padding-left:0; font-style:italic; font-size:.94rem; color:var(--muted);}
   .aside .gap::before{display:none;}
 
+  /* "mechanism" callout — the concrete technique, set apart from prose in a neutral box */
+  .mech{background:var(--surface); border:1px solid var(--hair); border-left:3px solid var(--muted);
+    border-radius:11px; padding:16px 20px; margin:1.7em 0; font-family:var(--sans);
+    font-size:.99rem; line-height:1.56; color:var(--ink);}
+  .mech .lbl{font-family:var(--mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 .55em; display:block;}
+  .mech p{margin:0 0 .65em} .mech p:last-child{margin:0}
+  .mech code{font-family:var(--mono); font-size:.85em; background:var(--accent-soft);
+    color:var(--accent-ink); padding:.06em .38em; border-radius:4px;}
+
   footer{border-top:1px solid var(--hair); margin-top:clamp(48px,7vw,80px)}
   .foot-in{max-width:var(--measure); margin:0 auto; padding:32px 24px 60px;
     font-family:var(--mono); font-size:.78rem; letter-spacing:.02em; color:var(--faint); line-height:1.7;}
@@ -179,11 +189,17 @@
 
     <p>One caveat that bites hard in the real world: you get very little data per signal. A single person produces a handful of instances of any one friction. A naive rule — "recurrence dropped by half, ship it" — will crown noise as success constantly. Use a conservative test, and when the evidence isn't there yet, prefer <em>"insufficient evidence, keep watching"</em> over a confident wrong answer. A false "it helped" is the expensive mistake: it teaches the loop the wrong lesson, and lessons compound.</p>
 
+    <div class="mech">
+      <span class="lbl">Mechanism · the attribution test</span>
+      <p>Count how often the friction recurred in a window before the change and an equal window after. Under the null of no effect, the after-count follows a <code>Binomial(before + after, ½)</code>; a one-sided lower-tail probability under your significance level is what earns a <em>helped</em>. A neat consequence: if a complaint simply stops — zero events after — you need a handful of instances <em>before</em> for that zero to be significant at all, a built-in guard against declaring victory on one vanished occurrence (the "rule of three").</p>
+      <p>Because friction can fall for reasons unrelated to your change, run it as a <strong>difference-in-differences</strong>: compare the target signal's drop against the drop in <em>all other</em> friction over the same window, and credit the change only if it beats that background. When even a perfect result couldn't clear significance, return <code>insufficient_evidence</code> and widen the window rather than guess.</p>
+    </div>
+
     <p class="sec-kick">The judges</p>
     <h2>One rater is not enough</h2>
     <p>When the human signal is too sparse to train on directly, you can <em>densify</em> it — have a model judge quality and use that as a stand-in reward. But "auto-rater" makes it sound like a single thing. It isn't. You need a small panel of judges, each answering a different question, each tuned differently — and getting the <em>granularity</em> right for each one matters more than which model you pick.</p>
 
-    <p><strong>The usefulness judge</strong> asks: did this actually help the person? It's the most subjective and the hardest, because helpfulness is graded, not binary. Give it a fine scale — a coarse good/bad judge ties on nearly everything and collapses to a coin flip, teaching the loop nothing. Better still, ask it to <em>compare</em> two responses rather than score one in a vacuum; judges, like people, agree far more on "which is better" than on "what number." This one is a reward, so it has to be calibrated hard against real human preference.</p>
+    <p><strong>The usefulness judge</strong> asks: did this actually help the person? It's the most subjective and the hardest, because helpfulness is graded, not binary. Give it a fine scale — a coarse good/bad judge ties on nearly everything and collapses to a coin flip, teaching the loop nothing. Better still, ask it to <em>compare</em> two responses rather than score one in a vacuum; judges, like people, agree far more on "which is better" than on "what number." Aggregate enough pairwise comparisons and you recover a ranking — a Bradley–Terry score — that's far steadier than any single absolute rating. This one is a reward, so it has to be calibrated hard against real human preference: measure agreement on pairwise sets and rank-correlation on scalar ones, and watch for the self-preference bias where a judge favors its own model's family.</p>
 
     <p><strong>The deliverable-quality judge</strong> asks: is this good work — a report, a plan, a piece of code? More objective than usefulness, because you can hand it explicit, domain-specific criteria: is the code correct, is the analysis sound, did it answer the question asked. Here the nuance lives in the rubric, not the scale; the sharper the criteria, the more the judge agrees with an expert.</p>
 
@@ -213,7 +229,15 @@
 
     <p>Then add one more thing: a fallback for silence. If a low-risk change is proposed and no one answers, don't let it die in a queue — downgrade it to the measured-and-reversible path. Autonomy earned by measurability plus reversibility, with a human kept firmly in the loop exactly where it matters and nowhere it doesn't.</p>
 
-    <p>Underneath sits the part that actually applies a change and can take it back — reversible, declarative operations behind a safety check, with a verify-and-rollback window. To build the "detect a failure, fix it, prove the fix worked" cycle on public data:</p>
+    <p>Underneath sits the part that actually applies a change and can take it back — reversible, declarative operations behind a safety check, with a verify-and-rollback window.</p>
+
+    <div class="mech">
+      <span class="lbl">Mechanism · a reversible change</span>
+      <p>Represent an auto-adoptable change as a small, whitelisted vocabulary of declarative operations — <code>set a value at a key-path</code>, <code>replace an exact string</code>, <code>adjust a threshold</code> — never free-form code. Each op is checked against a path allowlist (it may only touch the agent's own low-risk files) and, for anything generated, an <code>AST</code> pass that rejects imports, <code>subprocess</code>/<code>exec</code>/<code>eval</code>, and access to dunder internals.</p>
+      <p>Before applying, snapshot the exact prior bytes as a <em>pre-image</em>. Adopt, then open the verify window; if the target metric regresses, restore the pre-image automatically. Undo is a file copy, not a heuristic — which is what makes "auto-adopt" safe to say out loud.</p>
+    </div>
+
+    <p>That machinery — detect a failure, apply a scoped fix, prove the fix worked, else roll back — is exactly the shape of program-repair benchmarks, so you can build and stress it on public data:</p>
 
     <div class="aside">
       <span class="lbl">Public data — apply, verify, undo</span>
@@ -229,6 +253,12 @@
     <p>An agent that applies changes is automation. An agent that gets <em>better at choosing which changes to make</em> is the recursive part — the self-improvement actually improving itself.</p>
 
     <p>Close that edge by feeding the outcome verdict back as a reward for whatever picks the changes. Over time it learns which kinds of changes tend to help, and leans toward them. The reward arrives late — you only learn weeks later whether a change worked — but late feedback is still feedback. You just remember what you chose, and credit it when the verdict finally lands.</p>
+
+    <div class="mech">
+      <span class="lbl">Mechanism · delayed-reward contextual bandit</span>
+      <p>Model the choice as a contextual bandit: featurize each candidate change, and a policy like <code>LinUCB</code> picks <em>adopt</em> or <em>defer</em>. The convenient part for a deployed loop is that LinUCB's whole state is two running sums — a matrix and a vector. Because they're sums, folding a reward in weeks late lands in exactly the same place as if it had arrived on time; order doesn't matter. So you stash the context and the arm you chose at adoption, and <em>replay</em> the update when the verdict resolves.</p>
+      <p>Map the categorical verdict to a bounded reward — helped positive, regressed negative <em>even if you auto-reverted</em> (the decision was still wrong) — subtract a clipped penalty for any guardrail you dented, and skip the update entirely when the verdict was insufficient evidence. Keep the reward bounded and the prior strong, or a single noisy outcome will swing a policy you've barely begun to train.</p>
+    </div>
 
     <div class="aside">
       <span class="lbl">Public data — learning to choose</span>
@@ -254,6 +284,12 @@
     <p>There's a lovely idea from the personalization literature that turns out to be the answer. If you store each person's knowledge as small, local, isolated edits to the model — reversible by simply dropping them, unable to touch anyone else's, provably unable to degrade the base — then the properties you wanted for <em>personalization</em> are exactly the properties you need for <em>safe self-modification</em>: reversible, isolated, non-degrading, by construction.</p>
 
     <p>The safest parametric change surface is one where "undo" and "can't hurt anyone else" aren't things you monitor — they're guaranteed by how the change is stored. That's the direction the parametric loop should go.</p>
+
+    <div class="mech">
+      <span class="lbl">Mechanism · hash-keyed memory edits</span>
+      <p>Graft a small key–value memory into a couple of the model's layers. A fact's key hashes to a handful of deterministic slots; writing the fact is an override on those slots. Serving is <code>save → override → forward → restore</code>: apply a person's overrides, run inference, then put the original rows back — well under a millisecond.</p>
+      <p>Reversibility is dropping the override map. Isolation is that two people's facts hash to disjoint slots, so one person's edits simply aren't present when another queries. Non-degradation follows because the base weights are untouched between calls. Pair it with a single shared adapter — one low-rank <code>LoRA</code> — that carries reasoning skill but memorizes no individual's facts.</p>
+    </div>
 
     <div class="aside">
       <span class="lbl">Public data — personalize &amp; isolate</span>
