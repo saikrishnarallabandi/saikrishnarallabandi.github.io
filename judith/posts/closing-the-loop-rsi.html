@@ -126,6 +126,18 @@
   .mech code{font-family:var(--mono); font-size:.85em; background:var(--accent-soft);
     color:var(--accent-ink); padding:.06em .38em; border-radius:4px;}
 
+  /* subscribe CTA */
+  .subscribe{text-align:center; margin:clamp(40px,6vw,60px) 0 8px; padding:clamp(26px,4vw,36px);
+    background:var(--accent-soft); border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
+    border-radius:16px;}
+  .subscribe p{font-family:var(--serif); font-size:1.12rem; color:var(--ink); margin:0 auto 1.1em;
+    max-width:46ch; line-height:1.5;}
+  .sub-btn{display:inline-block; font-family:var(--sans); font-weight:650; font-size:1rem;
+    background:#544AE0; color:#fff; padding:.72em 1.5em; border-radius:100px; border-bottom:none;
+    transition:transform .12s ease, background .15s ease;}
+  .sub-btn:hover{background:#3f36c9; border-bottom:none; transform:translateY(-1px);}
+  .sub-btn:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+
   footer{border-top:1px solid var(--hair); margin-top:clamp(48px,7vw,80px)}
   .foot-in{max-width:var(--measure); margin:0 auto; padding:32px 24px 60px;
     font-family:var(--mono); font-size:.78rem; letter-spacing:.02em; color:var(--faint); line-height:1.7;}
@@ -327,13 +339,18 @@
       </ol>
     </div>
 
+    <div class="subscribe">
+      <p>These are field notes from building Judith. If the loop is your kind of problem, more of them land on <em>On Rallabandi Radar</em>.</p>
+      <a class="sub-btn" href="https://onrallabandiradar.substack.com/">Subscribe on Substack →</a>
+    </div>
+
   </div>
 </article>
 
 <footer>
   <div class="foot-in">
     Notes from turning Judith — a deployed personal assistant — into a system that improves itself, safely.<br>
-    Written by Sai Krishna Rallabandi · <a href="https://saikrishnarallabandi.github.io/judith">saikrishnarallabandi.github.io/judith</a>
+    Written by Sai Krishna Rallabandi · <a href="https://onrallabandiradar.substack.com/">On Rallabandi Radar (Substack)</a> · <a href="https://saikrishnarallabandi.github.io/judith">saikrishnarallabandi.github.io/judith</a>
   </div>
 </footer>
 
