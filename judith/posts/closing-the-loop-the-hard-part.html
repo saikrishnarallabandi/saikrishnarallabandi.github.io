@@ -203,7 +203,7 @@
 <article>
   <div class="wrap">
 
-    <p class="lead">Judith gave a confident, badly wrong answer last night — and had no way, on her own, to tell it was wrong, let alone why. I had to point it out. That's the real problem with self-improving agents, and it isn't the one you'd expect: not that she failed to act on a lesson, but that she has no way to <em>reach</em> one — no tools to decide, by herself, why a response was inappropriate in the first place. It took a photo of Jensen Huang to make me see it plainly.</p>
+    <p class="lead">Judith gave a confident, badly wrong answer last night — and had no way, on her own, to tell it was wrong, let alone why. I had to point it out. That's the real problem with self-improving agents, and it isn't the one you'd expect: not that she failed to act on a lesson, but that she has no way to <em>reach</em> one — no tools to decide, by herself, why a response was inappropriate in the first place. It took an X post involving Jensen Huang to make me see it plainly.</p>
 
     <p>In a group chat I dropped a screenshot:</p>
 
@@ -247,8 +247,7 @@
 
     <p>The mechanics are not where loops fail. As Jason Wei argues in <a href="https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law">Verifier's Law</a>, and Song et al. formalize as the <a href="https://arxiv.org/abs/2412.02674">generation–verification gap</a>, self-improvement is bottlenecked on <strong>verification</strong> — on cheaply and correctly knowing whether an output is good. Lilian Weng makes the same point for auto-research and coding agents in <a href="https://lilianweng.github.io/posts/2026-07-04-harness/">Harness Engineering for Self-Improvement</a>: the ceiling is the evaluator. Where their work lives on <em>verifiable</em> tasks — code that compiles, math that checks, tests that pass — a deployed personal assistant has <strong>no verifier to fall back on.</strong> "Was that a good reply to a friend's meme" has no unit test. So the bottleneck they name for verifiable domains becomes, for a conversational agent, the <em>whole game</em> — and every arrow in that innocent diagram turns into a distinct measurement problem. Here they are, walked through the Jensen miss.</p>
 
-    <p class="sec-kick">Difficulty 1</p>
-    <h2>The rater is the crux</h2>
+    <h2>Difficulty 1 · The rater is the crux</h2>
     <p>The naive instinct is to score the response in isolation: <em>was that a good answer?</em> You can't. Nothing in the message tells you whether it landed. The signal is in <strong>what the conversation does next</strong> — a real idea, and not mine: continuation-as-reward is developed by <a href="https://arxiv.org/abs/2511.08394">Gooding &amp; Grefenstette</a>, and the older deployment-feedback line uses "a human turn followed → label it good."</p>
 
     <p>The reason this is a genuine upgrade is worth stating precisely: scoring a message alone asks a model for a <strong>prior</strong> — a guess. Reading the next few turns gives it <strong>evidence</strong> — it doesn't guess whether the analysis was wanted, it <em>observes</em> me replying "you missed the point" and supplying the Kyber chain. That's the difference between an opinion and an outcome.</p>
@@ -285,8 +284,7 @@
       </ul>
     </div>
 
-    <p class="sec-kick">Difficulty 2</p>
-    <h2>Getting gold when the chat gives nothing</h2>
+    <h2>Difficulty 2 · Getting gold when the chat gives nothing</h2>
     <p>Say the rater flags a suspicion — <em>I think that was off</em> — but the chat stayed silent. Where does ground truth come from? Not the conversation: it isn't there, and it never was. You have to <strong>leave the chat.</strong> There are exactly three places, and the trick is routing the suspicion to the right one:</p>
     <ul class="body">
       <li><strong>The world</strong>, for anything checkable. The Jensen miss is mostly this — <em>who is in the image</em> and <em>what the news chain was</em> are facts. A reverse-image lookup, a vision call, a query for "Nvidia roadmap intact." No human, no chat signal; the gold is retrievable.</li>
@@ -304,8 +302,7 @@
       </ul>
     </div>
 
-    <p class="sec-kick">Difficulty 3</p>
-    <h2>A diagnosis is not an intervention</h2>
+    <h2>Difficulty 3 · A diagnosis is not an intervention</h2>
     <p>Suppose you paid for the gold and have a hypothesis. Judith had a <em>perfect</em> one, in writing, and it improved nothing — because knowing what broke is not the same as fixing it, and picking the wrong <em>kind</em> of fix is how you fool yourself. Route by the gap:</p>
     <ul class="body">
       <li><strong>Knowledge gap</strong> (the Kyber chain) → a retrievable <em>memory</em>. Cheap; low-value, because news ages out.</li>
@@ -323,8 +320,7 @@
       </ul>
     </div>
 
-    <p class="sec-kick">Difficulty 4</p>
-    <h2>An unvalidated fix is worse than none</h2>
+    <h2>Difficulty 4 · An unvalidated fix is worse than none</h2>
     <p>This is the difficulty that makes the others dangerous instead of merely hard: a fix you didn't validate changes behavior in exactly the region you can't see. You will never watch the genuinely serious image she now under-reads because of the meme rule.</p>
 
     <p>So a change survives three gates before it touches live behavior: <strong>held-out replay</strong> (does it get the failure case right now?), a <strong>regression set</strong> (does it break cases it used to get right? — where over-correction dies), and <strong>attribution</strong> (does the failure class actually stop recurring?). Judith wrote the held-out eval for the meme case herself. It was never run. That distance — between a written eval and a <em>gated</em> one — is the distance between a lessons file and a learning system.</p>
@@ -337,8 +333,7 @@
       </ul>
     </div>
 
-    <p class="sec-kick">Difficulty 5</p>
-    <h2>The note is the tombstone</h2>
+    <h2>Difficulty 5 · The note is the tombstone</h2>
     <p>Which brings us back to the note.</p>
 
     <p><strong>Curate-back</strong> — promoting a validated change into the agent's live, always-loaded behavior — is where nearly every deployed loop quietly fails. Not because it's conceptually hard, but because <em>writing a reflection feels like closing the loop</em>, and it isn't. This is the paradigm Reflexion popularized — verbalize a lesson, store it — and its unspoken failure mode: a perfect post-mortem in a <code style="font-family:var(--mono);font-size:.85em">notes/</code> folder that no future turn reads is, behaviorally, identical to having learned nothing. The recent memory-systems survey names the same gap from the other side: agents are fine at <em>write</em> and <em>read</em> and neglect <a href="https://arxiv.org/abs/2603.07670"><em>manage</em> — accumulation without curation is where systems fail</a>. Judith wrote a genuinely good analysis and filed it exactly where it could not affect her.</p>
