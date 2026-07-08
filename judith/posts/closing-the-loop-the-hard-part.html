@@ -256,23 +256,12 @@
 
     <blockquote>Silence after a good answer is identical to silence after a bad one.</blockquote>
 
-    <p>So you build an auto-rater to read the continuation and grade it — and now you are in the single most-studied failure zone in this whole enterprise, and none of the news is good:</p>
+    <p>So you build raters to grade the continuation — in practice not one but a bench of them, each asked a different question — and now you're in the single most-studied failure zone in this whole enterprise, and none of the news is good:</p>
     <ul class="body">
       <li><strong>The rater inherits the base model's blind spots.</strong> If it's the same family that made the error, its errors are <em>correlated</em> with the agent's — panels of judges <a href="https://arxiv.org/abs/2605.29800">collapse to two effective votes</a> because they agree for the same wrong reasons. A judge that shares the judged's prior certifies consensus, not correctness.</li>
       <li><strong>Judges are lenient and self-preferring</strong> by default. Our own calibration reproduced this exactly: the first rubric rated ~everything ≥ 2; 23 of 25 ignored messages were false positives.</li>
       <li><strong>Reliability is not validity</strong> — a rater can be perfectly consistent and consistently wrong (<a href="https://arxiv.org/abs/2606.19544">2606.19544</a>). And to <em>know</em> your rater is valid you must calibrate it against real human judgment — the exact scarce signal you built the rater to avoid needing. The validation is circular.</li>
     </ul>
-
-    <p>Now the frontier's best answer to a <em>noisy discrete</em> score: Kwok, Finn, Pavone, Stoica &amp; Mirhoseini's <a href="https://arxiv.org/abs/2607.05391">LLM-as-a-Verifier</a> — don't take the argmax digit, take the <strong>expectation over the score-token logits.</strong> A continuous score, training-free, state-of-the-art on Terminal-Bench and SWE-Bench. We implemented it and ran the A/B it deserves — on a <em>deployed</em> signal, which their benchmark suite never touches, with real test-pass ground truth:</p>
-
-    <div class="mech">
-      <span class="lbl">Result · continuous vs discrete on a real-outcome signal</span>
-      <p>On patch-correctness against test-pass labels, the continuous readout edged the discrete argmax on separation (<code>AUC 0.782 vs 0.759</code>) — but the paired ΔAUC was <code>+0.024 with a bootstrap CI that includes zero</code>. Not a win at that sample. And the diagnostic told us <em>why</em>: the continuous score <em>diverged</em> from discrete on nearly every item (mean 0.47) and <em>still</em> didn't separate better — the divergence was noise with respect to the outcome.</p>
-    </div>
-
-    <blockquote>A better readout only helps in proportion to how calibrated the judge's uncertainty already is to the truth. It cannot manufacture calibration where the ground truth is noise.</blockquote>
-
-    <p>On patch-correctness the judge's uncertainty is weakly calibrated, so continuous barely helps. On "will he reply," where the outcome is driven by mood, timing, and delivery failures the judge cannot see, there is nothing calibrated to extract — and no readout, discrete or continuous, can beat that ceiling.</p>
 
     <p>None of that is a dead end, though. You can build the continuation-rater — and, the harder half, calibrate it against a real outcome — on ground that already exists:</p>
 
@@ -360,9 +349,7 @@
 
     <p class="sec-kick">Related work</p>
     <h2>What's actually new here</h2>
-    <p>The lineage this builds on is well-trodden. That <em>measurement</em>, not mechanism, is the bottleneck for self-improvement runs from Wei to Weng; continuation-as-reward is Gooding &amp; Grefenstette; each rater pathology — correlated errors, self-enhancement, leniency, reliability-without-validity — has its own 2024–26 paper; the continuous-scoring remedy is Finn et al. The nearest companion is Weng's — the same frame from the other side of the glass: hers is the <em>verifiable</em> auto-research agent, this is the <em>unverifiable</em> conversational one.</p>
-
-    <p>What I haven't seen said, and will plant a flag on: the transposition of the verification bottleneck onto a <strong>deployed personal agent whose target task has no verifier</strong>; the blunt fact that <strong>silence is symmetric</strong> — the most common outcome is the least informative one; the <strong>three-tier ground-truth routing</strong> as an explicit policy; the empirical result that <strong>a better scoring readout can't manufacture calibration that isn't in the signal</strong>; and the one I'd stake the post on — <strong>diagnosis without curate-back. The note is the tombstone.</strong></p>
+    <p>What I haven't seen said, and will plant a flag on: the transposition of the verification bottleneck onto a <strong>deployed personal agent whose target task has no verifier</strong>; the blunt fact that <strong>silence is symmetric</strong> — the most common outcome is the least informative one; the <strong>three-tier ground-truth routing</strong> as an explicit policy; and the one I'd stake the post on — <strong>diagnosis without curate-back. The note is the tombstone.</strong></p>
 
     <blockquote>An agent that can write a flawless account of its own failure and still hand you the same failure tomorrow is not a curiosity. It's the current state of the art.</blockquote>
 
