@@ -195,7 +195,7 @@
       Field notes · RSI · a failure report
     </p>
     <h1>It Knew It Was Wrong</h1>
-    <p class="dek">A personal agent diagnosed its own failure — correctly, in writing — and made the same mistake available for tomorrow. On why closing the self-improvement loop is so much harder than drawing it.</p>
+    <p class="dek">Why closing the self-improvement loop is so much harder than drawing it.</p>
     <p class="byline">From building Judith · Sai Krishna Rallabandi</p>
     <a class="sub-pill" href="https://onrallabandiradar.substack.com/">Subscribe on Substack →</a>
   </div>
@@ -204,7 +204,7 @@
 <article>
   <div class="wrap">
 
-    <p class="lead">My assistant diagnosed its own failure last night — in writing, correctly — and then did nothing about it. That sentence is the whole problem with self-improving agents, and it took a photo of Jensen Huang to make me see it plainly.</p>
+    <p class="lead">Judith diagnosed her own failure last night — in writing, correctly — and then did nothing about it. That sentence is the whole problem with self-improving agents, and it took a photo of Jensen Huang to make me see it plainly.</p>
 
     <p>In a group chat I dropped a screenshot:</p>
 
@@ -213,7 +213,7 @@
       <figcaption>The screenshot I shared — Patrick Moorhead on the left, Jensen Huang on the right. Remember the two of them; the agent won't.</figcaption>
     </figure>
 
-    <p>A meme — the punchline to a week of noise. A semi-analysis piece claimed Nvidia's CPO / Kyber roadmap had slipped; Nvidia refuted it with that exact line; Patrick Moorhead turned the refutation into a joke, Jensen next to him onstage.</p>
+    <p>A meme — the punchline to a week of noise. A <a href="https://x.com/SemiAnalysis_/status/2073874671498387899">SemiAnalysis piece</a> claimed Nvidia's CPO / Kyber roadmap had slipped; Nvidia <a href="https://finance.yahoo.com/technology/article/nvidia-denies-report-its-next-generation-ai-server-faces-delays-says-roadmap-is-intact-183310296.html">refuted it</a> with that exact line; Patrick Moorhead turned the refutation into a joke, Jensen next to him onstage.</p>
 
     <p>Judith read it and answered like it was a research brief — a solemn, confident breakdown of who was ahead in the roadmap fight and what it all signaled. Competent, earnest, and completely beside the point: I'd shared a joke, not asked for analysis. When I pushed on who was even <em>in</em> the picture, she named the wrong person entirely — placing <strong>Lisa Su</strong> into an image that doesn't contain her, before correcting to Patrick and Jensen.</p>
 
@@ -227,15 +227,15 @@
 
     <div class="tbl-scroll">
     <table class="cap">
-      <thead><tr><th>Subtask</th><th>What it needs</th><th>How Judith did</th><th>The honest fix</th></tr></thead>
+      <thead><tr><th>Subtask</th><th>What it needs</th><th>The honest fix</th></tr></thead>
       <tbody>
-        <tr><td>OCR / scene-text</td><td>read “I told you our roadmap is intact” + the @PatrickMoorhead byline</td><td>fine</td><td>data — TextVQA, DocVQA, ST-VQA</td></tr>
-        <tr><td>Person / face ID</td><td>Patrick Moorhead (L), Jensen Huang (R)</td><td class="bad">failed — hallucinated Lisa Su</td><td>a <strong>tool</strong>, not data — reverse-image / vision API. You can't finetune coverage of every public figure, and face-ID sets are ethically fraught and often retracted</td></tr>
-        <tr><td>Visual grounding</td><td>two people on a stage; it's a screenshot of an X post</td><td>partial</td><td>data — VQAv2, POPE</td></tr>
-        <tr><td>Intent / register</td><td>is this a <em>joke</em>, or a real question?</td><td class="bad">failed — reflex earnest analysis</td><td>data — SILICONE, Switchboard, MET-Meme, MemeCap</td></tr>
-        <tr><td>Recent-events knowledge</td><td>the Kario → “roadmap intact” → meme chain</td><td class="bad">failed — didn't retrieve</td><td><strong>retrieval</strong>, not training — it's past any cutoff — OK-VQA, FEVER</td></tr>
-        <tr><td>Social / pragmatic</td><td>inside joke; the sharer wants recognition, and is testing the loop</td><td class="bad">failed</td><td>reasoning — hard to dataset</td></tr>
-        <tr><td>Response-type selection</td><td>brief ack vs analysis vs self-observation</td><td class="bad">failed — over-produced</td><td>policy / register</td></tr>
+        <tr><td>OCR / scene-text</td><td>read “I told you our roadmap is intact” + the @PatrickMoorhead byline</td><td>data — TextVQA, DocVQA, ST-VQA</td></tr>
+        <tr><td>Person / face ID</td><td>Patrick Moorhead (L), Jensen Huang (R)</td><td>a <strong>tool</strong>, not data — reverse-image / vision API. You can't finetune coverage of every public figure, and face-ID sets are ethically fraught and often retracted</td></tr>
+        <tr><td>Visual grounding</td><td>two people on a stage; it's a screenshot of an X post</td><td>data — VQAv2, POPE</td></tr>
+        <tr><td>Intent / register</td><td>is this a <em>joke</em>, or a real question?</td><td>data — SILICONE, Switchboard, MET-Meme, MemeCap</td></tr>
+        <tr><td>Recent-events knowledge</td><td>the Kyber → “roadmap intact” → meme chain</td><td><strong>retrieval</strong>, not training — it's past any cutoff — OK-VQA, FEVER</td></tr>
+        <tr><td>Social / pragmatic</td><td>inside joke; the sharer wants recognition, and is testing the loop</td><td>reasoning — hard to dataset</td></tr>
+        <tr><td>Response-type selection</td><td>brief ack vs analysis vs self-observation</td><td>policy / register</td></tr>
       </tbody>
     </table>
     </div>
@@ -244,7 +244,7 @@
 
     <p class="sec-kick">The diagram</p>
     <h2>The loop everyone draws</h2>
-    <p>Every RSI system has the same diagram: <strong>observe an outcome → rate it → diagnose → propose a fix → validate → curate it back into behavior.</strong> Six boxes, six arrows, back to the start. The mechanics of it are, by now, a solved engineering problem — reflect, propose, apply, gate, revert. I've built all of that, and <a href="closing-the-loop-rsi.html">written it up</a>.</p>
+    <p>Every RSI system draws a similar diagram: <strong>observe an outcome → rate it → diagnose → propose a fix → validate → curate it back into behavior.</strong> Six boxes, six arrows, back to the start. The mechanics of it are, by now, a solved engineering problem — reflect, propose, apply, gate, revert.</p>
 
     <p>The mechanics are not where loops fail. As Jason Wei argues in <a href="https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law">Verifier's Law</a>, and Song et al. formalize as the <a href="https://arxiv.org/abs/2412.02674">generation–verification gap</a>, self-improvement is bottlenecked on <strong>verification</strong> — on cheaply and correctly knowing whether an output is good. Lilian Weng makes the same point for auto-research and coding agents in <a href="https://lilianweng.github.io/posts/2026-07-04-harness/">Harness Engineering for Self-Improvement</a>: the ceiling is the evaluator. Where their work lives on <em>verifiable</em> tasks — code that compiles, math that checks, tests that pass — a deployed personal assistant has <strong>no verifier to fall back on.</strong> "Was that a good reply to a friend's meme" has no unit test. So the bottleneck they name for verifiable domains becomes, for a conversational agent, the <em>whole game</em> — and every arrow in that innocent diagram turns into a distinct measurement problem. Here they are, walked through the Jensen miss.</p>
 
@@ -252,7 +252,7 @@
     <h2>The rater is the crux</h2>
     <p>The naive instinct is to score the response in isolation: <em>was that a good answer?</em> You can't. Nothing in the message tells you whether it landed. The signal is in <strong>what the conversation does next</strong> — a real idea, and not mine: continuation-as-reward is developed by <a href="https://arxiv.org/abs/2511.08394">Gooding &amp; Grefenstette</a>, and the older deployment-feedback line uses "a human turn followed → label it good."</p>
 
-    <p>The reason this is a genuine upgrade is worth stating precisely: scoring a message alone asks a model for a <strong>prior</strong> — a guess. Reading the next few turns gives it <strong>evidence</strong> — it doesn't guess whether the analysis was wanted, it <em>observes</em> me replying "you missed the point" and supplying the Kario chain. That's the difference between an opinion and an outcome.</p>
+    <p>The reason this is a genuine upgrade is worth stating precisely: scoring a message alone asks a model for a <strong>prior</strong> — a guess. Reading the next few turns gives it <strong>evidence</strong> — it doesn't guess whether the analysis was wanted, it <em>observes</em> me replying "you missed the point" and supplying the Kyber chain. That's the difference between an opinion and an outcome.</p>
 
     <p>But the continuation has a floor, and the floor is where most failures live: often the conversation gives you <strong>nothing</strong> — it just moves on. Liu, Zhang &amp; Choi put the empirical version bluntly: implicit follow-up feedback is <a href="https://arxiv.org/abs/2507.23158">useful for understanding users but <em>noisy</em> as a learning signal</a>.</p>
 
@@ -309,7 +309,7 @@
     <h2>A diagnosis is not an intervention</h2>
     <p>Suppose you paid for the gold and have a hypothesis. Judith had a <em>perfect</em> one, in writing, and it improved nothing — because knowing what broke is not the same as fixing it, and picking the wrong <em>kind</em> of fix is how you fool yourself. Route by the gap:</p>
     <ul class="body">
-      <li><strong>Knowledge gap</strong> (the Kario chain) → a retrievable <em>memory</em>. Cheap; low-value, because news ages out.</li>
+      <li><strong>Knowledge gap</strong> (the Kyber chain) → a retrievable <em>memory</em>. Cheap; low-value, because news ages out.</li>
       <li><strong>Behavior / routing gap</strong> (reflex earnest analysis) → a <em>rule or routing step</em>: classify intent before answering a shared image. The generalizable one.</li>
       <li><strong>Capability gap</strong> (can't tell who's in a photo) → <em>no rule fixes this.</em> You cannot instruct a model into better perception. The honest fixes are a tool or "admit uncertainty." Pretending a prompt cures a capability gap is the most common self-deception here.</li>
     </ul>
