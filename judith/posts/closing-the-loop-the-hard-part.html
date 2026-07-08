@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A field report on why closing a recursive-self-improvement loop for a deployed personal agent is so much harder than drawing it — told through one real failure, a meme read as a stock tip, and the auto-rater problem underneath it.">
+<title>A Photo of Jensen, and the Trouble with Closing the Loop</title>
+<style>
+  :root{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB;
+    --quote:#2A2E38;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,"Cascadia Code",monospace;
+    --sans:"Helvetica Neue",Helvetica,"Segoe UI",system-ui,Arial,sans-serif;
+    --serif:Charter,"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --measure:48rem;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0C0E13; --surface:#13161D;
+      --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+      --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C;
+      --quote:#D6D9E2;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB; --quote:#2A2E38;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C0E13; --surface:#13161D;
+    --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+    --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C; --quote:#D6D9E2;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%; overflow-x:hidden}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--serif);
+    font-size:1.19rem; line-height:1.72; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    overflow-wrap:break-word; word-break:break-word;}
+  .wrap{max-width:var(--measure); margin:0 auto; padding:0 24px}
+  a{color:var(--accent-ink); text-decoration:none; border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
+  a:hover{border-bottom-color:var(--accent)}
+  a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+  /* ---------- hero ---------- */
+  header.hero{border-bottom:1px solid var(--hair)}
+  .hero-in{max-width:var(--measure); margin:0 auto; padding:clamp(56px,10vw,104px) 24px clamp(30px,5vw,48px)}
+  .kicker{font-family:var(--mono); font-size:.74rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--accent-ink); display:flex; align-items:center; gap:12px; margin:0 0 26px}
+  .kicker .ring{width:22px; height:22px; flex:none}
+  .kicker .ring circle{fill:none; stroke:var(--accent); stroke-width:2.4; stroke-linecap:round;
+    stroke-dasharray:52; stroke-dashoffset:14; transform-origin:center;}
+  @media (prefers-reduced-motion:no-preference){
+    .kicker .ring circle{animation:spin 4.5s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  }
+  h1{font-family:var(--sans); font-weight:800; letter-spacing:-.03em; line-height:.98;
+    font-size:clamp(2.4rem,8vw,5.2rem); margin:0 0 22px; text-wrap:balance; overflow-wrap:break-word;}
+  .dek{font-family:var(--serif); font-style:italic; font-size:clamp(1.2rem,2.6vw,1.5rem);
+    line-height:1.42; color:var(--muted); margin:0; max-width:38ch; text-wrap:pretty;}
+  .byline{font-family:var(--mono); font-size:.76rem; letter-spacing:.04em; color:var(--faint);
+    margin:30px 0 0; padding-top:20px; border-top:1px solid var(--hair);}
+
+  /* ---------- article ---------- */
+  article{padding:clamp(36px,6vw,64px) 0 20px}
+  article > .wrap > p{margin:0 0 1.35em; text-wrap:pretty}
+  .lead{font-size:1.32rem; line-height:1.62; color:var(--ink)}
+  .lead::first-letter{initial-letter:2.2; font-family:var(--sans); font-weight:800;
+    color:var(--accent); margin-right:.08em; -webkit-initial-letter:2.2;}
+  strong{font-weight:700; color:var(--ink)}
+  em{font-style:italic}
+
+  h2{font-family:var(--sans); font-weight:750; letter-spacing:-.02em; line-height:1.1;
+    font-size:clamp(1.5rem,4vw,2rem); margin:2.4em 0 .1em; text-wrap:balance;}
+  .sec-kick{font-family:var(--mono); font-size:.72rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 .5em; display:flex; align-items:center; gap:9px;}
+  .sec-kick::before{content:"↻"; font-size:1.05em; line-height:1; color:var(--accent);}
+  h2 + p{margin-top:.5em}
+
+  ul.body{list-style:none; margin:0 0 1.5em; padding:0; display:flex; flex-direction:column; gap:.7em}
+  ul.body li{position:relative; padding-left:1.6em}
+  ul.body li::before{content:""; position:absolute; left:0; top:.62em; width:.6em; height:.6em;
+    border:2px solid var(--accent); border-radius:50%;}
+  ul.body li strong{color:var(--ink)}
+
+  blockquote{margin:1.8em 0; padding:.1em 0 .1em 1.3em; border-left:3px solid var(--accent);
+    font-family:var(--sans); font-weight:600; font-style:normal; font-size:clamp(1.45rem,3.2vw,1.9rem);
+    line-height:1.28; letter-spacing:-.015em; color:var(--quote); text-wrap:balance;}
+
+  hr.rule{border:0; height:1px; background:var(--hair); margin:2.6em 0;}
+
+  /* ---------- figure (the shared screenshot) ---------- */
+  figure.fig{margin:1.8em 0; }
+  figure.fig img{display:block; width:100%; height:auto; border-radius:14px; border:1px solid var(--hair);
+    background:var(--surface);}
+  figure.fig figcaption{font-family:var(--sans); font-size:.9rem; line-height:1.45; color:var(--faint);
+    margin:.7em 2px 0;}
+
+  /* ---------- capability table ---------- */
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0; border:1px solid var(--hair); border-radius:13px; background:var(--surface);}
+  table.cap{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:.96rem; line-height:1.42; min-width:34rem;}
+  table.cap th, table.cap td{text-align:left; padding:11px 14px; vertical-align:top; border-bottom:1px solid var(--hair);}
+  table.cap thead th{font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent-ink); font-weight:700; background:var(--accent-soft);}
+  table.cap tbody tr:last-child td{border-bottom:none;}
+  table.cap td:first-child{font-weight:650; color:var(--ink); white-space:nowrap;}
+  table.cap .bad{color:var(--accent-ink); font-weight:700;}
+  table.cap .dn{font-family:var(--mono); font-size:.85em; color:var(--accent-ink);}
+
+  /* recipe */
+  .recipe{background:var(--surface); border:1px solid var(--hair); border-radius:16px;
+    padding:clamp(24px,4vw,36px); margin:1.4em 0 0;}
+  .recipe h2{margin-top:0}
+  ol.recipe-list{list-style:none; counter-reset:r; margin:1.2em 0 0; padding:0;
+    display:flex; flex-direction:column; gap:1em;}
+  ol.recipe-list li{counter-increment:r; position:relative; padding-left:2.6em; font-size:1.08rem; line-height:1.5;}
+  ol.recipe-list li::before{content:counter(r,decimal-leading-zero); position:absolute; left:0; top:.05em;
+    font-family:var(--mono); font-size:.82rem; font-weight:600; color:var(--accent);
+    border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); border-radius:6px;
+    width:1.9em; height:1.7em; display:flex; align-items:center; justify-content:center;}
+
+  /* inline "public data" aside — set apart from the prose, attached to its section */
+  .aside{background:var(--accent-soft); border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);
+    border-radius:13px; padding:16px 20px 18px; margin:1.7em 0; font-family:var(--sans);
+    font-size:1.02rem; line-height:1.5;}
+  .aside .lbl{font-family:var(--mono); font-size:.68rem; letter-spacing:.15em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 .7em; display:block;}
+  .aside ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.45em;}
+  .aside li{position:relative; padding-left:1.2em; color:var(--muted);}
+  .aside li::before{content:""; position:absolute; left:0; top:.6em; width:5px; height:5px;
+    border-radius:50%; background:var(--accent);}
+  .aside .dn{font-family:var(--mono); font-size:.85em; letter-spacing:.01em; color:var(--accent-ink); font-weight:600;}
+  .aside .gap{margin:.7em 0 0; padding-left:0; font-style:italic; font-size:.94rem; color:var(--muted);}
+  .aside .gap::before{display:none;}
+
+  /* "mechanism / result" callout */
+  .mech{background:var(--surface); border:1px solid var(--hair); border-left:3px solid var(--muted);
+    border-radius:11px; padding:16px 20px; margin:1.7em 0; font-family:var(--sans);
+    font-size:.99rem; line-height:1.56; color:var(--ink);}
+  .mech .lbl{font-family:var(--mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 .55em; display:block;}
+  .mech p{margin:0 0 .65em} .mech p:last-child{margin:0}
+  .mech code{font-family:var(--mono); font-size:.85em; background:var(--accent-soft);
+    color:var(--accent-ink); padding:.06em .38em; border-radius:4px;}
+
+  /* subscribe CTA */
+  .subscribe{text-align:center; margin:clamp(40px,6vw,60px) 0 8px; padding:clamp(26px,4vw,36px);
+    background:var(--accent-soft); border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
+    border-radius:16px;}
+  .subscribe p{font-family:var(--serif); font-size:1.12rem; color:var(--ink); margin:0 auto 1.1em;
+    max-width:46ch; line-height:1.5;}
+  .sub-btn{display:inline-block; font-family:var(--sans); font-weight:650; font-size:1rem;
+    background:#544AE0; color:#fff; padding:.72em 1.5em; border-radius:100px; border-bottom:none;
+    transition:transform .12s ease, background .15s ease;}
+  .sub-btn:hover{background:#3f36c9; border-bottom:none; transform:translateY(-1px);}
+  .sub-btn:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+
+  .sub-pill{display:inline-block; margin-top:18px; font-family:var(--sans); font-weight:600;
+    font-size:.82rem; letter-spacing:.01em; color:#fff; background:#544AE0;
+    padding:.55em 1.15em; border-radius:100px; border-bottom:none;
+    transition:transform .12s ease, background .15s ease;}
+  .sub-pill:hover{background:#3f36c9; border-bottom:none; transform:translateY(-1px);}
+  .sub-pill:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+
+  footer{border-top:1px solid var(--hair); margin-top:clamp(48px,7vw,80px)}
+  .foot-in{max-width:var(--measure); margin:0 auto; padding:32px 24px 60px;
+    font-family:var(--mono); font-size:.78rem; letter-spacing:.02em; color:var(--faint); line-height:1.7;}
+  .foot-in a{color:var(--accent-ink)}
+
+  /* ---------- small screens ---------- */
+  @media (max-width:560px){
+    .wrap, .hero-in, .foot-in{padding-left:18px; padding-right:18px}
+    .hero-in{padding-top:52px; padding-bottom:28px}
+    body{font-size:1.1rem; line-height:1.66}
+    .lead{font-size:1.16rem}
+    .lead::first-letter{-webkit-initial-letter:2; initial-letter:2}
+    .dek{font-size:1.15rem}
+    blockquote{font-size:1.28rem; padding-left:.9em}
+    .mech, .aside{padding:15px 16px; font-size:.96rem}
+    table.cap{font-size:.9rem}
+    .recipe{padding:22px 18px}
+    ol.recipe-list li{padding-left:2.3em; font-size:1.02rem}
+    .subscribe{padding:24px 18px}
+    .subscribe p{font-size:1.06rem}
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <p class="kicker">
+      <svg class="ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
+      Field notes · RSI · a failure report
+    </p>
+    <h1>A Photo of Jensen</h1>
+    <p class="dek">One ordinary mistake — a meme read as a stock tip — and an agent that diagnosed its own failure in writing, then made it available for tomorrow. On why closing the loop is so much harder than drawing it.</p>
+    <p class="byline">From building Judith · Sai Krishna Rallabandi</p>
+    <a class="sub-pill" href="https://onrallabandiradar.substack.com/">Subscribe on Substack →</a>
+  </div>
+</header>
+
+<article>
+  <div class="wrap">
+
+    <p class="lead">Last night my assistant made a small, ordinary mistake, and then did something that should have fixed it and didn't. The gap between those two events is the most honest thing I can tell you about building a self-improving agent.</p>
+
+    <p>In a group chat I dropped in a screenshot:</p>
+
+    <figure class="fig">
+      <img src="assets/jensen-roadmap-meme.jpg" alt="Patrick Moorhead's post reading &quot;I told you our roadmap is intact,&quot; over a photo of Patrick Moorhead on the left and Jensen Huang on the right, onstage.">
+      <figcaption>The screenshot I shared. Patrick Moorhead on the left, Jensen Huang on the right — and, notably, no Lisa Su and no AMD anywhere in it.</figcaption>
+    </figure>
+
+    <p>It's a meme — the punchline to a week of noise. A semi-analysis piece claimed Nvidia's CPO / Kyber roadmap had slipped; Nvidia refuted it with that exact line; Patrick Moorhead turned the refutation into a joke, Jensen next to him onstage.</p>
+
+    <p>Judith — the assistant — read the image and produced a <strong>market note</strong>. Bullish for the AMD narrative, mildly bearish for the "Nvidia killed everyone" case, still wants MI350/MI400 traction. Competent. Completely beside the point. I hadn't asked for a trade; I'd shared a joke. When I pushed on who was in the picture, she got <em>that</em> wrong too — confidently placed <strong>Lisa Su and an AMD frame</strong> into an image that contains neither, before correcting to Patrick and Jensen.</p>
+
+    <p>Then she did the thing that's supposed to matter. She wrote herself a note — an actual file, titled <em>"Social Meme RSI Loop Miss"</em> — diagnosing exactly what went wrong: <em>collapsed a social/meme cue into financial analysis, missed the meta layer, misidentified the people.</em> She even proposed the fix and sketched an eval for it.</p>
+
+    <p>And that note changed nothing. The next meme would get the same treatment. The loop <strong>observed</strong> its own failure, <strong>mined</strong> it correctly, wrote a small essay about it — and did not improve. That is not a bug in this particular agent. It is the <em>default</em> outcome, and the reasons why are the subject of this post.</p>
+
+    <p class="sec-kick">Anatomy of one reply</p>
+    <h2>What answering this actually requires</h2>
+    <p>Before the loop, look at the task. "React to this screenshot" is not one capability; it's a <strong>pipeline</strong>, and a wrong answer can come from a failure at any stage.</p>
+
+    <div class="tbl-scroll">
+    <table class="cap">
+      <thead><tr><th>Subtask</th><th>What it needs</th><th>How Judith did</th><th>The honest fix</th></tr></thead>
+      <tbody>
+        <tr><td>OCR / scene-text</td><td>read “I told you our roadmap is intact” + the @PatrickMoorhead byline</td><td>fine</td><td>data — TextVQA, DocVQA, ST-VQA</td></tr>
+        <tr><td>Person / face ID</td><td>Patrick Moorhead (L), Jensen Huang (R)</td><td class="bad">failed — hallucinated Lisa Su / AMD</td><td>a <strong>tool</strong>, not data — reverse-image / vision API. You can't finetune coverage of every public figure, and face-ID sets are ethically fraught and often retracted</td></tr>
+        <tr><td>Visual grounding</td><td>two people on a stage; it's a screenshot of an X post</td><td>partial</td><td>data — VQAv2, POPE</td></tr>
+        <tr><td>Intent / register</td><td>is this a <em>joke</em> or a <em>trade request</em>?</td><td class="bad">failed — reflex market read</td><td>data — SILICONE, Switchboard, MET-Meme, MemeCap</td></tr>
+        <tr><td>Recent-events knowledge</td><td>the Kario → “roadmap intact” → meme chain</td><td class="bad">failed — didn't retrieve</td><td><strong>retrieval</strong>, not training — it's past any cutoff — OK-VQA, FEVER</td></tr>
+        <tr><td>Social / pragmatic</td><td>inside joke; the sharer wants recognition, and is testing the loop</td><td class="bad">failed</td><td>reasoning — hard to dataset</td></tr>
+        <tr><td>Response-type selection</td><td>brief ack vs analysis vs self-observation</td><td class="bad">failed — over-produced</td><td>policy / register</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>At least four of seven stages failed, and <strong>each needs a different intervention</strong> — a tool for perception, data for intent, retrieval for recency, reasoning for pragmatics. Hold onto that: it means even a <em>perfect</em> signal that "the answer was bad" leaves the loop with a second problem — <em>which stage was bad?</em> The reward is one scalar smeared across a seven-stage pipeline. Credit assignment <em>within</em> a single response, before you even get to credit assignment across the conversation.</p>
+
+    <p class="sec-kick">The diagram</p>
+    <h2>The loop everyone draws</h2>
+    <p>Every RSI system has the same diagram: <strong>observe an outcome → rate it → diagnose → propose a fix → validate → curate it back into behavior.</strong> Six boxes, six arrows, back to the start. The mechanics of it are, by now, a solved engineering problem — reflect, propose, apply, gate, revert. I've built all of that, and <a href="closing-the-loop-rsi.html">written it up</a>.</p>
+
+    <p>The mechanics are not where loops fail. As Jason Wei argues in <a href="https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law">Verifier's Law</a>, and Song et al. formalize as the <a href="https://arxiv.org/abs/2412.02674">generation–verification gap</a>, self-improvement is bottlenecked on <strong>verification</strong> — on cheaply and correctly knowing whether an output is good. Lilian Weng makes the same point for auto-research and coding agents in <a href="https://lilianweng.github.io/posts/2026-07-04-harness/">Harness Engineering for Self-Improvement</a>: the ceiling is the evaluator. Where their work lives on <em>verifiable</em> tasks — code that compiles, math that checks, tests that pass — a deployed personal assistant has <strong>no verifier to fall back on.</strong> "Was that a good reply to a friend's meme" has no unit test. So the bottleneck they name for verifiable domains becomes, for a conversational agent, the <em>whole game</em> — and every arrow in that innocent diagram turns into a distinct measurement problem. Here they are, walked through the Jensen miss.</p>
+
+    <p class="sec-kick">Difficulty 1</p>
+    <h2>The rater is the crux</h2>
+    <p>The naive instinct is to score the response in isolation: <em>was that a good answer?</em> You can't. Nothing in the message tells you whether it landed. The signal is in <strong>what the conversation does next</strong> — a real idea, and not mine: continuation-as-reward is developed by <a href="https://arxiv.org/abs/2511.08394">Gooding &amp; Grefenstette</a>, and the older deployment-feedback line uses "a human turn followed → label it good."</p>
+
+    <p>The reason this is a genuine upgrade is worth stating precisely: scoring a message alone asks a model for a <strong>prior</strong> — a guess. Reading the next few turns gives it <strong>evidence</strong> — it doesn't guess whether the market note was wanted, it <em>observes</em> me replying "you missed the point" and supplying the Kario chain. That's the difference between an opinion and an outcome.</p>
+
+    <p>But the continuation has a floor, and the floor is where most failures live: often the conversation gives you <strong>nothing</strong> — it just moves on. Liu, Zhang &amp; Choi put the empirical version bluntly: implicit follow-up feedback is <a href="https://arxiv.org/abs/2507.23158">useful for understanding users but <em>noisy</em> as a learning signal</a>.</p>
+
+    <blockquote>Silence after a good answer is identical to silence after a bad one.</blockquote>
+
+    <p>So you build an auto-rater to read the continuation and grade it — and now you are in the single most-studied failure zone in this whole enterprise, and none of the news is good:</p>
+    <ul class="body">
+      <li><strong>The rater inherits the base model's blind spots.</strong> If it's the same family that made the error, its errors are <em>correlated</em> with the agent's — panels of judges <a href="https://arxiv.org/abs/2605.29800">collapse to two effective votes</a> because they agree for the same wrong reasons. A judge that shares the judged's prior certifies consensus, not correctness.</li>
+      <li><strong>Judges are lenient and self-preferring</strong> by default. Our own calibration reproduced this exactly: the first rubric rated ~everything ≥ 2; 23 of 25 ignored messages were false positives.</li>
+      <li><strong>Reliability is not validity</strong> — a rater can be perfectly consistent and consistently wrong (<a href="https://arxiv.org/abs/2606.19544">2606.19544</a>). And to <em>know</em> your rater is valid you must calibrate it against real human judgment — the exact scarce signal you built the rater to avoid needing. The validation is circular.</li>
+    </ul>
+
+    <p>Now the frontier's best answer to a <em>noisy discrete</em> score: Kwok, Finn, Pavone, Stoica &amp; Mirhoseini's <a href="https://arxiv.org/abs/2607.05391">LLM-as-a-Verifier</a> — don't take the argmax digit, take the <strong>expectation over the score-token logits.</strong> A continuous score, training-free, state-of-the-art on Terminal-Bench and SWE-Bench. We implemented it and ran the A/B it deserves — on a <em>deployed</em> signal, which their benchmark suite never touches, with real test-pass ground truth:</p>
+
+    <div class="mech">
+      <span class="lbl">Result · continuous vs discrete on a real-outcome signal</span>
+      <p>On patch-correctness against test-pass labels, the continuous readout edged the discrete argmax on separation (<code>AUC 0.782 vs 0.759</code>) — but the paired ΔAUC was <code>+0.024 with a bootstrap CI that includes zero</code>. Not a win at that sample. And the diagnostic told us <em>why</em>: the continuous score <em>diverged</em> from discrete on nearly every item (mean 0.47) and <em>still</em> didn't separate better — the divergence was noise with respect to the outcome.</p>
+    </div>
+
+    <blockquote>A better readout only helps in proportion to how calibrated the judge's uncertainty already is to the truth. It cannot manufacture calibration where the ground truth is noise.</blockquote>
+
+    <p>On patch-correctness the judge's uncertainty is weakly calibrated, so continuous barely helps. On "will he reply," where the outcome is driven by mood, timing, and delivery failures the judge cannot see, there is nothing calibrated to extract — and no readout, discrete or continuous, can beat that ceiling.</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — hill-climb this segment</span>
+      <ul>
+        <li><span class="dn">SWE-chat</span> — real coding-agent sessions with commit-linked outcomes; the "did this turn work" signal from live trajectories.</li>
+        <li><span class="dn">WildChat-1M · LMSYS-Chat-1M</span> — real human–AI multi-turn conversations; the following turns are the implicit label.</li>
+        <li><span class="dn">USS</span> — turn-level user-satisfaction annotations (a named benchmark, not a single load id).</li>
+        <li><span class="dn">RewardBench · nebius/SWE-agent-trajectories</span> — to validate the rater itself; the latter's test-pass label is an <em>objective</em> anchor that catches a lenient judge.</li>
+      </ul>
+    </div>
+
+    <p class="sec-kick">Difficulty 2</p>
+    <h2>Getting gold when the chat gives nothing</h2>
+    <p>Say the rater flags a suspicion — <em>I think that was off</em> — but the chat stayed silent. Where does ground truth come from? Not the conversation: it isn't there, and it never was. You have to <strong>leave the chat.</strong> There are exactly three places, and the trick is routing the suspicion to the right one:</p>
+    <ul class="body">
+      <li><strong>The world</strong>, for anything checkable. The Jensen miss is mostly this — <em>who is in the image</em> and <em>what the news chain was</em> are facts. A reverse-image lookup, a vision call, a query for "Nvidia roadmap intact." No human, no chat signal; the gold is retrievable.</li>
+      <li><strong>A stronger reference model</strong>, for judgment calls reality can't settle. Better-calibrated than the model that erred. Silver, not gold.</li>
+      <li><strong>The human</strong>, rationed to the residue: unverifiable <em>and</em> high-stakes <em>and</em> high-suspicion. Everything else, log and let go.</li>
+    </ul>
+    <p>Two traps. The <strong>correlated-error trap</strong>: if the agent "verifies" by re-examining with the same model that erred — especially the perception miss, where its own eyes are the weak link — it cheerfully re-confirms the mistake. Verification has to be <em>independent</em>. And <strong>triage is the whole game</strong> — you cannot verify every turn, and most don't deserve it.</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — hill-climb this segment</span>
+      <ul>
+        <li><span class="dn">FEVER</span> — claims labeled against evidence; the textbook "get ground truth without the user."</li>
+        <li><span class="dn">HaluEval</span> — detecting when a model asserts an unsupported fact.</li>
+        <li><span class="dn">POPE · MMHal-Bench</span> — "is this claim about the picture true?" — the face-ID and image-grounding gaps directly.</li>
+      </ul>
+    </div>
+
+    <p class="sec-kick">Difficulty 3</p>
+    <h2>A diagnosis is not an intervention</h2>
+    <p>Suppose you paid for the gold and have a hypothesis. Judith had a <em>perfect</em> one, in writing, and it improved nothing — because knowing what broke is not the same as fixing it, and picking the wrong <em>kind</em> of fix is how you fool yourself. Route by the gap:</p>
+    <ul class="body">
+      <li><strong>Knowledge gap</strong> (the Kario chain) → a retrievable <em>memory</em>. Cheap; low-value, because news ages out.</li>
+      <li><strong>Behavior / routing gap</strong> (reflex market read) → a <em>rule or routing step</em>: classify intent before answering a shared image. The generalizable one.</li>
+      <li><strong>Capability gap</strong> (can't tell who's in a photo) → <em>no rule fixes this.</em> You cannot instruct a model into better perception. The honest fixes are a tool or "admit uncertainty." Pretending a prompt cures a capability gap is the most common self-deception here.</li>
+    </ul>
+    <p>And a gate that keeps the loop from rotting: <strong>don't mint a permanent rule per mistake.</strong> Rules bloat context, contradict each other, and cause <em>over-correction</em> — fix the meme case and now she under-reacts to a real market screenshot. One-off → a decaying memory; a recurring <em>class</em> → earn a rule; real <em>volume</em> → maybe weights. You climb that ladder on repetition, not on one bad night — and because the failure was spread across four pipeline stages, one rule was never going to close it.</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — hill-climb this segment</span>
+      <ul>
+        <li><span class="dn">SILICONE · Switchboard</span> — dialogue-act / intent classification: is this turn a question, a joke, a request?</li>
+        <li><span class="dn">MET-Meme</span> — memes annotated with an explicit <em>intention</em> task (a named benchmark).</li>
+        <li><span class="dn">MemeCap</span> — meme <em>interpretation</em>, decoding the joke, not just detecting it (canonical repo on GitHub).</li>
+      </ul>
+    </div>
+
+    <p class="sec-kick">Difficulty 4</p>
+    <h2>An unvalidated fix is worse than none</h2>
+    <p>This is the difficulty that makes the others dangerous instead of merely hard: a fix you didn't validate changes behavior in exactly the region you can't see. You will never watch the real market screenshot she now fumbles because of the meme rule.</p>
+
+    <p>So a change survives three gates before it touches live behavior: <strong>held-out replay</strong> (does it get the failure case right now?), a <strong>regression set</strong> (does it break cases it used to get right? — where over-correction dies), and <strong>attribution</strong> (does the failure class actually stop recurring?). Judith wrote the held-out eval for the meme case herself. It was never run. That distance — between a written eval and a <em>gated</em> one — is the distance between a lessons file and a learning system.</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — hill-climb this segment</span>
+      <ul>
+        <li><span class="dn">RewardBench-2 · preference-test-sets</span> — held-out preference data to check discrimination without over-correction.</li>
+        <li><span class="dn">HH-RLHF · UltraFeedback</span> — fine-grained preference pairs, so you can check the <em>targeted</em> axis improved without hurting the others.</li>
+      </ul>
+    </div>
+
+    <p class="sec-kick">Difficulty 5</p>
+    <h2>The note is the tombstone</h2>
+    <p>Which brings us back to the note.</p>
+
+    <p><strong>Curate-back</strong> — promoting a validated change into the agent's live, always-loaded behavior — is where nearly every deployed loop quietly fails. Not because it's conceptually hard, but because <em>writing a reflection feels like closing the loop</em>, and it isn't. This is the paradigm Reflexion popularized — verbalize a lesson, store it — and its unspoken failure mode: a perfect post-mortem in a <code style="font-family:var(--mono);font-size:.85em">notes/</code> folder that no future turn reads is, behaviorally, identical to having learned nothing. The recent memory-systems survey names the same gap from the other side: agents are fine at <em>write</em> and <em>read</em> and neglect <a href="https://arxiv.org/abs/2603.07670"><em>manage</em> — accumulation without curation is where systems fail</a>. Judith wrote a genuinely good analysis and filed it exactly where it could not affect her.</p>
+
+    <p>And even wired, promotion fights you: the live policy has to stay <strong>small and coherent.</strong> A lessons file that grows one entry per mistake becomes its own failure mode — internally contradictory, too long to follow, the exact context-bloat you were optimizing away. Improvement is not accumulation. It's <em>maintaining a tight, validated policy</em> — merging, generalizing, and retiring rules as aggressively as you add them.</p>
+
+    <div class="aside">
+      <span class="lbl">Public data — hill-climb this segment</span>
+      <ul>
+        <li><span class="dn">LongMemEval</span> — multi-session recall, including knowledge-update (policy-revision) cases.</li>
+        <li><span class="dn">Multi-Session Chat · LoCoMo</span> — very-long, same-user-over-time corpora for maintaining a coherent policy.</li>
+      </ul>
+    </div>
+
+    <p class="sec-kick">Related work</p>
+    <h2>What's actually new here</h2>
+    <p>Almost none of the <em>failure modes</em> above are mine. Measurement-is-the-bottleneck is Wei and Weng; continuation-as-reward is Gooding &amp; Grefenstette; every rater pathology — correlated errors, self-enhancement, leniency, reliability-without-validity — has a dedicated 2024–26 paper, and the continuous-scoring remedy is Finn et al. Assume a reader knows all of it. If you take one framework from this post, take Weng's; this is the companion from the other side of the glass — hers is the <em>verifiable</em> auto-research agent, this is the <em>unverifiable</em> conversational one.</p>
+
+    <p>What I haven't seen said, and will plant a flag on: the transposition of the verification bottleneck onto a <strong>deployed personal agent whose target task has no verifier</strong>; the blunt fact that <strong>silence is symmetric</strong> — the most common outcome is the least informative one; the <strong>three-tier ground-truth routing</strong> as an explicit policy; the empirical result that <strong>a better scoring readout can't manufacture calibration that isn't in the signal</strong>; and the one I'd stake the post on — <strong>diagnosis without curate-back. The note is the tombstone.</strong></p>
+
+    <blockquote>An agent that can write a flawless account of its own failure and still hand you the same failure tomorrow is not a curiosity. It's the current state of the art.</blockquote>
+
+    <p class="sec-kick">The honest part</p>
+    <h2>Every arrow is a research problem</h2>
+    <p>None of this is about the model. A smarter model writes a more articulate wrong market note and a more confident wrong ID. And none of it is about the <em>machinery</em> — the bandits, the ledgers, the fail-closed gates. That's the easy half, and it's mostly done. The hard half is that <strong>every edge of the loop is a question about evidence you mostly don't have.</strong> A self-improving agent is only ever as good as its ability to <em>know it was wrong</em> — and on a real personal agent, in a real group chat, that knowledge is scarce, confounded, expensive to buy, and frequently just unavailable.</p>
+
+    <p>The Jensen photo is a good test precisely because it is so mundane. No adversary, no exotic capability, no safety cliff — a joke, a competent-but-wrong reply, a correction. If the loop can't close on <em>that</em>, it can't close.</p>
+
+    <blockquote>The loop is easy to draw. Every arrow in it is a research problem.</blockquote>
+
+    <hr class="rule">
+
+    <div class="recipe">
+      <p class="sec-kick">The short version</p>
+      <h2>What it comes down to</h2>
+      <ol class="recipe-list">
+        <li>Answering one message is a pipeline; a wrong answer is under-determined, and the reward is one scalar over all of it.</li>
+        <li>The signal isn't the response — it's the continuation. But silence is symmetric, and most outcomes are silence.</li>
+        <li>The rater is the crux, and every rater pathology is known; a better readout can't manufacture calibration the ground truth lacks.</li>
+        <li>When the chat gives nothing, get gold from outside: verify the world, ask a stronger model, ration the human.</li>
+        <li>A diagnosis is not an intervention. Route by gap type; don't mint a rule per mistake.</li>
+        <li>An unvalidated fix is worse than none — it over-corrects where you can't see.</li>
+        <li>Curate-back is where loops die. The note is the tombstone.</li>
+      </ol>
+    </div>
+
+    <div class="subscribe">
+      <p>These are field notes from building Judith. If closing the loop is your kind of problem, more of them land on <em>On Rallabandi Radar</em>.</p>
+      <a class="sub-btn" href="https://onrallabandiradar.substack.com/">Subscribe on Substack →</a>
+    </div>
+
+  </div>
+</article>
+
+<footer>
+  <div class="foot-in">
+    A failure report from building Judith — a deployed personal assistant — and trying to make its self-improvement loop actually close.<br>
+    Written by Sai Krishna Rallabandi · <a href="https://onrallabandiradar.substack.com/">On Rallabandi Radar (Substack)</a> · <a href="https://saikrishnarallabandi.github.io/judith">saikrishnarallabandi.github.io/judith</a>
+  </div>
+</footer>
+
+</body>
+</html>
