@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="A field report on why closing a recursive-self-improvement loop for a deployed personal agent is so much harder than drawing it — told through one real failure: an agent that diagnosed its own mistake in writing and made it again anyway.">
-<title>It Knew It Was Wrong — the trouble with closing the loop</title>
+<meta name="description" content="A field report on why closing a recursive-self-improvement loop for a deployed personal agent is so much harder than drawing it — told through one real failure: an agent with no way, on its own, to tell that a wrong answer was wrong.">
+<title>It Couldn't Tell It Was Wrong — the trouble with closing the loop</title>
 <style>
   :root{
     --bg:#F5F6F8; --surface:#FFFFFF;
@@ -192,19 +192,18 @@
   <div class="hero-in">
     <p class="kicker">
       <svg class="ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
-      Field notes · RSI · a failure report
+      Field notes · recursive self-improvement (RSI)
     </p>
-    <h1>It Knew It Was Wrong</h1>
+    <h1>It Couldn't Tell It Was Wrong</h1>
     <p class="dek">Why closing the self-improvement loop is so much harder than drawing it.</p>
-    <p class="byline">From building Judith · Sai Krishna Rallabandi</p>
-    <a class="sub-pill" href="https://onrallabandiradar.substack.com/">Subscribe on Substack →</a>
+    <p class="byline">From building <a href="../">Judith</a> · Sai Krishna Rallabandi</p>
   </div>
 </header>
 
 <article>
   <div class="wrap">
 
-    <p class="lead">Judith diagnosed her own failure last night — in writing, correctly — and then did nothing about it. That sentence is the whole problem with self-improving agents, and it took a photo of Jensen Huang to make me see it plainly.</p>
+    <p class="lead">Judith gave a confident, badly wrong answer last night — and had no way, on her own, to tell it was wrong, let alone why. I had to point it out. That's the real problem with self-improving agents, and it isn't the one you'd expect: not that she failed to act on a lesson, but that she has no way to <em>reach</em> one — no tools to decide, by herself, why a response was inappropriate in the first place. It took a photo of Jensen Huang to make me see it plainly.</p>
 
     <p>In a group chat I dropped a screenshot:</p>
 
@@ -217,9 +216,9 @@
 
     <p>Judith read it and answered like it was a research brief — a solemn, confident breakdown of who was ahead in the roadmap fight and what it all signaled. Competent, earnest, and completely beside the point: I'd shared a joke, not asked for analysis.</p>
 
-    <p>Then she did the thing that is supposed to make an agent better over time. She wrote herself a note — a real file, titled <em>"Social Meme RSI Loop Miss"</em> — and got the diagnosis exactly right: <em>collapsed a social cue into earnest analysis, missed the meta layer.</em> She even proposed the fix and sketched an eval for it.</p>
+    <p>And once I'd pointed it out, she wrote it up perfectly — a real file, titled <em>"Social Meme RSI Loop Miss"</em>, that got the diagnosis exactly right and even proposed the fix. That's the tell: she could reproduce the lesson flawlessly the moment I handed it to her, and had no way to reach it on her own. <strong>Unless a human labels the miss or supplies the missing context, Judith is blind to it.</strong></p>
 
-    <p>The note changed nothing. The next meme gets the same treatment. The loop <strong>observed</strong> its failure, <strong>mined</strong> it correctly, wrote a small essay about it — and did not improve. That isn't a quirk of this agent. It's the default, and the rest of this post is about why.</p>
+    <p>And that isn't a quirk of this agent — it's the default. A deployed personal agent, left to itself, can't reliably tell a good answer from a bad one; it needs a human to draw the line. The rest of this post is about how much that one dependency costs — at every step of trying to make the thing improve.</p>
 
     <p class="sec-kick">Anatomy of one reply</p>
     <h2>What answering this actually requires</h2>
@@ -234,7 +233,7 @@
         <tr><td>Visual grounding</td><td>two people on a stage; it's a screenshot of an X post</td><td>data — VQAv2, POPE</td></tr>
         <tr><td>Intent / register</td><td>is this a <em>joke</em>, or a real question?</td><td>data — SILICONE, Switchboard, MET-Meme, MemeCap</td></tr>
         <tr><td>Recent-events knowledge</td><td>the Kyber → “roadmap intact” → meme chain</td><td><strong>retrieval</strong>, not training — it's past any cutoff — OK-VQA, FEVER</td></tr>
-        <tr><td>Social / pragmatic</td><td>inside joke; the sharer wants recognition, and is testing the loop</td><td>reasoning — hard to dataset</td></tr>
+        <tr><td>Social / pragmatic</td><td>read it as a joke shared for a laugh, not a question to answer</td><td>reasoning — hard to dataset</td></tr>
         <tr><td>Response-type selection</td><td>brief ack vs analysis vs self-observation</td><td>policy / register</td></tr>
       </tbody>
     </table>
@@ -356,7 +355,7 @@
 
     <p class="sec-kick">Related work</p>
     <h2>What's actually new here</h2>
-    <p>Almost none of the <em>failure modes</em> above are mine. Measurement-is-the-bottleneck is Wei and Weng; continuation-as-reward is Gooding &amp; Grefenstette; every rater pathology — correlated errors, self-enhancement, leniency, reliability-without-validity — has a dedicated 2024–26 paper, and the continuous-scoring remedy is Finn et al. Assume a reader knows all of it. If you take one framework from this post, take Weng's; this is the companion from the other side of the glass — hers is the <em>verifiable</em> auto-research agent, this is the <em>unverifiable</em> conversational one.</p>
+    <p>The lineage this builds on is well-trodden. That <em>measurement</em>, not mechanism, is the bottleneck for self-improvement runs from Wei to Weng; continuation-as-reward is Gooding &amp; Grefenstette; each rater pathology — correlated errors, self-enhancement, leniency, reliability-without-validity — has its own 2024–26 paper; the continuous-scoring remedy is Finn et al. The nearest companion is Weng's — the same frame from the other side of the glass: hers is the <em>verifiable</em> auto-research agent, this is the <em>unverifiable</em> conversational one.</p>
 
     <p>What I haven't seen said, and will plant a flag on: the transposition of the verification bottleneck onto a <strong>deployed personal agent whose target task has no verifier</strong>; the blunt fact that <strong>silence is symmetric</strong> — the most common outcome is the least informative one; the <strong>three-tier ground-truth routing</strong> as an explicit policy; the empirical result that <strong>a better scoring readout can't manufacture calibration that isn't in the signal</strong>; and the one I'd stake the post on — <strong>diagnosis without curate-back. The note is the tombstone.</strong></p>
 
@@ -386,17 +385,12 @@
       </ol>
     </div>
 
-    <div class="subscribe">
-      <p>These are field notes from building Judith. If closing the loop is your kind of problem, more of them land on <em>On Rallabandi Radar</em>.</p>
-      <a class="sub-btn" href="https://onrallabandiradar.substack.com/">Subscribe on Substack →</a>
-    </div>
-
   </div>
 </article>
 
 <footer>
   <div class="foot-in">
-    A failure report from building Judith — a deployed personal assistant — and trying to make its self-improvement loop actually close.<br>
+    Field notes from building Judith — a deployed personal assistant — on what it actually takes to close a self-improvement loop.<br>
     Written by Sai Krishna Rallabandi · <a href="https://onrallabandiradar.substack.com/">On Rallabandi Radar (Substack)</a> · <a href="https://saikrishnarallabandi.github.io/judith">saikrishnarallabandi.github.io/judith</a>
   </div>
 </footer>
