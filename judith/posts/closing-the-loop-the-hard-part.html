@@ -274,6 +274,8 @@
 
     <p>On patch-correctness the judge's uncertainty is weakly calibrated, so continuous barely helps. On "will he reply," where the outcome is driven by mood, timing, and delivery failures the judge cannot see, there is nothing calibrated to extract — and no readout, discrete or continuous, can beat that ceiling.</p>
 
+    <p>None of that is a dead end, though. You can build the continuation-rater — and, the harder half, calibrate it against a real outcome — on ground that already exists:</p>
+
     <div class="aside">
       <span class="lbl">Public data — hill-climb this segment</span>
       <ul>
@@ -293,6 +295,8 @@
     </ul>
     <p>Two traps. The <strong>correlated-error trap</strong>: if the agent "verifies" by re-examining with the same model that erred — especially the perception miss, where its own eyes are the weak link — it cheerfully re-confirms the mistake. Verification has to be <em>independent</em>. And <strong>triage is the whole game</strong> — you cannot verify every turn, and most don't deserve it.</p>
 
+    <p>Each rung of that ladder — checking a claim, catching a fabrication, testing an assertion about an image — has a benchmark behind it:</p>
+
     <div class="aside">
       <span class="lbl">Public data — hill-climb this segment</span>
       <ul>
@@ -311,6 +315,8 @@
     </ul>
     <p>And a gate that keeps the loop from rotting: <strong>don't mint a permanent rule per mistake.</strong> Rules bloat context, contradict each other, and cause <em>over-correction</em> — fix the meme case and now she under-reads an image that really did want a serious answer. One-off → a decaying memory; a recurring <em>class</em> → earn a rule; real <em>volume</em> → maybe weights. You climb that ladder on repetition, not on one bad night — and because the failure was spread across four pipeline stages, one rule was never going to close it.</p>
 
+    <p>Of the three gaps, the intent one — is this a joke or a question — is the most trainable, and it's the one with data:</p>
+
     <div class="aside">
       <span class="lbl">Public data — hill-climb this segment</span>
       <ul>
@@ -324,6 +330,8 @@
     <p>This is the difficulty that makes the others dangerous instead of merely hard: a fix you didn't validate changes behavior in exactly the region you can't see. You will never watch the genuinely serious image she now under-reads because of the meme rule.</p>
 
     <p>So a change survives three gates before it touches live behavior: <strong>held-out replay</strong> (does it get the failure case right now?), a <strong>regression set</strong> (does it break cases it used to get right? — where over-correction dies), and <strong>attribution</strong> (does the failure class actually stop recurring?). Judith wrote the held-out eval for the meme case herself. It was never run. That distance — between a written eval and a <em>gated</em> one — is the distance between a lessons file and a learning system.</p>
+
+    <p>Both gates run on the same fuel — held-out preference data, which is one of the few things this field has plenty of:</p>
 
     <div class="aside">
       <span class="lbl">Public data — hill-climb this segment</span>
@@ -339,6 +347,8 @@
     <p><strong>Curate-back</strong> — promoting a validated change into the agent's live, always-loaded behavior — is where nearly every deployed loop quietly fails. Not because it's conceptually hard, but because <em>writing a reflection feels like closing the loop</em>, and it isn't. This is the paradigm Reflexion popularized — verbalize a lesson, store it — and its unspoken failure mode: a perfect post-mortem in a <code style="font-family:var(--mono);font-size:.85em">notes/</code> folder that no future turn reads is, behaviorally, identical to having learned nothing. The recent memory-systems survey names the same gap from the other side: agents are fine at <em>write</em> and <em>read</em> and neglect <a href="https://arxiv.org/abs/2603.07670"><em>manage</em> — accumulation without curation is where systems fail</a>. Judith wrote a genuinely good analysis and filed it exactly where it could not affect her.</p>
 
     <p>And even wired, promotion fights you: the live policy has to stay <strong>small and coherent.</strong> A lessons file that grows one entry per mistake becomes its own failure mode — internally contradictory, too long to follow, the exact context-bloat you were optimizing away. Improvement is not accumulation. It's <em>maintaining a tight, validated policy</em> — merging, generalizing, and retiring rules as aggressively as you add them.</p>
+
+    <p>Even the neglected half — maintaining the policy over time, not just writing to it — has benchmarks now:</p>
 
     <div class="aside">
       <span class="lbl">Public data — hill-climb this segment</span>
