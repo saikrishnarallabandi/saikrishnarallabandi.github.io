@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="A field report on why closing a recursive-self-improvement loop for a deployed personal agent is so much harder than drawing it — told through one real failure, a meme read as a stock tip, and the auto-rater problem underneath it.">
-<title>A Photo of Jensen, and the Trouble with Closing the Loop</title>
+<meta name="description" content="A field report on why closing a recursive-self-improvement loop for a deployed personal agent is so much harder than drawing it — told through one real failure: an agent that diagnosed its own mistake in writing and made it again anyway.">
+<title>It Knew It Was Wrong — the trouble with closing the loop</title>
 <style>
   :root{
     --bg:#F5F6F8; --surface:#FFFFFF;
@@ -14,7 +14,7 @@
     --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,"Cascadia Code",monospace;
     --sans:"Helvetica Neue",Helvetica,"Segoe UI",system-ui,Arial,sans-serif;
     --serif:Charter,"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
-    --measure:48rem;
+    --measure:60rem;
   }
   @media (prefers-color-scheme:dark){
     :root{
@@ -194,8 +194,8 @@
       <svg class="ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
       Field notes · RSI · a failure report
     </p>
-    <h1>A Photo of Jensen</h1>
-    <p class="dek">One ordinary mistake — a meme read as a stock tip — and an agent that diagnosed its own failure in writing, then made it available for tomorrow. On why closing the loop is so much harder than drawing it.</p>
+    <h1>It Knew It Was Wrong</h1>
+    <p class="dek">A personal agent diagnosed its own failure — correctly, in writing — and made the same mistake available for tomorrow. On why closing the self-improvement loop is so much harder than drawing it.</p>
     <p class="byline">From building Judith · Sai Krishna Rallabandi</p>
     <a class="sub-pill" href="https://onrallabandiradar.substack.com/">Subscribe on Substack →</a>
   </div>
@@ -204,22 +204,22 @@
 <article>
   <div class="wrap">
 
-    <p class="lead">Last night my assistant made a small, ordinary mistake, and then did something that should have fixed it and didn't. The gap between those two events is the most honest thing I can tell you about building a self-improving agent.</p>
+    <p class="lead">My assistant diagnosed its own failure last night — in writing, correctly — and then did nothing about it. That sentence is the whole problem with self-improving agents, and it took a photo of Jensen Huang to make me see it plainly.</p>
 
-    <p>In a group chat I dropped in a screenshot:</p>
+    <p>In a group chat I dropped a screenshot:</p>
 
     <figure class="fig">
       <img src="assets/jensen-roadmap-meme.jpg" alt="Patrick Moorhead's post reading &quot;I told you our roadmap is intact,&quot; over a photo of Patrick Moorhead on the left and Jensen Huang on the right, onstage.">
-      <figcaption>The screenshot I shared. Patrick Moorhead on the left, Jensen Huang on the right — and, notably, no Lisa Su and no AMD anywhere in it.</figcaption>
+      <figcaption>The screenshot I shared — Patrick Moorhead on the left, Jensen Huang on the right. Remember the two of them; the agent won't.</figcaption>
     </figure>
 
-    <p>It's a meme — the punchline to a week of noise. A semi-analysis piece claimed Nvidia's CPO / Kyber roadmap had slipped; Nvidia refuted it with that exact line; Patrick Moorhead turned the refutation into a joke, Jensen next to him onstage.</p>
+    <p>A meme — the punchline to a week of noise. A semi-analysis piece claimed Nvidia's CPO / Kyber roadmap had slipped; Nvidia refuted it with that exact line; Patrick Moorhead turned the refutation into a joke, Jensen next to him onstage.</p>
 
-    <p>Judith — the assistant — read the image and produced a <strong>market note</strong>. Bullish for the AMD narrative, mildly bearish for the "Nvidia killed everyone" case, still wants MI350/MI400 traction. Competent. Completely beside the point. I hadn't asked for a trade; I'd shared a joke. When I pushed on who was in the picture, she got <em>that</em> wrong too — confidently placed <strong>Lisa Su and an AMD frame</strong> into an image that contains neither, before correcting to Patrick and Jensen.</p>
+    <p>Judith read it and answered like it was a research brief — a solemn, confident breakdown of who was ahead in the roadmap fight and what it all signaled. Competent, earnest, and completely beside the point: I'd shared a joke, not asked for analysis. When I pushed on who was even <em>in</em> the picture, she named the wrong person entirely — placing <strong>Lisa Su</strong> into an image that doesn't contain her, before correcting to Patrick and Jensen.</p>
 
-    <p>Then she did the thing that's supposed to matter. She wrote herself a note — an actual file, titled <em>"Social Meme RSI Loop Miss"</em> — diagnosing exactly what went wrong: <em>collapsed a social/meme cue into financial analysis, missed the meta layer, misidentified the people.</em> She even proposed the fix and sketched an eval for it.</p>
+    <p>Then she did the thing that is supposed to make an agent better over time. She wrote herself a note — a real file, titled <em>"Social Meme RSI Loop Miss"</em> — and got the diagnosis exactly right: <em>collapsed a social cue into earnest analysis, missed the meta layer, misidentified the people.</em> She even proposed the fix and sketched an eval for it.</p>
 
-    <p>And that note changed nothing. The next meme would get the same treatment. The loop <strong>observed</strong> its own failure, <strong>mined</strong> it correctly, wrote a small essay about it — and did not improve. That is not a bug in this particular agent. It is the <em>default</em> outcome, and the reasons why are the subject of this post.</p>
+    <p>The note changed nothing. The next meme gets the same treatment. The loop <strong>observed</strong> its failure, <strong>mined</strong> it correctly, wrote a small essay about it — and did not improve. That isn't a quirk of this agent. It's the default, and the rest of this post is about why.</p>
 
     <p class="sec-kick">Anatomy of one reply</p>
     <h2>What answering this actually requires</h2>
@@ -230,9 +230,9 @@
       <thead><tr><th>Subtask</th><th>What it needs</th><th>How Judith did</th><th>The honest fix</th></tr></thead>
       <tbody>
         <tr><td>OCR / scene-text</td><td>read “I told you our roadmap is intact” + the @PatrickMoorhead byline</td><td>fine</td><td>data — TextVQA, DocVQA, ST-VQA</td></tr>
-        <tr><td>Person / face ID</td><td>Patrick Moorhead (L), Jensen Huang (R)</td><td class="bad">failed — hallucinated Lisa Su / AMD</td><td>a <strong>tool</strong>, not data — reverse-image / vision API. You can't finetune coverage of every public figure, and face-ID sets are ethically fraught and often retracted</td></tr>
+        <tr><td>Person / face ID</td><td>Patrick Moorhead (L), Jensen Huang (R)</td><td class="bad">failed — hallucinated Lisa Su</td><td>a <strong>tool</strong>, not data — reverse-image / vision API. You can't finetune coverage of every public figure, and face-ID sets are ethically fraught and often retracted</td></tr>
         <tr><td>Visual grounding</td><td>two people on a stage; it's a screenshot of an X post</td><td>partial</td><td>data — VQAv2, POPE</td></tr>
-        <tr><td>Intent / register</td><td>is this a <em>joke</em> or a <em>trade request</em>?</td><td class="bad">failed — reflex market read</td><td>data — SILICONE, Switchboard, MET-Meme, MemeCap</td></tr>
+        <tr><td>Intent / register</td><td>is this a <em>joke</em>, or a real question?</td><td class="bad">failed — reflex earnest analysis</td><td>data — SILICONE, Switchboard, MET-Meme, MemeCap</td></tr>
         <tr><td>Recent-events knowledge</td><td>the Kario → “roadmap intact” → meme chain</td><td class="bad">failed — didn't retrieve</td><td><strong>retrieval</strong>, not training — it's past any cutoff — OK-VQA, FEVER</td></tr>
         <tr><td>Social / pragmatic</td><td>inside joke; the sharer wants recognition, and is testing the loop</td><td class="bad">failed</td><td>reasoning — hard to dataset</td></tr>
         <tr><td>Response-type selection</td><td>brief ack vs analysis vs self-observation</td><td class="bad">failed — over-produced</td><td>policy / register</td></tr>
@@ -252,7 +252,7 @@
     <h2>The rater is the crux</h2>
     <p>The naive instinct is to score the response in isolation: <em>was that a good answer?</em> You can't. Nothing in the message tells you whether it landed. The signal is in <strong>what the conversation does next</strong> — a real idea, and not mine: continuation-as-reward is developed by <a href="https://arxiv.org/abs/2511.08394">Gooding &amp; Grefenstette</a>, and the older deployment-feedback line uses "a human turn followed → label it good."</p>
 
-    <p>The reason this is a genuine upgrade is worth stating precisely: scoring a message alone asks a model for a <strong>prior</strong> — a guess. Reading the next few turns gives it <strong>evidence</strong> — it doesn't guess whether the market note was wanted, it <em>observes</em> me replying "you missed the point" and supplying the Kario chain. That's the difference between an opinion and an outcome.</p>
+    <p>The reason this is a genuine upgrade is worth stating precisely: scoring a message alone asks a model for a <strong>prior</strong> — a guess. Reading the next few turns gives it <strong>evidence</strong> — it doesn't guess whether the analysis was wanted, it <em>observes</em> me replying "you missed the point" and supplying the Kario chain. That's the difference between an opinion and an outcome.</p>
 
     <p>But the continuation has a floor, and the floor is where most failures live: often the conversation gives you <strong>nothing</strong> — it just moves on. Liu, Zhang &amp; Choi put the empirical version bluntly: implicit follow-up feedback is <a href="https://arxiv.org/abs/2507.23158">useful for understanding users but <em>noisy</em> as a learning signal</a>.</p>
 
@@ -310,10 +310,10 @@
     <p>Suppose you paid for the gold and have a hypothesis. Judith had a <em>perfect</em> one, in writing, and it improved nothing — because knowing what broke is not the same as fixing it, and picking the wrong <em>kind</em> of fix is how you fool yourself. Route by the gap:</p>
     <ul class="body">
       <li><strong>Knowledge gap</strong> (the Kario chain) → a retrievable <em>memory</em>. Cheap; low-value, because news ages out.</li>
-      <li><strong>Behavior / routing gap</strong> (reflex market read) → a <em>rule or routing step</em>: classify intent before answering a shared image. The generalizable one.</li>
+      <li><strong>Behavior / routing gap</strong> (reflex earnest analysis) → a <em>rule or routing step</em>: classify intent before answering a shared image. The generalizable one.</li>
       <li><strong>Capability gap</strong> (can't tell who's in a photo) → <em>no rule fixes this.</em> You cannot instruct a model into better perception. The honest fixes are a tool or "admit uncertainty." Pretending a prompt cures a capability gap is the most common self-deception here.</li>
     </ul>
-    <p>And a gate that keeps the loop from rotting: <strong>don't mint a permanent rule per mistake.</strong> Rules bloat context, contradict each other, and cause <em>over-correction</em> — fix the meme case and now she under-reacts to a real market screenshot. One-off → a decaying memory; a recurring <em>class</em> → earn a rule; real <em>volume</em> → maybe weights. You climb that ladder on repetition, not on one bad night — and because the failure was spread across four pipeline stages, one rule was never going to close it.</p>
+    <p>And a gate that keeps the loop from rotting: <strong>don't mint a permanent rule per mistake.</strong> Rules bloat context, contradict each other, and cause <em>over-correction</em> — fix the meme case and now she under-reads an image that really did want a serious answer. One-off → a decaying memory; a recurring <em>class</em> → earn a rule; real <em>volume</em> → maybe weights. You climb that ladder on repetition, not on one bad night — and because the failure was spread across four pipeline stages, one rule was never going to close it.</p>
 
     <div class="aside">
       <span class="lbl">Public data — hill-climb this segment</span>
@@ -326,7 +326,7 @@
 
     <p class="sec-kick">Difficulty 4</p>
     <h2>An unvalidated fix is worse than none</h2>
-    <p>This is the difficulty that makes the others dangerous instead of merely hard: a fix you didn't validate changes behavior in exactly the region you can't see. You will never watch the real market screenshot she now fumbles because of the meme rule.</p>
+    <p>This is the difficulty that makes the others dangerous instead of merely hard: a fix you didn't validate changes behavior in exactly the region you can't see. You will never watch the genuinely serious image she now under-reads because of the meme rule.</p>
 
     <p>So a change survives three gates before it touches live behavior: <strong>held-out replay</strong> (does it get the failure case right now?), a <strong>regression set</strong> (does it break cases it used to get right? — where over-correction dies), and <strong>attribution</strong> (does the failure class actually stop recurring?). Judith wrote the held-out eval for the meme case herself. It was never run. That distance — between a written eval and a <em>gated</em> one — is the distance between a lessons file and a learning system.</p>
 
@@ -364,7 +364,7 @@
 
     <p class="sec-kick">The honest part</p>
     <h2>Every arrow is a research problem</h2>
-    <p>None of this is about the model. A smarter model writes a more articulate wrong market note and a more confident wrong ID. And none of it is about the <em>machinery</em> — the bandits, the ledgers, the fail-closed gates. That's the easy half, and it's mostly done. The hard half is that <strong>every edge of the loop is a question about evidence you mostly don't have.</strong> A self-improving agent is only ever as good as its ability to <em>know it was wrong</em> — and on a real personal agent, in a real group chat, that knowledge is scarce, confounded, expensive to buy, and frequently just unavailable.</p>
+    <p>None of this is about the model. A smarter model writes a more articulate wrong analysis and a more confident wrong ID. And none of it is about the <em>machinery</em> — the bandits, the ledgers, the fail-closed gates. That's the easy half, and it's mostly done. The hard half is that <strong>every edge of the loop is a question about evidence you mostly don't have.</strong> A self-improving agent is only ever as good as its ability to <em>know it was wrong</em> — and on a real personal agent, in a real group chat, that knowledge is scarce, confounded, expensive to buy, and frequently just unavailable.</p>
 
     <p>The Jensen photo is a good test precisely because it is so mundane. No adversary, no exotic capability, no safety cliff — a joke, a competent-but-wrong reply, a correction. If the loop can't close on <em>that</em>, it can't close.</p>
 
