@@ -205,8 +205,6 @@
 
     <p class="lead">Judith gave a confident, badly wrong answer last night — and had no way, on her own, to tell it was wrong, let alone why. I had to point it out. That's the real problem with self-improving agents, and it isn't the one you'd expect: not that she failed to act on a lesson, but that she has no way to <em>reach</em> one — no tools to decide, by herself, why a response was inappropriate in the first place. Let me use an X post involving Jensen to illustrate this.</p>
 
-    <p>In a group chat I dropped a screenshot:</p>
-
     <figure class="fig">
       <img src="assets/jensen-roadmap-meme.jpg" alt="Patrick Moorhead's post reading &quot;I told you our roadmap is intact,&quot; over a photo of Patrick Moorhead on the left and Jensen Huang on the right, onstage.">
       <figcaption>The screenshot I shared — Patrick Moorhead on the left, Jensen Huang on the right.</figcaption>
@@ -216,9 +214,7 @@
 
     <p>Judith read it and answered like it was a research brief — a solemn, confident breakdown of who was ahead in the roadmap fight and what it all signaled. Competent, earnest, and completely beside the point: I'd shared a joke, not asked for analysis.</p>
 
-    <p>And once I'd pointed it out, she wrote it up perfectly — a real file, titled <em>"Social Meme RSI Loop Miss"</em>, that got the diagnosis exactly right and even proposed the fix. That's the tell: she could reproduce the lesson flawlessly the moment I handed it to her, and had no way to reach it on her own. <strong>Unless a human labels the miss or supplies the missing context, Judith is blind to it.</strong></p>
-
-    <p>And that isn't a quirk of this agent — it's the default. A deployed personal agent, left to itself, can't reliably tell a good answer from a bad one; it needs a human to draw the line. The rest of this post is about how much that one dependency costs — at every step of trying to make the thing improve.</p>
+    <p>And once I'd pointed it out, she wrote it up perfectly — a real file, titled <em>"Social Meme RSI Loop Miss"</em>, that got the diagnosis exactly right and even proposed the fix. That's the tell: handed the lesson, she could reproduce it flawlessly; on her own, she had no way to reach it at all. <strong>Unless a human labels the miss or supplies the missing context, Judith is blind to it</strong> — and that isn't a quirk of this agent, it's the default. The rest of this post is about how much that one dependency costs, at every step of trying to make the thing improve.</p>
 
     <p class="sec-kick">Anatomy of one reply</p>
     <h2>What answering this actually requires</h2>
@@ -239,7 +235,7 @@
     </table>
     </div>
 
-    <p>At least four of seven stages failed, and <strong>each needs a different intervention</strong> — a tool for perception, data for intent, retrieval for recency, reasoning for pragmatics. Hold onto that: it means even a <em>perfect</em> signal that "the answer was bad" leaves the loop with a second problem — <em>which stage was bad?</em> The reward is one scalar smeared across a seven-stage pipeline. Credit assignment <em>within</em> a single response, before you even get to credit assignment across the conversation.</p>
+    <p>Several of these stages failed at once, and <strong>each needs a different intervention</strong> — a tool for perception, data for intent, retrieval for recency, reasoning for pragmatics. Hold onto that: it means even a <em>perfect</em> signal that "the answer was bad" leaves the loop with a second problem — <em>which stage was bad?</em> The reward is one scalar smeared across a seven-stage pipeline. Credit assignment <em>within</em> a single response, before you even get to credit assignment across the conversation.</p>
 
     <p class="sec-kick">The diagram</p>
     <h2>The loop everyone draws</h2>
@@ -248,7 +244,7 @@
     <p>The mechanics are not where loops fail. As Jason Wei argues in <a href="https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law">Verifier's Law</a>, and Song et al. formalize as the <a href="https://arxiv.org/abs/2412.02674">generation–verification gap</a>, self-improvement is bottlenecked on <strong>verification</strong> — on cheaply and correctly knowing whether an output is good. Lilian Weng makes the same point for auto-research and coding agents in <a href="https://lilianweng.github.io/posts/2026-07-04-harness/">Harness Engineering for Self-Improvement</a>: the ceiling is the evaluator. Where their work lives on <em>verifiable</em> tasks — code that compiles, math that checks, tests that pass — a deployed personal assistant has <strong>no verifier to fall back on.</strong> "Was that a good reply to a friend's meme" has no unit test. So the bottleneck they name for verifiable domains becomes, for a conversational agent, the <em>whole game</em> — and every arrow in that innocent diagram turns into a distinct measurement problem. Here they are, walked through the Jensen miss.</p>
 
     <h2>Difficulty 1 · The rater is the crux</h2>
-    <p>The naive instinct is to score the response in isolation: <em>was that a good answer?</em> You can't. Nothing in the message tells you whether it landed. The signal is in <strong>what the conversation does next</strong> — a real idea, and not mine: continuation-as-reward is developed by <a href="https://arxiv.org/abs/2511.08394">Gooding &amp; Grefenstette</a>, and the older deployment-feedback line uses "a human turn followed → label it good."</p>
+    <p>"Making it realize" has a name — the <strong>rater</strong> — and it's the first place this breaks. The naive instinct is to score the response in isolation: <em>was that a good answer?</em> You can't. Nothing in the message tells you whether it landed. The signal is in <strong>what the conversation does next</strong> — a real idea, and not mine: continuation-as-reward is developed by <a href="https://arxiv.org/abs/2511.08394">Gooding &amp; Grefenstette</a>, and the older deployment-feedback line uses "a human turn followed → label it good."</p>
 
     <p>The reason this is a genuine upgrade is worth stating precisely: scoring a message alone asks a model for a <strong>prior</strong> — a guess. Reading the next few turns gives it <strong>evidence</strong> — it doesn't guess whether the analysis was wanted, it <em>observes</em> me replying "you missed the point" and supplying the Kyber chain. That's the difference between an opinion and an outcome.</p>
 
@@ -282,7 +278,7 @@
       <li><strong>A stronger reference model</strong>, for judgment calls reality can't settle. Better-calibrated than the model that erred. Silver, not gold.</li>
       <li><strong>The human</strong>, rationed to the residue: unverifiable <em>and</em> high-stakes <em>and</em> high-suspicion. Everything else, log and let go.</li>
     </ul>
-    <p>Two traps. The <strong>correlated-error trap</strong>: if the agent "verifies" by re-examining with the same model that erred — especially the perception miss, where its own eyes are the weak link — it cheerfully re-confirms the mistake. Verification has to be <em>independent</em>. And <strong>triage is the whole game</strong> — you cannot verify every turn, and most don't deserve it.</p>
+    <p>Two traps. The <strong>correlated-error trap</strong>: if the agent "verifies" by re-examining with the same model that erred — especially where the model's own perception is the weak link — it cheerfully re-confirms the mistake. Verification has to be <em>independent</em>. And <strong>triage is the whole game</strong> — you cannot verify every turn, and most don't deserve it.</p>
 
     <p>Each rung of that ladder — checking a claim, catching a fabrication, testing an assertion about an image — has a benchmark behind it:</p>
 
@@ -300,7 +296,7 @@
     <ul class="body">
       <li><strong>Knowledge gap</strong> (the Kyber chain) → a retrievable <em>memory</em>. Cheap; low-value, because news ages out.</li>
       <li><strong>Behavior / routing gap</strong> (reflex earnest analysis) → a <em>rule or routing step</em>: classify intent before answering a shared image. The generalizable one.</li>
-      <li><strong>Capability gap</strong> (can't tell who's in a photo) → <em>no rule fixes this.</em> You cannot instruct a model into better perception. The honest fixes are a tool or "admit uncertainty." Pretending a prompt cures a capability gap is the most common self-deception here.</li>
+      <li><strong>Capability gap</strong> (say, telling who's in a photo) → <em>no rule fixes this.</em> You cannot instruct a model into better perception. The honest fixes are a tool or "admit uncertainty." Pretending a prompt cures a capability gap is the most common self-deception here.</li>
     </ul>
     <p>And a gate that keeps the loop from rotting: <strong>don't mint a permanent rule per mistake.</strong> Rules bloat context, contradict each other, and cause <em>over-correction</em> — fix the meme case and now she under-reads an image that really did want a serious answer. One-off → a decaying memory; a recurring <em>class</em> → earn a rule; real <em>volume</em> → maybe weights. You climb that ladder on repetition, not on one bad night — and because the failure was spread across four pipeline stages, one rule was never going to close it.</p>
 
