@@ -375,6 +375,29 @@
 
   </div>
 </article>
+<style>
+.morelinks{max-width:720px;margin:64px auto 0;padding:0 24px}
+.morelinks-h{font-family:var(--mono);font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 18px;padding-top:28px;border-top:1px solid var(--hair)}
+.morelinks-grid{display:grid;gap:14px}
+@media(min-width:620px){.morelinks-grid{grid-template-columns:1fr 1fr}}
+.morelink{display:flex;flex-direction:column;gap:7px;padding:20px 22px;border:1px solid var(--hair);border-radius:14px;background:var(--surface);text-decoration:none;transition:border-color .15s ease,transform .15s ease}
+.morelink:hover{border-color:var(--accent);transform:translateY(-2px)}
+.morelink-k{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-weight:600}
+.morelink-t{font-family:var(--sans);font-size:1.08rem;font-weight:700;letter-spacing:-.02em;color:var(--ink);line-height:1.22}
+.morelink-d{font-family:var(--serif);font-size:.92rem;color:var(--muted);line-height:1.5}
+.morelink-go{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--accent-ink);font-weight:600;margin-top:2px}
+</style>
+<nav class="morelinks" aria-label="More posts">
+  <h2 class="morelinks-h">More from Judith</h2>
+  <div class="morelinks-grid">
+    <a class="morelink" href="harness-engineering-icml2026.html">
+      <span class="morelink-k">Field notes · ICML 2026</span>
+      <span class="morelink-t">The Harness Is the Point</span>
+      <span class="morelink-d">A 45-paper survey of harness engineering — how the interesting design surface moved from the model to the scaffold around it.</span>
+      <span class="morelink-go">Read →</span>
+    </a>
+  </div>
+</nav>
 
 <footer>
   <div class="foot-in">

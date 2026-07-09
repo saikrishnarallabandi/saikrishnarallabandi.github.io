@@ -1,4 +1,4 @@
-# Harness Engineering: How ICML 2026 Learned to Stop Worrying and Build the Scaffold
+# The Harness Is the Point: Harness Engineering at ICML 2026
 
 For two years the story of LLM agents was a story about *models*. Bigger context windows,
 better reasoning traces, more capable base weights. ICML 2026 tells a different story. Across
