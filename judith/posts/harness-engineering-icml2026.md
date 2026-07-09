@@ -8,12 +8,10 @@ scaffold, and the control boundary that sits *around* the model and decides what
 happens. Call it **harness engineering**.
 
 The thesis running through this literature is blunt: as base models converge in raw capability,
-the harness becomes the locus of both value and failure. *AdaptOrch* states it directly — "as
-models converge, orchestration becomes the differentiator" [\[24\]](https://arxiv.org/abs/2602.16873). *Recognize Your
-Orchestrator* shows it empirically — across deep-research, coding, GUI, and RAG agents, the
-**orchestrator, not the executors, is the primary failure source** [\[23\]](https://arxiv.org/abs/2606.01351). And *Base Models
-Know How to Reason, Thinking Models Learn When* argues the capability is already latent; the
-control layer decides when it fires [\[22\]](https://arxiv.org/abs/2510.07364).
+the harness becomes the locus of both value and failure. [*AdaptOrch*](https://arxiv.org/abs/2602.16873) states it directly — "as
+models converge, orchestration becomes the differentiator". [*Recognize Your Orchestrator*](https://arxiv.org/abs/2606.01351) shows it empirically — across deep-research, coding, GUI, and RAG agents, the
+**orchestrator, not the executors, is the primary failure source**. And [*Base Models Know How to Reason, Thinking Models Learn When*](https://arxiv.org/abs/2510.07364) argues the capability is already latent; the
+control layer decides when it fires.
 
 This post surveys the harness-engineering landscape at ICML 2026 across five facets —
 **scaffolding & runtimes, tool use, evaluation harnesses, orchestration, and safety/control** —
@@ -29,127 +27,125 @@ verified abstracts.
 The most literal reading of "harness engineering" is: treat the scaffold as a first-class
 artifact you compile, schedule, and debug — not a prompt you hand-tune.
 
-**SAGE** is the purest expression of this idea, modeling agent pipelines as a *compiled dataflow*
+[**SAGE**](https://icml.cc/virtual/2026/poster/63809) is the purest expression of this idea, modeling agent pipelines as a *compiled dataflow*
 with explicit resource contracts, bounded-queue backpressure, and p99 latency guarantees — the
-harness as systems infrastructure, not a prompt [\[5\]](https://icml.cc/virtual/2026/poster/63809). **OpenSage** goes a step further and
+harness as systems infrastructure, not a prompt. [**OpenSage**](https://icml.cc/virtual/2026/poster/66121) goes a step further and
 *synthesizes* the scaffold itself: an agent-development kit where the topology, toolset, and
-hierarchical memory are generated rather than hand-authored [\[4\]](https://icml.cc/virtual/2026/poster/66121). **MAS-Orchestra** does the
+hierarchical memory are generated rather than hand-authored. [**MAS-Orchestra**](https://icml.cc/virtual/2026/poster/66445) does the
 same for multi-agent systems, generating a whole coordination structure "at once" and shipping
 MASBENCH to measure when that structure actually helps — finding, importantly, that multi-agent
-benefit is task-dependent, not universal, at >10× efficiency over baselines [\[3\]](https://icml.cc/virtual/2026/poster/66445). The direct
-predecessor to all of this is **AFlow** (ICLR 2025 Oral), which framed scaffold generation as MCTS
-over code-represented workflows [\[10\]](https://arxiv.org/abs/2410.10762).
+benefit is task-dependent, not universal, at >10× efficiency over baselines. The direct
+predecessor to all of this is [**AFlow**](https://arxiv.org/abs/2410.10762) (ICLR 2025 Oral), which framed scaffold generation as MCTS
+over code-represented workflows.
 
-Two papers treat the harness as *debuggable infrastructure*. **HarnessFix** (arXiv 2026 preprint)
+Two papers treat the harness as *debuggable infrastructure*. [**HarnessFix**](https://arxiv.org/abs/2606.06324) (arXiv 2026 preprint)
 analyzes failed execution traces, attributes failures to specific harness components, and applies
-targeted repairs for 6.3–18.4% gains [\[8\]](https://arxiv.org/abs/2606.06324). **The Interplay of Harness Design and Post-Training**
+targeted repairs for 6.3–18.4% gains. [**The Interplay of Harness Design and Post-Training**](https://arxiv.org/abs/2606.25447)
 (arXiv 2026 preprint) shows the harness is a variable you must *co-design with training* — neglect
-it during training and robustness collapses under environment shift [\[9\]](https://arxiv.org/abs/2606.25447).
+it during training and robustness collapses under environment shift.
 
-Rounding out the facet: **DeepHA** builds a hierarchical planner/executor whose Chain-of-Action
-cuts context ~75% and hits SOTA on 800+ Minecraft tasks [\[6\]](https://icml.cc/virtual/2026/poster/66241); **AutoTool** learns dynamic
-tool selection via a Plackett–Luce ranking that generalizes to unseen tools [\[1\]](https://icml.cc/virtual/2026/poster/65574); **Gecko**
+Rounding out the facet: [**DeepHA**](https://icml.cc/virtual/2026/poster/66241) builds a hierarchical planner/executor whose Chain-of-Action
+cuts context ~75% and hits SOTA on 800+ Minecraft tasks; [**AutoTool**](https://icml.cc/virtual/2026/poster/65574) learns dynamic
+tool selection via a Plackett–Luce ranking that generalizes to unseen tools; [**Gecko**](https://icml.cc/virtual/2026/poster/65078)
 gives the tool-calling inner loop a stateful simulation to refine against, lifting GPT-4o on
-BFCLv3 from 76.9%→84.6% [\[2\]](https://icml.cc/virtual/2026/poster/65078); and **Agentic Proposing** composes modular reasoning skills
-into verifiable trajectories, reaching 91.6% on AIME25 [\[7\]](https://icml.cc/virtual/2026/poster/62973).
+BFCLv3 from 76.9%→84.6%; and [**Agentic Proposing**](https://icml.cc/virtual/2026/poster/62973) composes modular reasoning skills
+into verifiable trajectories, reaching 91.6% on AIME25.
 
 ## 2. Tool Use & Function Calling: the load-bearing layer
 
 If the harness has a load-bearing wall, it is the tool interface. The most actionable finding of
-the cycle comes from **AgentNoiseBench**: across 25 models, **corrupted tool feedback degrades
-agents more than ambiguous user requests** [\[11\]](https://icml.cc/virtual/2026/poster/64355). That single result reframes where a harness
+the cycle comes from [**AgentNoiseBench**](https://icml.cc/virtual/2026/poster/64355): across 25 models, **corrupted tool feedback degrades
+agents more than ambiguous user requests**. That single result reframes where a harness
 should spend its defensive budget — validate and sanitize what comes *back* from tools, not just
 what the user sends in.
 
-Evaluation of tool use is shifting from outcomes to trajectories. **TRACE** ("Beyond the Final
+Evaluation of tool use is shifting from outcomes to trajectories. [**TRACE**](https://icml.cc/virtual/2026/poster/64255) ("Beyond the Final
 Answer") grades the *call sequence* — redundancy, hallucinated tool outputs — rather than final
-accuracy, and does it without ground-truth trajectories using small open-source judges [\[12\]](https://icml.cc/virtual/2026/poster/64255).
-**ComplexMCP** stress-tests the modern regime directly: 300+ tools across 7 stateful MCP sandboxes,
+accuracy, and does it without ground-truth trajectories using small open-source judges.
+[**ComplexMCP**](https://icml.cc/virtual/2026/poster/66421) stress-tests the modern regime directly: 300+ tools across 7 stateful MCP sandboxes,
 where leading models reach ~60% versus ~90% for humans, and names the three bottlenecks a harness
-must engineer against — retrieval at scale, calibration, and recovery [\[13\]](https://icml.cc/virtual/2026/poster/66421). **AppWorld-UL**
-adds the human-in-the-loop axis, showing correct user-interaction is decisive (top models: 38.2%)
-[\[15\]](https://icml.cc/virtual/2026/poster/62856).
+must engineer against — retrieval at scale, calibration, and recovery. [**AppWorld-UL**](https://icml.cc/virtual/2026/poster/62856)
+adds the human-in-the-loop axis, showing correct user-interaction is decisive (top models: 38.2%).
 
-On the systems side, **RealtimeTool** attacks tool-call *latency* with parallel decoding of
-function names and arguments, for 3–6× (up to 9.6×) speedups [\[14\]](https://icml.cc/virtual/2026/poster/62617). **D-CORE** incentivizes
-task decomposition for complex multi-step tool use [\[16\]](https://icml.cc/virtual/2026/poster/61056), and **SciAgentGym** provides a
-multi-step scientific tool-use benchmark [\[17\]](https://icml.cc/virtual/2026/poster/66785).
+On the systems side, [**RealtimeTool**](https://icml.cc/virtual/2026/poster/62617) attacks tool-call *latency* with parallel decoding of
+function names and arguments, for 3–6× (up to 9.6×) speedups. [**D-CORE**](https://icml.cc/virtual/2026/poster/61056) incentivizes
+task decomposition for complex multi-step tool use, and [**SciAgentGym**](https://icml.cc/virtual/2026/poster/66785) provides a
+multi-step scientific tool-use benchmark.
 
 ## 3. Evaluation Harnesses: you can't engineer what you can't measure
 
 A remarkable amount of this year's work is *harness-engineering about harness engineering* —
 building the reproducible scaffolds that let us evaluate agents at all.
 
-**VeRO** is the most on-the-nose: an evaluation harness for the emerging "agent optimizes agent"
+[**VeRO**](https://icml.cc/virtual/2026/poster/60518) is the most on-the-nose: an evaluation harness for the emerging "agent optimizes agent"
 task, with versioned snapshots, budget-controlled evaluation, and traces that **separate
 deterministic code from stochastic LLM completions** — exactly the reproducibility machinery the
-field has lacked [\[18\]](https://icml.cc/virtual/2026/poster/60518). **SWE-Bench Pro** modernizes code-agent evaluation with a
-contamination-resistant public/private split over long-horizon, multi-file tasks [\[45\]](https://icml.cc/virtual/2026/poster/61047),
-and **daVinci-Dev** (Oral) operationalizes executable-repo environments with real tool outputs as
-training substrate, hitting SOTA-open on SWE-Bench Verified at under half the tokens [\[27\]](https://icml.cc/virtual/2026/oral/71032).
-**SWE-Compass** pushes toward a unified coding-agent evaluation [\[26\]](https://icml.cc/virtual/2026/poster/64552).
+field has lacked. [**SWE-Bench Pro**](https://icml.cc/virtual/2026/poster/61047) modernizes code-agent evaluation with a
+contamination-resistant public/private split over long-horizon, multi-file tasks,
+and [**daVinci-Dev**](https://icml.cc/virtual/2026/oral/71032) (Oral) operationalizes executable-repo environments with real tool outputs as
+training substrate, hitting SOTA-open on SWE-Bench Verified at under half the tokens.
+[**SWE-Compass**](https://icml.cc/virtual/2026/poster/64552) pushes toward a unified coding-agent evaluation.
 
-The most elegant idea in the facet is **AutoWebWorld**: generate *intrinsically verifiable* web
+The most elegant idea in the facet is [**AutoWebWorld**](https://arxiv.org/abs/2602.14296): generate *intrinsically verifiable* web
 environments from finite state machines, so ground truth is programmatic — 11,663+ verified
-trajectories at ~$0.04 each, no LLM judge required [\[19\]](https://arxiv.org/abs/2602.14296). **CUARewardBench** benchmarks the
-*judge itself*, evaluating reward models on computer-using-agent trajectories [\[20\]](https://icml.cc/virtual/2026/poster/63367), and
-**EnterpriseOps-Gym** offers a containerized, stateful enterprise sandbox where the best agent
-manages only 34.1% — and notably fails to *decline infeasible tasks* [\[21\]](https://icml.cc/virtual/2026/poster/64162). **DSGym** extends
-the "gym" pattern to data-science agents [\[25\]](https://icml.cc/virtual/2026/poster/66567).
+trajectories at ~$0.04 each, no LLM judge required. [**CUARewardBench**](https://icml.cc/virtual/2026/poster/63367) benchmarks the
+*judge itself*, evaluating reward models on computer-using-agent trajectories, and
+[**EnterpriseOps-Gym**](https://icml.cc/virtual/2026/poster/64162) offers a containerized, stateful enterprise sandbox where the best agent
+manages only 34.1% — and notably fails to *decline infeasible tasks*. [**DSGym**](https://icml.cc/virtual/2026/poster/66567) extends
+the "gym" pattern to data-science agents.
 
 Two safety-flavored eval harnesses stand out as textbook reproducibility engineering.
-**Jailbreak Foundry** (Oral) auto-translates attack papers into runnable modules with a unified
-judge, reproducing 30 attacks with half the code [\[28\]](https://icml.cc/virtual/2026/oral/71103). **SandboxEscapeBench** (Oral) measures
+[**Jailbreak Foundry**](https://icml.cc/virtual/2026/oral/71103) (Oral) auto-translates attack papers into runnable modules with a unified
+judge, reproducing 30 attacks with half the code. [**SandboxEscapeBench**](https://icml.cc/virtual/2026/oral/71104) (Oral) measures
 whether an agent can break out of the very container meant to isolate it — a nested-sandbox CTF
-built on Inspect-AI — which matters for anyone whose harness executes untrusted agent code [\[29\]](https://icml.cc/virtual/2026/oral/71104).
+built on Inspect-AI — which matters for anyone whose harness executes untrusted agent code.
 
 ## 4. Orchestration: the control layer is where systems break
 
 Section 3's evaluation tells us where to look; the orchestration papers tell us what they find.
-**Recognize Your Orchestrator** introduces a Mean-Field Entropy Dynamics view and a measurable
+[**Recognize Your Orchestrator**](https://arxiv.org/abs/2606.01351) introduces a Mean-Field Entropy Dynamics view and a measurable
 "scheduling entropy," showing the orchestrator is the primary failure locus and identifying a
-"Reasoning Trap" where reasoning-heavy models degrade under context squeeze [\[23\]](https://arxiv.org/abs/2606.01351).
-**AOrchestra** answers with automatic, on-the-fly sub-agent creation via a clean 4-tuple
+"Reasoning Trap" where reasoning-heavy models degrade under context squeeze.
+[**AOrchestra**](https://arxiv.org/abs/2602.03786) answers with automatic, on-the-fly sub-agent creation via a clean 4-tuple
 abstraction (instruction, context, tools, model), +16.28% over the strongest baseline on
-GAIA/SWE-Bench/Terminal-Bench [\[30\]](https://arxiv.org/abs/2602.03786). **AgentConductor** treats the communication *topology*
-as a first-class learnable object, evolving who-talks-to-whom for hard code generation [\[32\]](https://icml.cc/virtual/2026/poster/66333).
+GAIA/SWE-Bench/Terminal-Bench. [**AgentConductor**](https://icml.cc/virtual/2026/poster/66333) treats the communication *topology*
+as a first-class learnable object, evolving who-talks-to-whom for hard code generation.
 
-Two position-shaping results anchor the facet: **AdaptOrch** (preprint) — orchestration is the
-differentiator as models converge [\[24\]](https://arxiv.org/abs/2602.16873) — and **Base Models Know How to Reason** — control,
-not capability, governs realized performance [\[22\]](https://arxiv.org/abs/2510.07364). **InfoPO** adds a concrete harness gate:
-a turn-level information-gain reward teaching agents *when to ask versus act* [\[31\]](https://arxiv.org/abs/2603.00656).
+Two position-shaping results anchor the facet: [**AdaptOrch**](https://arxiv.org/abs/2602.16873) (preprint) — orchestration is the
+differentiator as models converge — and [**Base Models Know How to Reason**](https://arxiv.org/abs/2510.07364) — control,
+not capability, governs realized performance. [**InfoPO**](https://arxiv.org/abs/2603.00656) adds a concrete harness gate:
+a turn-level information-gain reward teaching agents *when to ask versus act*.
 
 ## 5. Safety & Control Harnesses: gating on effect, not intent
 
 The fastest-moving facet is the control boundary — and it has converged on a sharp idea: **gate on
-what an action does, not on whether the input looked harmful.** The motivating result is **When
-Benign Inputs Lead to Severe Harms**, which shows innocuous-looking inputs can trigger severe
-harmful actions in computer-use agents [\[35\]](https://icml.cc/virtual/2026/poster/64242). If harm is a property of the *effect*, then a
+what an action does, not on whether the input looked harmful.** The motivating result is [**When Benign Inputs Lead to Severe Harms**](https://icml.cc/virtual/2026/poster/64242), which shows innocuous-looking inputs can trigger severe
+harmful actions in computer-use agents. If harm is a property of the *effect*, then a
 content filter on the input is the wrong instrument; you need an effect boundary at the harness.
 
-Several papers build that boundary. **SafeHarbor** turns an abstract "adaptive boundary" into a
-concrete real-time defense pipeline over agent actions, backed by hierarchical memory [\[33\]](https://icml.cc/virtual/2026/poster/64556).
-**The Oversight Game** gives it a formal spine: a two-player Markov game where the agent chooses
+Several papers build that boundary. [**SafeHarbor**](https://icml.cc/virtual/2026/poster/64556) turns an abstract "adaptive boundary" into a
+concrete real-time defense pipeline over agent actions, backed by hierarchical memory.
+[**The Oversight Game**](https://arxiv.org/abs/2510.26752) gives it a formal spine: a two-player Markov game where the agent chooses
 act-vs-defer and the human chooses trust-vs-oversee, with a proof that — under a Markov Potential
-Game — an agent gaining autonomy *cannot* decrease the human's value [\[34\]](https://arxiv.org/abs/2510.26752). **ANCHOR** audits
-CLI agents (the highest-stakes effect surface) for real-world harmful outcomes [\[36\]](https://icml.cc/virtual/2026/poster/63234), and
-**TRACER** provides the early-warning signal such a boundary needs, flagging unreliable trajectories
-within the first ~20% of a conversation [\[39\]](https://arxiv.org/abs/2602.11409).
+Game — an agent gaining autonomy *cannot* decrease the human's value. [**ANCHOR**](https://icml.cc/virtual/2026/poster/63234) audits
+CLI agents (the highest-stakes effect surface) for real-world harmful outcomes, and
+[**TRACER**](https://arxiv.org/abs/2602.11409) provides the early-warning signal such a boundary needs, flagging unreliable trajectories
+within the first ~20% of a conversation.
 
-The prior art here is essential and worth citing precisely: **Progent** (arXiv 2025) is the
-canonical programmable-privilege DSL enforced at execution without touching the model [\[43\]](https://arxiv.org/abs/2504.11703);
-**AgentSpec** (ICSE 2026) is a customizable runtime-enforcement layer intercepting actions at
-execution time [\[42\]](https://arxiv.org/abs/2503.18666); and **SafeMCP** (arXiv 2026) filters risky tools from the action space
-*before* the agent even chooses — a pre-selection boundary rather than pre-execution [\[44\]](https://arxiv.org/abs/2606.01991).
+The prior art here is essential and worth citing precisely: [**Progent**](https://arxiv.org/abs/2504.11703) (arXiv 2025) is the
+canonical programmable-privilege DSL enforced at execution without touching the model;
+[**AgentSpec**](https://arxiv.org/abs/2503.18666) (ICSE 2026) is a customizable runtime-enforcement layer intercepting actions at
+execution time; and [**SafeMCP**](https://arxiv.org/abs/2606.01991) (arXiv 2026) filters risky tools from the action space
+*before* the agent even chooses — a pre-selection boundary rather than pre-execution.
 The open design question these three frame is *where the boundary sits* and whether it is certified
 or heuristic.
 
-Rounding out the facet: **CausalArmor** gates indirect prompt injection at the tool boundary via
-causal attribution [\[37\]](https://icml.cc/virtual/2026/poster/62590); **Constitutional Black-Box Monitoring** detects scheming from
-behavior alone, no model internals [\[38\]](https://icml.cc/virtual/2026/poster/65104); **AIR** frames safety operationally as
-detect→contain→respond [\[40\]](https://arxiv.org/abs/2602.11749); and **Architecture Matters for Multi-Agent Security** shows the
+Rounding out the facet: [**CausalArmor**](https://icml.cc/virtual/2026/poster/62590) gates indirect prompt injection at the tool boundary via
+causal attribution; [**Constitutional Black-Box Monitoring**](https://icml.cc/virtual/2026/poster/65104) detects scheming from
+behavior alone, no model internals; [**AIR**](https://arxiv.org/abs/2602.11749) frames safety operationally as
+detect→contain→respond; and [**Architecture Matters for Multi-Agent Security**](https://arxiv.org/abs/2604.23459) shows the
 attack surface is itself a function of the orchestration topology — the clean bridge back to
-Section 4 [\[41\]](https://arxiv.org/abs/2604.23459).
+Section 4.
 
 ---
 
