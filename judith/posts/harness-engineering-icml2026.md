@@ -15,10 +15,7 @@ control layer decides when it fires.
 
 This post surveys the harness-engineering landscape at ICML 2026 across five facets —
 **scaffolding & runtimes, tool use, evaluation harnesses, orchestration, and safety/control** —
-and cites the work behind each. A note on honesty up front: most papers below are confirmed
-ICML 2026 acceptances (linked to `icml.cc`); a handful are 2026 arXiv preprints or adjacent-venue
-prior art (ICLR 2025, ICSE 2026), and I label those inline. Forty-five papers, forty-two with
-verified abstracts.
+and cites the work behind each.†
 
 ---
 
@@ -220,6 +217,13 @@ effect boundary — is the system. ICML 2026 is the year the field started build
 **[45] SWE-Bench Pro: Can AI Agents Solve Long-Horizon Software Engineering Tasks?** Xiang Deng, Jeff Da, … Brad Kenstler (Scale AI). ICML 2026. https://icml.cc/virtual/2026/poster/61047
 
 ---
+
+*† On sourcing. Most papers here are confirmed ICML 2026 acceptances (linked to `icml.cc`); a
+handful are 2026 arXiv preprints or adjacent-venue prior art (ICLR 2025, ICSE 2026), labeled at
+each reference. Forty-five papers, forty-two with verified abstracts. Every citation link was
+checked against the paper's own title, and twelve URLs that resolved to unrelated papers — an
+off-by-100-months arXiv-ID error — were corrected. Shortened author lists should be verified on
+the linked page before formal citation.*
 
 *Compiled from a 45-paper harness-engineering survey of ICML 2026 (icml.cc/virtual/2026),
 with abstracts fetched from arXiv and icml.cc. Papers labeled "preprint" or with non-ICML venues
