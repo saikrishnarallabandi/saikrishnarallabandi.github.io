@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Field notes from building Judith — a group agent — and reading the papers that matter: harness engineering, self-improvement loops, and the scaffold around the model.">
+<title>Field Notes — Judith</title>
+<meta property="og:title" content="Field Notes — Judith">
+<meta property="og:description" content="Field notes from building Judith and reading the papers that matter.">
+<style>
+  :root{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,"Cascadia Code",monospace;
+    --sans:"Helvetica Neue",Helvetica,"Segoe UI",system-ui,Arial,sans-serif;
+    --serif:Charter,"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --measure:60rem;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0C0E13; --surface:#13161D;
+      --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+      --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C0E13; --surface:#13161D;
+    --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+    --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%; overflow-x:hidden}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--serif);
+    font-size:1.19rem; line-height:1.72; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    overflow-wrap:break-word;}
+  a{color:var(--accent-ink); text-decoration:none;
+    border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
+  a:hover{border-bottom-color:var(--accent)}
+  a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+  /* topbar */
+  .bar{display:flex; align-items:center; gap:14px; max-width:var(--measure); margin:0 auto;
+    padding:22px 24px; font-family:var(--mono); font-size:.76rem; letter-spacing:.04em}
+  .bar .brand{font-weight:700; letter-spacing:.14em; border-bottom:none; color:var(--ink)}
+  .bar .spacer{flex:1}
+  .bar a{border-bottom:none; color:var(--muted)}
+  .bar a:hover{color:var(--accent-ink)}
+
+  /* hero */
+  header.hero{border-bottom:1px solid var(--hair)}
+  .hero-in{max-width:var(--measure); margin:0 auto; padding:clamp(40px,8vw,80px) 24px clamp(26px,4vw,42px)}
+  .kicker{font-family:var(--mono); font-size:.74rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--accent-ink); display:flex; align-items:center; gap:12px; margin:0 0 24px}
+  .kicker .ring{width:20px; height:20px; flex:none}
+  .kicker .ring circle{fill:none; stroke:var(--accent); stroke-width:2.4; stroke-linecap:round;
+    stroke-dasharray:52; stroke-dashoffset:14; transform-origin:center;}
+  @media (prefers-reduced-motion:no-preference){
+    .kicker .ring circle{animation:spin 4.5s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  }
+  h1{font-family:var(--sans); font-weight:800; letter-spacing:-.03em; line-height:1;
+    font-size:clamp(2.2rem,7vw,4rem); margin:0 0 18px; text-wrap:balance}
+  .dek{font-family:var(--serif); font-style:italic; font-size:clamp(1.1rem,2.4vw,1.35rem);
+    color:var(--muted); margin:0; max-width:44ch}
+
+  /* list */
+  main{max-width:var(--measure); margin:0 auto; padding:clamp(28px,5vw,52px) 24px 20px}
+  .post{display:block; padding:26px 0; border-bottom:1px solid var(--hair); border-left:none;
+    text-decoration:none; color:inherit}
+  .post:first-child{padding-top:6px}
+  .post .meta{font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--accent-ink); display:flex; gap:14px; flex-wrap:wrap; margin-bottom:12px}
+  .post .meta .date{color:var(--faint)}
+  .post h2{font-family:var(--sans); font-weight:750; letter-spacing:-.02em; line-height:1.12;
+    font-size:clamp(1.5rem,3.6vw,2rem); margin:0 0 10px; color:var(--ink); transition:color .15s ease}
+  .post:hover h2{color:var(--accent-ink)}
+  .post p{margin:0 0 12px; color:var(--muted); font-size:1.02rem; line-height:1.6; max-width:64ch}
+  .post .go{font-family:var(--mono); font-size:.76rem; letter-spacing:.05em; color:var(--accent-ink);
+    font-weight:600}
+
+  footer{border-top:1px solid var(--hair); margin-top:36px}
+  .foot-in{max-width:var(--measure); margin:0 auto; padding:30px 24px 60px;
+    font-family:var(--mono); font-size:.74rem; letter-spacing:.03em; color:var(--faint); line-height:1.7}
+  .foot-in a{color:var(--accent-ink); border-bottom:none}
+</style>
+</head>
+<body>
+
+<nav class="bar">
+  <a class="brand" href="../">JUDITH</a>
+  <span class="spacer"></span>
+  <a href="https://onrallabandiradar.substack.com/">Substack →</a>
+  <a href="/">← portfolio</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="kicker">
+      <svg class="ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
+      Field notes
+    </p>
+    <h1>Field Notes</h1>
+    <p class="dek">Notes from building Judith — a group agent — and reading the papers that matter: the scaffold around the model.</p>
+  </div>
+</header>
+
+<main>
+  <!-- POSTS: newest first -->
+  <a class="post" href="harness-engineering-icml2026.html">
+    <div class="meta"><span>Survey · ICML 2026</span><span class="date">July 2026</span></div>
+    <h2>The Harness Is the Point</h2>
+    <p>A cited, 45-paper survey of harness engineering at ICML 2026 — how the interesting design surface moved from the model to the runtime, the tool contract, the orchestrator, and the effect boundary.</p>
+    <span class="go">Read →</span>
+  </a>
+
+  <a class="post" href="closing-the-loop-the-hard-part.html">
+    <div class="meta"><span>Building Judith</span><span class="date">July 2026</span></div>
+    <h2>How Do We Make It Realize Something Went Wrong?</h2>
+    <p>Why closing the self-improvement loop is so much harder than drawing it — the mechanics are easy; the rater, the part that knows a wrong answer was wrong, is the whole game.</p>
+    <span class="go">Read →</span>
+  </a>
+</main>
+
+<footer>
+  <div class="foot-in">
+    Field notes by Sai Krishna Rallabandi · <a href="https://onrallabandiradar.substack.com/">On Rallabandi Radar (Substack)</a> · <a href="../">saikrishnarallabandi.github.io/judith</a>
+  </div>
+</footer>
+
+</body>
+</html>
