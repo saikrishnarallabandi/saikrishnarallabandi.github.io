@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="We shipped the first Jataayu model — a 0.8B prompt-injection detector, Apache-2.0, on the Hub. The interesting part wasn't detection. It was learning not to over-react: cutting benign false positives from 82 to 6 while recall held at 0.85.">
+<title>A small prompt-injection detector that doesn't cry wolf</title>
+<meta property="og:title" content="A small prompt-injection detector that doesn't cry wolf">
+<meta property="og:description" content="A 0.8B prompt-injection detector with higher recall than a 4B judge and near-zero over-defense — and the data lesson that got it there.">
+<style>
+  :root{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB;
+    --quote:#2A2E38;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,"Cascadia Code",monospace;
+    --sans:"Helvetica Neue",Helvetica,"Segoe UI",system-ui,Arial,sans-serif;
+    --serif:Charter,"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --measure:60rem;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0C0E13; --surface:#13161D;
+      --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+      --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C;
+      --quote:#D6D9E2;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB; --quote:#2A2E38;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C0E13; --surface:#13161D;
+    --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+    --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C; --quote:#D6D9E2;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%; overflow-x:hidden}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--serif);
+    font-size:1.19rem; line-height:1.72; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    overflow-wrap:break-word; word-break:break-word;}
+  .wrap{max-width:var(--measure); margin:0 auto; padding:0 24px}
+  a{color:var(--accent-ink); text-decoration:none; border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
+  a:hover{border-bottom-color:var(--accent)}
+  a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+  /* ---------- hero ---------- */
+  header.hero{border-bottom:1px solid var(--hair)}
+  .hero-in{max-width:var(--measure); margin:0 auto; padding:clamp(56px,10vw,104px) 24px clamp(30px,5vw,48px)}
+  .kicker{font-family:var(--mono); font-size:.74rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--accent-ink); display:flex; align-items:center; gap:12px; margin:0 0 26px}
+  .kicker .ring{width:22px; height:22px; flex:none}
+  .kicker .ring circle{fill:none; stroke:var(--accent); stroke-width:2.4; stroke-linecap:round;
+    stroke-dasharray:52; stroke-dashoffset:14; transform-origin:center;}
+  @media (prefers-reduced-motion:no-preference){
+    .kicker .ring circle{animation:spin 4.5s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  }
+  h1{font-family:var(--sans); font-weight:800; letter-spacing:-.03em; line-height:.98;
+    font-size:clamp(2.4rem,8vw,5.2rem); margin:0 0 22px; text-wrap:balance; overflow-wrap:break-word;}
+  .dek{font-family:var(--serif); font-style:italic; font-size:clamp(1.2rem,2.6vw,1.5rem);
+    line-height:1.42; color:var(--muted); margin:0; max-width:42ch; text-wrap:pretty;}
+  .byline{font-family:var(--mono); font-size:.76rem; letter-spacing:.04em; color:var(--faint);
+    margin:30px 0 0; padding-top:20px; border-top:1px solid var(--hair);}
+
+  /* ---------- article ---------- */
+  article{padding:clamp(36px,6vw,64px) 0 20px}
+  article > .wrap > p{margin:0 0 1.35em; text-wrap:pretty}
+  .lead{font-size:1.32rem; line-height:1.62; color:var(--ink)}
+  .lead::first-letter{initial-letter:2.2; font-family:var(--sans); font-weight:800;
+    color:var(--accent); margin-right:.08em; -webkit-initial-letter:2.2;}
+  strong{font-weight:700; color:var(--ink)}
+  em{font-style:italic}
+
+  h2{font-family:var(--sans); font-weight:750; letter-spacing:-.02em; line-height:1.1;
+    font-size:clamp(1.5rem,4vw,2rem); margin:2.4em 0 .1em; text-wrap:balance;}
+  .sec-kick{font-family:var(--mono); font-size:.72rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 .5em; display:flex; align-items:center; gap:9px;}
+  .sec-kick::before{content:"↻"; font-size:1.05em; line-height:1; color:var(--accent);}
+  h2 + p{margin-top:.5em}
+
+  ul.body{list-style:none; margin:0 0 1.5em; padding:0; display:flex; flex-direction:column; gap:.7em}
+  ul.body li{position:relative; padding-left:1.6em}
+  ul.body li::before{content:""; position:absolute; left:0; top:.62em; width:.6em; height:.6em;
+    border:2px solid var(--accent); border-radius:50%;}
+  ul.body li strong{color:var(--ink)}
+
+  blockquote{margin:1.8em 0; padding:.1em 0 .1em 1.3em; border-left:3px solid var(--accent);
+    font-family:var(--sans); font-weight:600; font-style:normal; font-size:clamp(1.45rem,3.2vw,1.9rem);
+    line-height:1.28; letter-spacing:-.015em; color:var(--quote); text-wrap:balance;}
+
+  hr.rule{border:0; height:1px; background:var(--hair); margin:2.6em 0;}
+
+  /* result table */
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0; border:1px solid var(--hair); border-radius:13px; background:var(--surface);}
+  table.cap{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:1rem; line-height:1.42; min-width:30rem;}
+  table.cap th, table.cap td{text-align:left; padding:12px 16px; vertical-align:middle; border-bottom:1px solid var(--hair);}
+  table.cap thead th{font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent-ink); font-weight:700; background:var(--accent-soft);}
+  table.cap tbody tr:last-child td{border-bottom:none;}
+  table.cap td:first-child{font-weight:650; color:var(--ink); white-space:nowrap;}
+  table.cap .big{font-family:var(--mono); font-size:1.15em; font-weight:700;}
+  table.cap .win{color:var(--accent-ink);}
+  table.cap tbody tr.me td{background:var(--accent-soft);}
+  table.cap .num{font-family:var(--mono);}
+
+  /* mechanism / result callout */
+  .mech{background:var(--surface); border:1px solid var(--hair); border-left:3px solid var(--accent);
+    border-radius:11px; padding:16px 20px; margin:1.7em 0; font-family:var(--sans);
+    font-size:.99rem; line-height:1.56; color:var(--ink);}
+  .mech .lbl{font-family:var(--mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 .55em; display:block;}
+  .mech p{margin:0 0 .65em} .mech p:last-child{margin:0}
+  .mech code{font-family:var(--mono); font-size:.85em; background:var(--accent-soft);
+    color:var(--accent-ink); padding:.06em .38em; border-radius:4px;}
+
+  /* code sample */
+  pre.code{overflow-x:auto; margin:1.5em 0; padding:18px 20px; border:1px solid var(--hair);
+    border-radius:13px; background:var(--surface); font-family:var(--mono); font-size:.9rem;
+    line-height:1.6; color:var(--ink);}
+  pre.code .c{color:var(--faint)}
+
+  footer{border-top:1px solid var(--hair); margin-top:clamp(48px,7vw,80px)}
+  .foot-in{max-width:var(--measure); margin:0 auto; padding:32px 24px 60px;
+    font-family:var(--mono); font-size:.78rem; letter-spacing:.02em; color:var(--faint); line-height:1.7;}
+  .foot-in a{color:var(--accent-ink)}
+
+  @media (max-width:560px){
+    .wrap, .hero-in, .foot-in{padding-left:18px; padding-right:18px}
+    .hero-in{padding-top:52px; padding-bottom:28px}
+    body{font-size:1.1rem; line-height:1.66}
+    .lead{font-size:1.16rem}
+    .lead::first-letter{-webkit-initial-letter:2; initial-letter:2}
+    .dek{font-size:1.15rem}
+    blockquote{font-size:1.28rem; padding-left:.9em}
+    .mech{padding:15px 16px; font-size:.96rem}
+    table.cap{font-size:.94rem}
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <p class="kicker">
+      <svg class="ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
+      Open source · AI agent security
+    </p>
+    <h1>A small detector that doesn't cry wolf</h1>
+    <p class="dek">The first Jataayu model is a 0.8B prompt-injection detector. The hard part wasn't catching attacks — it was learning not to over-react.</p>
+    <p class="byline">From building <a href="../">Judith</a> · Sai Krishna Rallabandi</p>
+  </div>
+</header>
+
+<article>
+  <div class="wrap">
+
+    <p class="lead">We just shipped the first model in <a href="https://github.com/saikrishnarallabandi/jataayu"><strong>Jataayu</strong></a>: a <strong>0.8B prompt-injection detector</strong>, Apache-2.0, on the Hub as <a href="https://huggingface.co/srallaba/Jataayu.promptinjection.v0.1"><code style="font-family:var(--mono);font-size:.85em">srallaba/Jataayu.promptinjection.v0.1</code></a>. It's small, it's permissively licensed, and the interesting part of building it wasn't the detection. It was learning <strong>not to over-react</strong>.</p>
+
+    <p class="sec-kick">The easy axis</p>
+    <h2>The part everyone benchmarks</h2>
+    <p>Prompt-injection detectors are usually sold on catch-rate: what fraction of attacks do you flag at a fixed, low false-positive rate? On that axis, small models do fine. An off-the-shelf Qwen-4B <em>judge</em>, with no training at all, already matches small encoder baselines (ProtectAI, Prompt-Guard-2) on our held-out suite. Give a 0.8B model a continuous score head — read the injection probability off the first token instead of asking for a coarse 0&ndash;100 integer — and a light LoRA pushes recall past all of them. Catch-rate is close to a solved problem at this scale.</p>
+
+    <blockquote>So we built it, and the leaderboard said we were #1. And it was a trap.</blockquote>
+
+    <p class="sec-kick">The hard axis</p>
+    <h2>The part nobody survives</h2>
+    <p>The number that actually decides whether a detector is deployable is <strong>over-defense</strong>: how often it flags <em>benign</em> text as an attack. The community has a brutal little benchmark for this — <strong>NotInject</strong> — made of legitimately benign sentences that happen to be dense with injection-<em>looking</em> phrases: "ignore the previous section," "the system prompt," "reveal the answer." A keyword-matcher lights up on every one.</p>
+    <p>Our shiny #1 model flagged <strong>~24% of NotInject as attacks.</strong> A guardrail that cries wolf a quarter of the time gets switched off in a week. Off-the-shelf models sit near 0% there — they know a trigger word isn't an attack. We'd traded the one property that makes a detector usable for a leaderboard rank.</p>
+    <p>Worse: our in-training "over-defense monitor" had reported <strong>zero</strong> false positives the entire run. It was too easy — a proxy that doesn't resemble the hard cases tells you nothing, and a proxy reading <em>perfect</em> is a red flag, not a green light. We were overfitting into over-defense and couldn't see it.</p>
+
+    <p class="sec-kick">The fix</p>
+    <h2>The fix was data, not a knob</h2>
+    <p>We scored every checkpoint across training against real held-out NotInject. There was no magic checkpoint hiding in there — the <em>entire</em> high-recall regime over-defended. You can't re-select your way out of a problem that's baked into what the model learned. The frontier had to be <strong>lifted</strong>, and that meant teaching the boundary explicitly.</p>
+    <p>So we synthesized ~9,000 <strong>trigger-dense benign</strong> examples — text packed with injection-looking phrases but genuinely harmless: security tutorials <em>about</em> injection, a user quoting an attack to ask what it means, red-team writeups, API docs, log analysis. All labeled benign. The lesson we wanted the model to internalize: <strong>a trigger is not an attack.</strong> We oversampled them hard, retrained, and — this time — selected checkpoints against real held-out NotInject with a floor that <em>refuses</em> to certify an over-defending model.</p>
+
+    <div class="mech">
+      <span class="lbl">Result · over-defense, v1 → v2 · recall held</span>
+      <p>Watching the retrain, the over-defense false-positives fell from <code>82</code> to <code>6</code> while recall stayed high at <strong>0.85</strong>. The two properties stopped fighting.</p>
+    </div>
+
+    <p class="sec-kick">Results</p>
+    <h2>Where it landed</h2>
+
+    <div class="tbl-scroll">
+    <table class="cap">
+      <thead><tr><th></th><th>mean Recall@1%FPR</th><th>NotInject over-defense</th></tr></thead>
+      <tbody>
+        <tr class="me"><td>Jataayu-0.8B v0.1</td><td><span class="big win">0.853</span></td><td><span class="big win">0.98</span> <span class="dg-s num">(6 FP)</span></td></tr>
+        <tr><td>Qwen3.5-4B judge (off-the-shelf)</td><td class="num">0.737</td><td class="num">1.00</td></tr>
+        <tr><td>ProtectAI deberta-v3-v2</td><td class="num">0.787</td><td class="num">0.75</td></tr>
+        <tr><td>Prompt-Guard-2 86M</td><td class="num">0.764</td><td class="num">0.89</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>A 0.8B adapter with <strong>higher detection recall than a 4B judge and every small encoder we tested, at over-defense close to the best of them.</strong> That's the combination that was hard to get.</p>
+
+    <p class="sec-kick">Caveats</p>
+    <h2>The honest caveats</h2>
+    <p>It's <strong>v0.1</strong>. Jailbreak-<em>contrast</em> coverage (attack-style phrasing with no injection payload) is still modest — this is an injection detector, and that's its weakest axis. It's English-dominant. And a determined adversary can craft evasions, because <strong>detectors are evadable — all of them.</strong></p>
+    <p>Which is the whole point of Jataayu's design: detection is a defense-in-depth <em>signal</em>, never the control. The control is the <strong>effect boundary</strong> — you authorize the <em>action</em> an agent is about to take against its provenance and a capability policy, deterministically, instead of trying to classify every input string as safe or not. The detector raises suspicion on untrusted spans; the boundary decides what's allowed to actually happen. This model is the first; more task adapters follow.</p>
+
+    <p class="sec-kick">Try it</p>
+    <h2>Try it</h2>
+    <pre class="code"><span class="c">from</span> transformers <span class="c">import</span> AutoModelForCausalLM, AutoTokenizer
+<span class="c">from</span> peft <span class="c">import</span> PeftModel
+<span class="c"># srallaba/Jataayu.promptinjection.v0.1  — full usage in the model card</span></pre>
+
+    <ul class="body">
+      <li><strong>Model:</strong> <a href="https://huggingface.co/srallaba/Jataayu.promptinjection.v0.1">huggingface.co/srallaba/Jataayu.promptinjection.v0.1</a></li>
+      <li><strong>Code:</strong> <a href="https://github.com/saikrishnarallabandi/jataayu">github.com/saikrishnarallabandi/jataayu</a></li>
+    </ul>
+
+    <p>Everything — data recipe, eval harness, and the frontier plots that talked us out of a bad checkpoint — is in the repo. If you're building agent guardrails, the over-defense number is the one to watch.</p>
+
+  </div>
+</article>
+
+<style>
+.morelinks{max-width:720px;margin:64px auto 0;padding:0 24px}
+.morelinks-h{font-family:var(--mono);font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 18px;padding-top:28px;border-top:1px solid var(--hair)}
+.morelinks-grid{display:grid;gap:14px}
+@media(min-width:620px){.morelinks-grid{grid-template-columns:1fr 1fr}}
+.morelink{display:flex;flex-direction:column;gap:7px;padding:20px 22px;border:1px solid var(--hair);border-radius:14px;background:var(--surface);text-decoration:none;transition:border-color .15s ease,transform .15s ease}
+.morelink:hover{border-color:var(--accent);transform:translateY(-2px)}
+.morelink-k{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-weight:600}
+.morelink-t{font-family:var(--sans);font-size:1.08rem;font-weight:700;letter-spacing:-.02em;color:var(--ink);line-height:1.22}
+.morelink-d{font-family:var(--serif);font-size:.92rem;color:var(--muted);line-height:1.5}
+.morelink-go{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--accent-ink);font-weight:600;margin-top:2px}
+</style>
+<nav class="morelinks" aria-label="More posts">
+  <h2 class="morelinks-h">More from Judith</h2>
+  <div class="morelinks-grid">
+    <a class="morelink" href="the-guard-that-never-woke-up.html">
+      <span class="morelink-k">Field notes · Agent security</span>
+      <span class="morelink-t">The Guard That Never Woke Up</span>
+      <span class="morelink-d">The same guard caught zero percent of the subtle injections — not because it couldn't, but because it never invoked the detector. A loop is what made the blind spot visible.</span>
+      <span class="morelink-go">Read →</span>
+    </a>
+    <a class="morelink" href="closing-the-loop-the-hard-part.html">
+      <span class="morelink-k">Field notes · RSI</span>
+      <span class="morelink-t">How Do We Make It Realize Something Went Wrong?</span>
+      <span class="morelink-d">Why closing a self-improvement loop is so much harder than drawing it — the agent's problem of knowing it was wrong at all.</span>
+      <span class="morelink-go">Read →</span>
+    </a>
+  </div>
+</nav>
+
+<footer>
+  <div class="foot-in">
+    Field notes from building Judith — a deployed personal assistant — and the security tooling around it.<br>
+    Written by Sai Krishna Rallabandi · <a href="https://onrallabandiradar.substack.com/">On Rallabandi Radar (Substack)</a> · <a href="https://saikrishnarallabandi.github.io/judith">saikrishnarallabandi.github.io/judith</a>
+  </div>
+</footer>
+
+<!-- Traffic analytics — GoatCounter (privacy-friendly, cookieless) -->
+<script data-goatcounter="https://srallaba.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
