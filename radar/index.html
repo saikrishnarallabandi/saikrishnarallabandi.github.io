@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rallabandi Radar — research notes on technology and the systems shaping our future</title>
+<meta name="description" content="Research notes by Saikrishna Rallabandi on humanoid robotics, AI agents, power, and the physics of information. Published on Substack.">
+<link rel="canonical" href="https://saikrishnarallabandi.github.io/radar/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rallabandi Radar">
+<meta property="og:description" content="Research notes on technology and the systems shaping our future.">
+<meta property="og:url" content="https://saikrishnarallabandi.github.io/radar/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%93%A1</text></svg>">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  img, canvas, svg { max-width: 100%; }
+  button, input { font: inherit; }
+</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper:   #E6E9E5;
+    --pane:    #F1F3EF;
+    --ink:     #14191A;
+    --ink-soft:#4C565A;
+    --rule:    #C6CDC7;
+    --signal:  #1E5F52;
+    --signal-dim: rgba(30, 95, 82, .13);
+
+    --serif: "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace;
+
+    --fs-label: .68rem;
+    --pad: clamp(1rem, 3vw, 2.5rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0E1416; --pane: #141C1E; --ink: #E4EAE6;
+      --ink-soft: #8D9A97; --rule: #263134; --signal: #4FBFA3;
+      --signal-dim: rgba(79, 191, 163, .11);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E1416; --pane: #141C1E; --ink: #E4EAE6;
+    --ink-soft: #8D9A97; --rule: #263134; --signal: #4FBFA3;
+    --signal-dim: rgba(79, 191, 163, .11);
+  }
+  :root[data-theme="light"] {
+    --paper: #E6E9E5; --pane: #F1F3EF; --ink: #14191A;
+    --ink-soft: #4C565A; --rule: #C6CDC7; --signal: #1E5F52;
+    --signal-dim: rgba(30, 95, 82, .13);
+  }
+
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--sans); line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  .console { max-width: 1400px; margin: 0 auto; padding: 0 var(--pad) 3rem; }
+
+  .label {
+    font-family: var(--mono); font-size: var(--fs-label);
+    letter-spacing: .15em; text-transform: uppercase; color: var(--ink-soft);
+  }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- masthead ---------- */
+  .statusbar {
+    display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+    padding: .8rem 0; border-bottom: 1px solid var(--rule);
+  }
+  .live { display: flex; align-items: center; gap: .5rem; margin-right: auto; }
+  .live .pulse {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--signal);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
+  .brand {
+    font-family: var(--mono); font-size: var(--fs-label);
+    letter-spacing: .2em; text-transform: uppercase; font-weight: 600; color: var(--ink);
+  }
+  .statusbar nav { display: flex; gap: 1.25rem; }
+  .statusbar nav a:hover { color: var(--signal); }
+
+  /* ---------- pane system ---------- */
+  .grid {
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1px; margin-top: 1.25rem;
+  }
+  .pane {
+    background: var(--pane); border: 1px solid var(--rule);
+    display: flex; flex-direction: column; min-width: 0;
+  }
+  .pane > header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 1rem; padding: .65rem 1rem; border-bottom: 1px solid var(--rule);
+  }
+  .col-3 { grid-column: span 3; }
+  .col-4 { grid-column: span 4; }
+  .col-6 { grid-column: span 6; }
+  .col-8 { grid-column: span 8; }
+  .col-12 { grid-column: span 12; }
+
+  /* ---------- shared story type ---------- */
+  .story { display: block; }
+  .story h3, .story h2 {
+    font-family: var(--serif); font-weight: 400; letter-spacing: -.015em;
+    line-height: 1.2; text-wrap: balance; transition: color .2s ease;
+  }
+  .story:hover h3, .story:hover h2 { color: var(--signal); }
+  .dek { color: var(--ink-soft); font-size: .9rem; margin-top: .4rem; }
+  .meta { display: flex; gap: .6rem; margin-top: .65rem; align-items: center; flex-wrap: wrap; }
+  canvas.art { display: block; width: 100%; background: var(--paper); }
+
+  /* featured */
+  .lead { padding: 0; }
+  .lead .art { border-bottom: 1px solid var(--rule); }
+  .lead .txt { padding: clamp(1.25rem, 2.5vw, 2rem); text-align: center; }
+  .lead h2 { font-size: clamp(1.7rem, 3vw, 2.5rem); }
+  .lead .dek { font-size: 1rem; max-width: 54ch; margin-inline: auto; }
+  .lead .meta { justify-content: center; }
+
+  /* secondary column */
+  .secondary { display: flex; flex-direction: column; }
+  .secondary .story { padding: 1rem; border-bottom: 1px solid var(--rule); }
+  .secondary .story:last-child { border-bottom: 0; }
+  .secondary .art { margin-bottom: .8rem; border: 1px solid var(--rule); }
+  .secondary h3 { font-size: 1.15rem; }
+
+  /* most-read rail */
+  .rail { display: flex; flex-direction: column; }
+  .rail .story {
+    display: grid; grid-template-columns: minmax(0,1fr) 74px; gap: .9rem;
+    padding: .85rem 1rem; border-bottom: 1px solid var(--rule); align-items: start;
+  }
+  .rail .story:last-child { border-bottom: 0; }
+  .rail .story:hover { background: var(--signal-dim); }
+  .rail h3 { font-size: .98rem; }
+  .rail .art { border: 1px solid var(--rule); }
+
+  /* ---------- full log ---------- */
+  .log .story {
+    display: grid; grid-template-columns: 5.5rem minmax(0,1fr) 108px;
+    gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--rule); align-items: start;
+  }
+  .log .story:last-child { border-bottom: 0; }
+  .log .story:hover { background: var(--signal-dim); }
+  .log .bearing { display: flex; flex-direction: column; gap: .3rem; padding-top: .15rem; }
+  .log .bearing .mark { color: var(--signal); }
+  .log h3 { font-size: 1.1rem; }
+  .log .art { border: 1px solid var(--rule); }
+
+  @media (max-width: 1040px) {
+    .col-3, .col-4, .col-6, .col-8 { grid-column: span 12; }
+  }
+  @media (max-width: 560px) {
+    .log .story { grid-template-columns: 1fr; }
+    .log .art, .rail .art { display: none; }
+    .rail .story { grid-template-columns: 1fr; }
+    .log .bearing { flex-direction: row; gap: .8rem; }
+  }
+
+  .tag {
+    font-family: var(--mono); font-size: .62rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-soft);
+    border: 1px solid var(--rule); padding: .1rem .42rem;
+  }
+
+  /* ---------- sidebar ---------- */
+  .body { padding: 1rem; }
+  .prose { font-size: .92rem; color: var(--ink-soft); }
+  .prose + .prose { margin-top: .7rem; }
+  .prose strong { color: var(--ink); font-weight: 500; }
+  .cta {
+    display: block; text-align: center; margin-top: 1rem;
+    padding: .75rem 1.4rem; background: var(--signal); color: var(--pane);
+    font-family: var(--mono); font-size: .72rem;
+    letter-spacing: .14em; text-transform: uppercase;
+    transition: opacity .2s ease;
+  }
+  .cta:hover { opacity: .85; }
+  .scope-cell { display: flex; justify-content: center; padding: .5rem 0 1rem; }
+  #scope { width: 168px; height: 168px; }
+  .threads { display: flex; flex-direction: column; }
+  .threads div {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding: .55rem 1rem; border-bottom: 1px solid var(--rule); font-size: .9rem;
+  }
+  .threads div:last-child { border-bottom: 0; }
+
+  .colophon {
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding: 1.25rem 0 0; margin-top: 1.25rem; border-top: 1px solid var(--rule);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="console">
+
+  <div class="statusbar">
+    <div class="live"><span class="pulse"></span><span class="brand">Rallabandi Radar</span></div>
+    <span class="label num">Last contact&nbsp; 16 Mar 2026</span>
+    <nav class="label">
+      <a href="#log">Archive</a>
+      <a href="#about">About</a>
+      <a href="https://onrallabandiradar.substack.com/">Substack</a>
+    </nav>
+  </div>
+
+  <!-- ================= front block ================= -->
+  <div class="grid">
+
+    <section class="pane col-3 secondary">
+      <header><span class="label">Also tracking</span></header>
+      <a class="story" href="https://onrallabandiradar.substack.com/p/what-venice-can-teach-us-about-power">
+        <canvas class="art" data-seed="3" width="520" height="300"></canvas>
+        <h3>What Venice Can Teach Us About Power in the Age of Humanoids</h3>
+        <p class="dek">A city of merchants traded ships for privileges — and found power could be written into contracts, not carved into land.</p>
+        <div class="meta"><span class="label num">08 Oct 2025</span><span class="tag">Power</span></div>
+      </a>
+      <a class="story" href="https://onrallabandiradar.substack.com/p/india-2032-progress-that-stopped">
+        <canvas class="art" data-seed="4" width="520" height="300"></canvas>
+        <h3>India 2032: Progress That Stopped Needing People</h3>
+        <p class="dek">A dispatch from an India that got everything it wanted — growth, automation, efficiency.</p>
+        <div class="meta"><span class="label num">06 Oct 2025</span><span class="tag">Automation</span></div>
+      </a>
+    </section>
+
+    <section class="pane col-6">
+      <header>
+        <span class="label">Latest dispatch</span>
+        <span class="label num">◆ 16.03.26</span>
+      </header>
+      <a class="story lead" href="https://onrallabandiradar.substack.com/p/jataayu-content-layer-for-ai-agents">
+        <canvas class="art" data-seed="1" data-dense="1" width="1200" height="620"></canvas>
+        <div class="txt">
+          <h2>Jataayu: Content layer for AI agents — and the privacy they don't understand</h2>
+          <p class="dek">What an agent-facing content layer has to get right, and where today's agents quietly get privacy wrong. A write-up on the Jataayu project.</p>
+          <div class="meta"><span class="label num">16 Mar 2026</span><span class="tag">AI agents</span><span class="tag">Privacy</span></div>
+        </div>
+      </a>
+    </section>
+
+    <section class="pane col-3 rail">
+      <header>
+        <span class="label">From the archive</span>
+        <a class="label" href="#log">View all</a>
+      </header>
+      <a class="story" href="https://onrallabandiradar.substack.com/p/the-geometry-of-information-parallels">
+        <div>
+          <h3>The Geometry of Information: Black Holes and Data Science Models</h3>
+          <div class="meta"><span class="label num">16 Oct 2025</span></div>
+        </div>
+        <canvas class="art" data-seed="2" width="220" height="150"></canvas>
+      </a>
+      <a class="story" href="https://onrallabandiradar.substack.com/p/chinas-humanoid-boot-camp-robots">
+        <div>
+          <h3>China's "Humanoid Boot Camp": Robots at Scale</h3>
+          <div class="meta"><span class="label num">03 Oct 2025</span></div>
+        </div>
+        <canvas class="art" data-seed="5" width="220" height="150"></canvas>
+      </a>
+      <a class="story" href="https://onrallabandiradar.substack.com/p/asia-embraces-cute-robots">
+        <div>
+          <h3>Asia Has Always Embraced Cute Robots</h3>
+          <div class="meta"><span class="label num">26 Sep 2025</span></div>
+        </div>
+        <canvas class="art" data-seed="6" width="220" height="150"></canvas>
+      </a>
+      <a class="story" href="https://onrallabandiradar.substack.com/p/trust-as-the-new-currency-in-the">
+        <div>
+          <h3>Trust as the New Currency in the Age of Humanoid Robots</h3>
+          <div class="meta"><span class="label num">24 Sep 2025</span></div>
+        </div>
+        <canvas class="art" data-seed="7" width="220" height="150"></canvas>
+      </a>
+    </section>
+  </div>
+
+  <!-- ================= full log + sidebar ================= -->
+  <div class="grid">
+
+    <section class="pane col-8 log" id="log">
+      <header>
+        <span class="label">Signal log</span>
+        <span class="label num">7 contacts · newest first</span>
+      </header>
+
+      <a class="story" data-blip="0" href="https://onrallabandiradar.substack.com/p/jataayu-content-layer-for-ai-agents">
+        <div class="bearing"><span class="label mark">◆ Latest</span><span class="label num">16.03.26</span></div>
+        <div>
+          <h3>Jataayu: Content layer for AI agents — and the privacy they don't understand</h3>
+          <p class="dek">A write-up on the Jataayu project: what an agent-facing content layer has to get right, and where today's agents quietly get privacy wrong.</p>
+        </div>
+        <canvas class="art" data-seed="1" width="300" height="190"></canvas>
+      </a>
+
+      <a class="story" data-blip="1" href="https://onrallabandiradar.substack.com/p/the-geometry-of-information-parallels">
+        <div class="bearing"><span class="label num">16.10.25</span></div>
+        <div>
+          <h3>The Geometry of Information: Parallels Between Black Holes and Data Science Models</h3>
+          <p class="dek">A data scientist's commentary on Prof. Edward Witten's "Introduction to Black Hole Thermodynamics".</p>
+        </div>
+        <canvas class="art" data-seed="2" width="300" height="190"></canvas>
+      </a>
+
+      <a class="story" data-blip="2" href="https://onrallabandiradar.substack.com/p/what-venice-can-teach-us-about-power">
+        <div class="bearing"><span class="label num">08.10.25</span></div>
+        <div>
+          <h3>What Venice Can Teach Us About Power in the Age of Humanoids</h3>
+          <p class="dek">When a city of merchants traded ships for privileges — and discovered that power could be written into contracts, not carved into land.</p>
+        </div>
+        <canvas class="art" data-seed="3" width="300" height="190"></canvas>
+      </a>
+
+      <a class="story" data-blip="3" href="https://onrallabandiradar.substack.com/p/india-2032-progress-that-stopped">
+        <div class="bearing"><span class="label num">06.10.25</span></div>
+        <div>
+          <h3>India 2032: Progress That Stopped Needing People</h3>
+          <p class="dek">A dispatch from an India that got everything it wanted — growth, automation, efficiency.</p>
+        </div>
+        <canvas class="art" data-seed="4" width="300" height="190"></canvas>
+      </a>
+
+      <a class="story" data-blip="4" href="https://onrallabandiradar.substack.com/p/chinas-humanoid-boot-camp-robots">
+        <div class="bearing"><span class="label num">03.10.25</span></div>
+        <div>
+          <h3>China's "Humanoid Boot Camp": Robots at Scale</h3>
+          <p class="dek">Humanoids aren't just learning to walk — they're being marched through boot camp.</p>
+        </div>
+        <canvas class="art" data-seed="5" width="300" height="190"></canvas>
+      </a>
+
+      <a class="story" data-blip="5" href="https://onrallabandiradar.substack.com/p/asia-embraces-cute-robots">
+        <div class="bearing"><span class="label num">26.09.25</span></div>
+        <div>
+          <h3>Asia Has Always Embraced Cute Robots</h3>
+          <p class="dek">How culture, demographics, and design choices are making Asia the world's laboratory for humanoid robots.</p>
+        </div>
+        <canvas class="art" data-seed="6" width="300" height="190"></canvas>
+      </a>
+
+      <a class="story" data-blip="6" href="https://onrallabandiradar.substack.com/p/trust-as-the-new-currency-in-the">
+        <div class="bearing"><span class="label num">24.09.25</span></div>
+        <div>
+          <h3>Trust as the New Currency in the Age of Humanoid Robots</h3>
+          <p class="dek">On why trust — not specs — decides which technologies scale.</p>
+        </div>
+        <canvas class="art" data-seed="7" width="300" height="190"></canvas>
+      </a>
+    </section>
+
+    <aside class="pane col-4" id="about" style="gap:0">
+      <header><span class="label">The watch</span></header>
+      <div class="body">
+        <div class="scope-cell"><canvas id="scope" width="620" height="620" aria-hidden="true"></canvas></div>
+        <p class="prose"><strong>Research notes on technology and the systems shaping our future.</strong></p>
+        <p class="prose">Rallabandi Radar tracks technologies moving from demo to deployment — humanoid robotics, AI agents, and the infrastructure assembling underneath both — and asks what they do to the arrangements people already live inside.</p>
+        <p class="prose">The recurring method is comparison: a Venetian trade charter next to a robotics supply chain, black hole thermodynamics next to a model's loss surface. Old systems are the only long-run data we have on new ones.</p>
+        <p class="prose">Written by <strong>Saikrishna Rallabandi</strong>.</p>
+        <a class="cta" href="https://onrallabandiradar.substack.com/subscribe">Subscribe on Substack</a>
+      </div>
+      <header style="border-top:1px solid var(--rule)"><span class="label">Threads</span><span class="label">posts</span></header>
+      <div class="threads label" style="text-transform:none;letter-spacing:0;font-size:.9rem">
+        <div><span>Humanoids &amp; robotics</span><span class="num">4</span></div>
+        <div><span>Power &amp; political economy</span><span class="num">2</span></div>
+        <div><span>AI agents &amp; infrastructure</span><span class="num">1</span></div>
+        <div><span>Information physics</span><span class="num">1</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="colophon">
+    <span class="label">© 2026 Saikrishna Rallabandi</span>
+    <span class="label">onrallabandiradar.substack.com</span>
+  </footer>
+</div>
+
+<script>
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  // ---- deterministic plot-art, one field per post seed ----
+  function art(cv) {
+    const ctx = cv.getContext('2d');
+    const W = cv.width, H = cv.height;
+    const seed = Number(cv.dataset.seed);
+    let s = seed * 9301 + 49297;
+    const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+
+    ctx.clearRect(0, 0, W, H);
+    const sig = css('--signal'), ink = css('--ink-soft');
+    const step = cv.dataset.dense ? 34 : 22;
+
+    ctx.strokeStyle = ink; ctx.globalAlpha = .1; ctx.lineWidth = 1;
+    for (let x = step; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = step; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+    ctx.strokeStyle = sig; ctx.lineWidth = cv.dataset.dense ? 2 : 1.5;
+
+    if (seed % 2) {
+      // radial: concentric arc field, an incoming contact
+      const cx = W * (.3 + rnd() * .4), cy = H * (.35 + rnd() * .3);
+      const rings = 7 + Math.floor(rnd() * 6);
+      for (let i = 1; i <= rings; i++) {
+        const r = (i / rings) * Math.max(W, H) * (.42 + rnd() * .18);
+        const a0 = rnd() * Math.PI * 2, sweep = .9 + rnd() * 2.6;
+        ctx.globalAlpha = .16 + (1 - i / rings) * .55;
+        ctx.beginPath(); ctx.arc(cx, cy, r, a0, a0 + sweep); ctx.stroke();
+      }
+      ctx.globalAlpha = .9; ctx.fillStyle = sig;
+      ctx.beginPath(); ctx.arc(cx, cy, cv.dataset.dense ? 7 : 4, 0, Math.PI * 2); ctx.fill();
+    } else {
+      // linear: stacked ridgelines, a trace over time
+      const rows = 6 + Math.floor(rnd() * 5);
+      for (let r = 0; r < rows; r++) {
+        const base = H * (.2 + (r / rows) * .72);
+        const amp = H * (.05 + rnd() * .12);
+        const freq = 1.5 + rnd() * 3.5;
+        const phase = rnd() * Math.PI * 2;
+        ctx.globalAlpha = .2 + (r / rows) * .6;
+        ctx.beginPath();
+        for (let x = 0; x <= W; x += 4) {
+          const t = x / W;
+          const y = base - Math.sin(t * freq * Math.PI + phase) * amp * Math.exp(-Math.pow((t - .5) * 2.1, 2));
+          x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---- radar scope: blips are the seven dispatches ----
+  const cv = document.getElementById('scope');
+  const sctx = cv.getContext('2d');
+  const S = cv.width, C = S / 2, R = C - 10;
+  const blips = [0, 1, 2, 3, 4, 5, 6].map((i) => ({
+    a: (i * 2.39996) % (Math.PI * 2),                 // golden angle — deterministic spread
+    r: R * (0.34 + ((i * 7) % 11) / 11 * 0.55)
+  }));
+  let active = -1, angle = 0;
+
+  function scope() {
+    const ink = css('--ink-soft'), sig = css('--signal');
+    sctx.clearRect(0, 0, S, S);
+
+    sctx.strokeStyle = ink; sctx.lineWidth = 1.5; sctx.globalAlpha = .3;
+    for (let k = 1; k <= 4; k++) { sctx.beginPath(); sctx.arc(C, C, R * k / 4, 0, Math.PI * 2); sctx.stroke(); }
+    sctx.globalAlpha = .16;
+    for (let k = 0; k < 4; k++) {
+      const t = k * Math.PI / 4;
+      sctx.beginPath();
+      sctx.moveTo(C - Math.cos(t) * R, C - Math.sin(t) * R);
+      sctx.lineTo(C + Math.cos(t) * R, C + Math.sin(t) * R);
+      sctx.stroke();
+    }
+    if (sctx.createConicGradient) {
+      const g = sctx.createConicGradient(angle, C, C);
+      g.addColorStop(0, sig); g.addColorStop(.09, 'transparent'); g.addColorStop(1, 'transparent');
+      sctx.globalAlpha = .2; sctx.fillStyle = g;
+      sctx.beginPath(); sctx.arc(C, C, R, 0, Math.PI * 2); sctx.fill();
+    }
+    sctx.globalAlpha = .6; sctx.strokeStyle = sig; sctx.lineWidth = 2;
+    sctx.beginPath(); sctx.moveTo(C, C);
+    sctx.lineTo(C + Math.cos(angle) * R, C + Math.sin(angle) * R); sctx.stroke();
+
+    blips.forEach((b, i) => {
+      const on = i === active;
+      const d = (angle - b.a + Math.PI * 2) % (Math.PI * 2);   // decay since the sweep passed
+      sctx.globalAlpha = on ? 1 : Math.max(.16, 1 - d / 2.2);
+      sctx.fillStyle = sig;
+      sctx.beginPath();
+      sctx.arc(C + Math.cos(b.a) * b.r, C + Math.sin(b.a) * b.r, on ? 12 : 5, 0, Math.PI * 2);
+      sctx.fill();
+    });
+    sctx.globalAlpha = 1;
+  }
+
+  const renderArt = () => document.querySelectorAll('canvas.art').forEach(art);
+  renderArt();
+
+  const still = matchMedia('(prefers-reduced-motion: reduce)');
+  (function frame() {
+    if (still.matches) { angle = -Math.PI / 2; scope(); return; }
+    angle = (angle + .011) % (Math.PI * 2);
+    scope();
+    requestAnimationFrame(frame);
+  })();
+
+  document.querySelectorAll('[data-blip]').forEach((el) => {
+    const i = Number(el.dataset.blip);
+    const set = (v) => { active = v; if (still.matches) scope(); };
+    el.addEventListener('mouseenter', () => set(i));
+    el.addEventListener('focus', () => set(i));
+    el.addEventListener('mouseleave', () => set(-1));
+    el.addEventListener('blur', () => set(-1));
+  });
+
+  // art is painted with resolved token colors, so repaint when the theme flips
+  const repaint = () => { renderArt(); if (still.matches) scope(); };
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', repaint);
+  new MutationObserver(repaint).observe(document.documentElement, { attributeFilter: ['data-theme'] });
+</script>
+
+</body>
+</html>
