@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2026-08-23T09:31:22Z",
+  "model": "stealth/ox-alpha",
+  "modelRoute": "OpenRouter",
+  "note": "Public-only Sangraha narrative sample. No secrets, env vars, private repository content, customer data, or internal prompts.",
+  "items": [
+    {
+      "title": "TSMC Arizona expansion promoted as an investment opportunity",
+      "summary": "Multiple financial outlets are publishing similar articles around TSMC's Arizona expansion and the stock as a no-brainer buy. Sangraha flags it as a possible coordinated or template-driven financial promotion pattern rather than independent coverage.",
+      "tags": ["company", "semiconductors", "stock promotion", "$TSM"],
+      "status": "rising",
+      "source": "sangraha",
+      "lastEvidence": "2026-08-22T21:34:39Z",
+      "evidence": 3,
+      "size": 3
+    },
+    {
+      "title": "European luxury brands see China recovery signals",
+      "summary": "European luxury groups are seeing early signs of demand stabilization in China after a prolonged downturn. Sangraha marks the thread as tradeable but still early.",
+      "tags": ["finance", "luxury", "china", "$MC.PA", "$RMS.PA", "$LVMH.PA"],
+      "status": "rising",
+      "source": "sangraha",
+      "lastEvidence": "2026-08-23T07:20:58Z",
+      "evidence": 2,
+      "size": 2
+    },
+    {
+      "title": "BMW localizes i5 long-wheelbase production in India",
+      "summary": "BMW is localizing production of a premium EV sedan in India, pointing to a more serious local manufacturing strategy for the Indian executive EV market.",
+      "tags": ["company", "ev manufacturing", "india", "$BMW.DE"],
+      "status": "tracked",
+      "source": "sangraha",
+      "lastEvidence": "2026-08-22T07:23:54Z",
+      "evidence": 2,
+      "size": 2
+    },
+    {
+      "title": "Sivers Semiconductors public-market stress chain",
+      "summary": "Financing pressure, holder change, insider selling, and named-loser signals co-occur around Sivers Semiconductors. Social chatter already names the situation, so the informational edge may be narrowing.",
+      "tags": ["insight", "public market stress", "$SIVE"],
+      "status": "rising",
+      "source": "sangraha insight-engine",
+      "lastEvidence": "2026-06-05T17:33:23Z",
+      "evidence": 4,
+      "size": 4
+    },
+    {
+      "title": "RaySearch Laboratories holder-change and insider-selling chain",
+      "summary": "Holder-change and insider-selling disclosures co-occur across recent RaySearch Laboratories public records. Sangraha keeps it as a stress-chain watch item.",
+      "tags": ["insight", "public market stress", "$RAY B"],
+      "status": "tracked",
+      "source": "sangraha insight-engine",
+      "lastEvidence": "2026-08-18T19:05:31Z",
+      "evidence": 3,
+      "size": 3
+    },
+    {
+      "title": "MilDef Group holder-change and insider-selling chain",
+      "summary": "MilDef Group shows a two-signal stress chain across public disclosures. The thread is notable because defense-adjacent names can reprice quickly when ownership signals shift.",
+      "tags": ["insight", "defense", "public market stress", "$MILDEF"],
+      "status": "tracked",
+      "source": "sangraha insight-engine",
+      "lastEvidence": "2026-08-17T08:00:24Z",
+      "evidence": 2,
+      "size": 2
+    }
+  ]
+}

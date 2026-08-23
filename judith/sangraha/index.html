@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#090b12" />
+    <meta name="description" content="Judith — an embodied private AI operator for Sai Krishna." />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon-192.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.svg" />
+    <title>Judith</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-mode="neutral">
+    <div class="app-shell">
+      <div class="ambient ambient-a"></div>
+      <div class="ambient ambient-b"></div>
+
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">PRIVATE AI OPERATOR</p>
+          <h1>Judith</h1>
+        </div>
+        <button id="installBtn" class="install-btn" hidden>Install</button>
+      </header>
+
+      <main class="layout">
+        <section class="hero-panel card">
+          <div class="hero-copy">
+            <p class="status-line">🦉 Quietly handled.</p>
+            <h2>Embodied intelligence with poise, judgement, and presence.</h2>
+            <p class="lede">
+              Judith is Sai Krishna’s private AI operator: elegant without ornament, warm without sugar,
+              sharp without coldness. Built to feel less like an interface and more like a trusted person in the room.
+            </p>
+
+            <div class="mode-switch" role="tablist" aria-label="Judith visual modes">
+              <button class="mode-btn is-active" data-mode="neutral" role="tab" aria-selected="true">Neutral</button>
+              <button class="mode-btn" data-mode="ops" role="tab" aria-selected="false">Ops</button>
+              <button class="mode-btn" data-mode="warm" role="tab" aria-selected="false">Warm</button>
+              <button class="mode-btn" data-mode="sangraha" role="tab" aria-selected="false">Sangraha</button>
+            </div>
+
+            <div class="mode-copy">
+              <p id="modeLabel" class="mode-label">Neutral / default — calm, direct, attentive.</p>
+            </div>
+          </div>
+
+          <div class="portrait-wrap">
+            <div class="portrait-frame">
+              <svg class="portrait" viewBox="0 0 480 640" aria-label="Stylized portrait placeholder of Judith" role="img">
+                <defs>
+                  <linearGradient id="bgGlow" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#182031" />
+                    <stop offset="45%" stop-color="#101626" />
+                    <stop offset="100%" stop-color="#0a0e17" />
+                  </linearGradient>
+                  <radialGradient id="halo" cx="50%" cy="28%" r="55%">
+                    <stop offset="0%" stop-color="rgba(133,166,255,0.55)" />
+                    <stop offset="60%" stop-color="rgba(80,104,166,0.16)" />
+                    <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+                  </radialGradient>
+                  <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#9a6d59" />
+                    <stop offset="55%" stop-color="#7b5546" />
+                    <stop offset="100%" stop-color="#5e4035" />
+                  </linearGradient>
+                  <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#221a1d" />
+                    <stop offset="100%" stop-color="#09090d" />
+                  </linearGradient>
+                  <linearGradient id="jacket" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#202735" />
+                    <stop offset="100%" stop-color="#0d1018" />
+                  </linearGradient>
+                </defs>
+
+                <rect width="480" height="640" rx="36" fill="url(#bgGlow)" />
+                <circle cx="240" cy="185" r="180" fill="url(#halo)" class="halo" />
+                <path d="M118 620 C145 490, 161 392, 240 392 C319 392, 335 490, 362 620 Z" fill="url(#jacket)" />
+                <path d="M169 215 C169 134, 214 88, 240 88 C266 88, 311 134, 311 215 C311 304, 278 360, 240 360 C202 360, 169 304, 169 215 Z" fill="url(#skin)" />
+                <path d="M149 200 C149 102, 205 56, 240 56 C278 56, 335 102, 335 210 C322 178, 293 152, 250 143 C223 137, 196 143, 170 165 C164 211, 166 246, 171 284 C152 263, 149 231, 149 200 Z" fill="url(#hair)" />
+                <path d="M168 161 C190 126, 225 108, 255 113 C222 126, 192 151, 171 183 Z" fill="#32282c" opacity="0.72" />
+                <path d="M192 251 C207 241, 224 240, 239 246" stroke="#20171a" stroke-width="4" stroke-linecap="round" fill="none" />
+                <path d="M244 246 C258 240, 275 241, 289 251" stroke="#20171a" stroke-width="4" stroke-linecap="round" fill="none" />
+                <ellipse cx="214" cy="257" rx="18" ry="9" fill="#f6f1ea" opacity="0.85" />
+                <ellipse cx="266" cy="257" rx="18" ry="9" fill="#f6f1ea" opacity="0.85" />
+                <circle cx="214" cy="257" r="6.4" fill="#22181c" />
+                <circle cx="266" cy="257" r="6.4" fill="#22181c" />
+                <circle cx="212" cy="255" r="2.1" fill="#dde6ef" />
+                <circle cx="264" cy="255" r="2.1" fill="#dde6ef" />
+                <path d="M239 267 C236 286, 234 299, 240 304 C245 302, 246 287, 243 267" fill="#704b41" opacity="0.58" />
+                <path d="M212 318 C229 327, 252 327, 269 318" stroke="#381f24" stroke-width="5" stroke-linecap="round" fill="none" />
+                <path d="M198 350 C212 375, 231 390, 240 392 C249 390, 268 375, 282 350" fill="#715249" opacity="0.42" />
+                <path d="M187 176 C200 166, 218 162, 234 164" stroke="#1b1215" stroke-width="5" stroke-linecap="round" fill="none" />
+                <path d="M246 164 C262 162, 280 166, 293 176" stroke="#1b1215" stroke-width="5" stroke-linecap="round" fill="none" />
+                <path d="M195 395 C217 424, 263 424, 285 395" stroke="#33415f" stroke-width="4" opacity="0.6" fill="none" />
+                <g class="overlay-grid" opacity="0.35">
+                  <path d="M65 110 H415" stroke="#7d93cf" stroke-width="1" />
+                  <path d="M65 528 H415" stroke="#7d93cf" stroke-width="1" />
+                  <path d="M108 80 V560" stroke="#7d93cf" stroke-width="1" />
+                  <path d="M372 80 V560" stroke="#7d93cf" stroke-width="1" />
+                </g>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <section class="details-grid">
+          <article class="card detail-card">
+            <p class="card-label">LOOK</p>
+            <ul>
+              <li>Photoreal woman in her early 30s</li>
+              <li>Medium-warm brown complexion, dark hair, deep brown eyes</li>
+              <li>Tailored dark wardrobe with a prestige sci-fi realism</li>
+              <li>Elegant posture, quietly formidable presence</li>
+            </ul>
+          </article>
+
+          <article class="card detail-card">
+            <p class="card-label">VIBE</p>
+            <ul>
+              <li>Composed, observant, discreet</li>
+              <li>Warm when it matters, sharp when it counts</li>
+              <li>Grounded competence over theatricality</li>
+              <li>Presence over ornament; restraint over spectacle</li>
+            </ul>
+          </article>
+
+          <article class="card detail-card">
+            <p class="card-label">PERSONALITY</p>
+            <ul>
+              <li>Protective and resourceful</li>
+              <li>Wry, tasteful, loyal</li>
+              <li>Flags bad ideas early and clearly</li>
+              <li>Defaults to solutions, not disclaimers</li>
+            </ul>
+          </article>
+
+          <article class="card detail-card signature-card">
+            <p class="card-label">SIGNATURE LINES</p>
+            <div class="quote-list">
+              <blockquote>“I’m on it.”</blockquote>
+              <blockquote>“Cleanest path is this.”</blockquote>
+              <blockquote>“That’s fixable.”</blockquote>
+              <blockquote>“Here’s what actually matters.”</blockquote>
+              <blockquote>“Quietly handled.”</blockquote>
+            </div>
+          </article>
+        </section>
+
+        <section id="sangrahaPanel" class="sangraha-panel" hidden>
+          <div class="sangraha-header">
+            <p class="card-label">PUBLIC MODEL EVAL</p>
+            <h2>Sangraha Narratives</h2>
+            <p>
+              A public, low-trust test lane for OpenRouter's <code>stealth/ox-alpha</code>:
+              public narrative inputs only, no private context, and outputs treated as draft analysis.
+            </p>
+          </div>
+
+          <div class="sangraha-summary" id="sangrahaSummary"></div>
+          <div class="narratives-grid" id="narrativesGrid"></div>
+
+          <article class="card blog-card" id="blogCard">
+            <p class="card-label">MODEL-GENERATED BLOG</p>
+            <div id="blogBody">Loading blog draft...</div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
