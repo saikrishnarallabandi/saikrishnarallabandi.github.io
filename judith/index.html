@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Judith — a group agent</title>
-<meta name="description" content="Judith is a group agent by Sai Krishna Rallabandi — one agent across the people and channels I already use, and in my glasses all day. The model is the easy part; the work is the harness: guard, memory, route.">
+<title>Judith — a group agent with a validation harness</title>
+<meta name="description" content="Judith is a group agent by Sai Krishna Rallabandi — one agent across the people and channels I already use, in my glasses all day, and wrapped by Project Ascent: a validation harness for guardrails, memory, routing, evidence, and escalation.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600;700&family=Spline+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -73,6 +73,15 @@
   .pill .ic{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase}
   .pill h3{margin-top:12px;font-size:18px;font-weight:700}
   .pill p{margin-top:8px;color:var(--muted);font-size:14.5px}
+  .research{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:34px;align-items:stretch}
+  @media(max-width:840px){.research{grid-template-columns:1fr}}
+  .research-card{background:linear-gradient(180deg,rgba(12,16,22,.92),rgba(9,12,17,.82));border:1px solid var(--line);border-radius:16px;padding:22px}
+  .research-card h3{font-size:20px;font-weight:800;color:var(--text)}
+  .research-card p{margin-top:10px;color:#aebac4;font-size:14.5px}
+  .stack{display:grid;gap:10px;margin-top:16px}
+  .stack-row{display:grid;grid-template-columns:128px 1fr;gap:12px;align-items:start;border-top:1px solid rgba(38,50,60,.65);padding-top:10px}
+  .stack-row b{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+  .stack-row span{font-size:13.5px;color:var(--muted)}
 
   /* ---------- harness: three jobs ---------- */
   .flow{display:flex;align-items:stretch;gap:14px;margin-top:34px;flex-wrap:wrap}
@@ -112,9 +121,10 @@
   <div class="hero-in">
     <div class="eyebrow">from group chats to glasses</div>
     <h1>JUDITH</h1>
-    <p class="sub">A <b>group agent</b>. Not one human and one assistant in a private thread — one agent across the people I actually live and work with, on the channels they already use, and in my glasses all day. The model is the easy part. The work is the <b>harness</b>.</p>
+    <p class="sub">A <b>group agent</b>. Not one human and one assistant in a private thread — one agent across the people I actually live and work with, on the channels they already use, in my glasses all day, and under continuous validation. The model is the easy part. The work is the <b>harness</b>.</p>
     <div class="cta">
       <a class="btn gold" href="#harness">The harness — three jobs</a>
+      <a class="btn ghost" href="#ascent">Project Ascent</a>
       <a class="btn ghost" href="#glasses">In the glasses</a>
     </div>
   </div>
@@ -172,6 +182,31 @@
   </div>
 </section>
 
+<!-- ===================== ASCENT ===================== -->
+<section id="ascent">
+  <div class="wrap">
+    <div class="kicker">// project ascent · validation layer</div>
+    <h2 class="h2">The next problem is not “does the agent answer?”<br>It is “which validator should be trusted here?”</h2>
+    <p class="lead">Recent hallucination-detection work points the same way: binary judging is too blunt. Reliable agents need claim decomposition, evidence seeking, factuality-versus-faithfulness splits, entity and numeric specialists, calibrated abstention, and routing policies that know when one validator recovers another's failure.</p>
+    <div class="research">
+      <div class="research-card">
+        <h3>Judith becomes the system under test.</h3>
+        <p>Project Ascent treats guardrails as a measured control plane around Judith: every risky answer is evidence, every validator has a failure profile, and escalation is a policy decision rather than a vibe.</p>
+        <div class="stack">
+          <div class="stack-row"><b>decompose</b><span>Break answers into claims before judging the whole response.</span></div>
+          <div class="stack-row"><b>retrieve</b><span>Ask whether the right evidence was found, not only whether a judge sounded confident.</span></div>
+          <div class="stack-row"><b>specialize</b><span>Route entity, temporal, numerical, citation, and semantic-drift risks to the validator that actually sees them.</span></div>
+          <div class="stack-row"><b>escalate</b><span>Use confidence and disagreement to abstain, ask, or run a stronger check.</span></div>
+        </div>
+      </div>
+      <div class="research-card">
+        <h3>The research bet.</h3>
+        <p>SemAlign's opening is structured error specialization across heterogeneous validators: citation checks, LLM judges, deterministic semantic integrity tests, and compact fine-tuned detectors fail differently. The useful science is the specialization matrix, the conditional-recovery map, and the cost-aware router that turns complementarity into realized reliability.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== GLASSES ===================== -->
 <section id="glasses">
   <div class="wrap">
@@ -193,7 +228,7 @@
       <a href="/">portfolio</a> &nbsp;·&nbsp;
       <a href="https://github.com/saikrishnarallabandi">github</a>
     </div>
-    <p class="note">Companion to the AIEWF 2026 talk <i>Wearing the Agent</i>. Examples are real exchanges shown with relationship labels only; private details removed.</p>
+    <p class="note">Companion to the AIEWF 2026 talk <i>Wearing the Agent</i>. Updated with the SemAlign hallucination-detection literature review: claim/evidence decomposition, validator specialization, and cost-aware escalation are now first-class parts of the harness.</p>
   </div>
 </footer>
 
