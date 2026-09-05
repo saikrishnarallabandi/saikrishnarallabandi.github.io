@@ -116,6 +116,22 @@
     .surfaces div:first-child{border-top:0}
   }
 
+  /* ---------- component cards ---------- */
+  /* Borders on the cells, not a gap over a coloured grid — a partial last row
+     must leave empty space, not a painted block. */
+  .cards{margin-top:2.6rem;display:grid;grid-template-columns:repeat(3,1fr);
+    border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+  .cards article{padding:1.35rem 1.4rem 1.5rem;display:flex;flex-direction:column;
+    border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  .cards .nm{font-family:var(--mono);font-size:.88rem;color:var(--ink);letter-spacing:.01em}
+  .cards .means{margin-top:.2rem;font-style:italic;font-size:.92rem;color:var(--ink-3)}
+  .cards p{margin-top:.7rem;font-size:.93rem;line-height:1.55;color:var(--ink-2)}
+  .cards .off{margin-top:.85rem;font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--idle)}
+  .cards .off.none{color:var(--absent)}
+  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.cards{grid-template-columns:1fr}}
+
   /* ---------- the turn: a real sequence, so it is numbered ---------- */
   .turn{margin-top:2.6rem;counter-reset:step}
   .step{display:grid;grid-template-columns:2.4rem 13rem 1fr;gap:1.5rem;align-items:baseline;
@@ -196,9 +212,9 @@
 
 <header class="masthead">
   <div class="shell">
-    <a class="wordmark" href="/judith/">Judith <span>/ Project Ascent</span></a>
+    <a class="wordmark" href="/judith/">Judith</a>
     <nav>
-      <a href="#idea">The idea</a>
+      <a href="#plugins">Plugins</a>
       <a href="/judith/architecture/">How it works</a>
       <a href="/judith/posts/">Field notes</a>
       <button class="toggle" id="theme" type="button" aria-live="polite">
@@ -213,11 +229,7 @@
 
   <div class="opening">
     <div class="shell">
-      <h1>Judith answers in my family's group chat.</h1>
-      <p class="standfirst">She is a personal assistant, and she has been running without a break
-        since June 2026 — in WhatsApp threads, in my email, and through a pair of smart glasses.
-        Most assistants wait to be opened. Judith is already in the room, which turns out to be a
-        much harder problem.</p>
+      <h1>Judith: a personal assistant for group chats and glasses.</h1>
       <p class="byline">
         <span class="running">Running now</span>
         <span>Built and run by Sai Krishna Rallabandi</span>
@@ -253,48 +265,70 @@
     </div>
   </section>
 
-  <section id="idea">
+  <section id="plugins">
     <div class="shell">
-      <h2>Every part of her keeps exactly one promise.</h2>
-      <p class="say">The interesting part of Judith is not the model. It is the layer around it:
-        a set of small, separate components, each responsible for one thing and nothing else. One
-        decides whether an action is safe to take. One decides what is worth remembering. One
-        decides whether what she is about to say is fit to be seen by a person.</p>
-      <p class="say">They are kept deliberately small, because a promise that small can be
-        checked. When something goes wrong, the answer should be a particular component that made
-        a particular decision — not a shrug and "the model got it wrong."</p>
-      <p class="say">The names are Sanskrit, and each one is the promise: <em>jataayu</em>, the
-        bird that fought to protect someone in flight, is the guard. <em>Smriti</em>, memory, is
-        what she keeps. <em>Sakshi</em>, the witness, writes down what happened.
-        <em>Drishti</em>, sight, is how I see what she did.</p>
+      <h2>Plugins</h2>
+      <p class="say">Judith is not one program. She is a model surrounded by twenty-one small
+        plugins, each responsible for one job and nothing else — one decides whether an action is
+        safe to take, one decides what is worth remembering, one decides whether what she is about
+        to say is fit for a person to see. The ones below carry Sanskrit names, and in each case the
+        name is the job.</p>
+      <div class="cards">
+        <article>
+          <div class="nm">jataayu</div><div class="means">the guardian bird</div>
+          <p>Decides whether an action is safe to take, and stops the dangerous one rather than
+            the alarming sentence.</p>
+        </article>
+        <article>
+          <div class="nm">smriti</div><div class="means">memory</div>
+          <p>Keeps facts along with where each one came from, and can replace or quarantine any
+            that turn out to be wrong.</p>
+        </article>
+        <article>
+          <div class="nm">sakshi</div><div class="means">the witness</div>
+          <p>Writes down every tool, model and turn, so a failure can be traced to the moment it
+            happened.</p>
+        </article>
+        <article>
+          <div class="nm">avastha</div><div class="means">state</div>
+          <p>Carries how I am doing into what she is about to say.</p>
+        </article>
+        <article>
+          <div class="nm">drishti</div><div class="means">sight</div>
+          <p>Shows every run she made, why any of them failed, and offers to run it again.</p>
+        </article>
+        <article>
+          <div class="nm">kavacha</div><div class="means">armour</div>
+          <p>Maps where I am to how careful she should be.</p>
+        </article>
+        <article>
+          <div class="nm">sangraha</div><div class="means">the collection</div>
+          <p>Brings in news, filings and market data, and only ever reads them.</p>
+        </article>
+        <article>
+          <div class="nm">upaya</div><div class="means">the remedy</div>
+          <p>Matches a repeating error to the fix that worked the last time it appeared.</p>
+        </article>
+        <article>
+          <div class="nm">sarathi</div><div class="means">the charioteer</div>
+          <p>Sorts a request into a lane and hands it to a separate session to answer.</p>
+          <div class="off">switched off</div>
+        </article>
+      </div>
       <div class="reading">
-        <div><b>21</b><span>components around the model, each with a single responsibility</span></div>
+        <div><b>21</b><span>plugins around the model, each with a single job</span></div>
         <div><b>77,919</b><span>steps recorded across 57 days of continuous operation</span></div>
         <div><b>65</b><span>times the last check caught something before it reached a person</span></div>
       </div>
+      <p class="aside">Sarathi is built and not currently running, which is marked rather than
+        hidden: a plugin can be written, deployed and still never take effect, and it took reading
+        the live system to notice. <a href="/judith/architecture/">The engineering detail is on its
+        own page</a> — the lifecycle of a single message, and all twenty-one with what is genuinely
+        running.</p>
     </div>
   </section>
 
-  <section id="honest">
-    <div class="shell">
-      <h2>The part I did not expect.</h2>
-      <p class="say">Splitting a system into small promises is supposed to make it easier to tell
-        what broke. Mostly it does. But building it this way also taught me three things I would
-        not have guessed, and they are the reason I keep writing this down.</p>
-      <p class="say">A promise can be carefully designed, correctly written, deployed, and still
-        <strong>never actually take effect</strong> — because two components were configured
-        separately and each did exactly what it was told. A promise can quietly stop being kept
-        while every alarm still reports that everything is fine. And a promise nobody wrote a
-        record of cannot be shown to have been kept at all.</p>
-      <p class="say">None of that is visible in an architecture diagram. It only shows up if you
-        go and read what the running system actually did, which is most of what this project has
-        turned out to be.</p>
-      <p class="aside"><a href="/judith/architecture/">The engineering detail is on its own
-        page</a> — the lifecycle of a single message, what a component has to declare, and the
-        full list with what is genuinely running. It is written from the source and reads like a
-        specification, which is the point of keeping it separate.</p>
-    </div>
-  </section>
+  
 
   <section id="glasses">
     <div class="shell">
@@ -310,8 +344,8 @@
 
 <footer>
   <div class="shell">
-    <p>Judith and Project Ascent are built and run by Sai Krishna Rallabandi. Companion to the
-      AIEWF 2026 talk <em>Wearing the Agent</em>.</p>
+    <p>Judith is built and run by Sai Krishna Rallabandi. Companion to the AIEWF 2026 talk
+      <em>Wearing the Agent</em>.</p>
     <div class="links">
       <a href="/">Portfolio</a>
       <a href="/judith/architecture/">How it works</a>
