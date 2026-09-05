@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Judith — a personal agent that lives in the room</title>
-<meta name="description" content="Judith is a personal AI agent by Sai Krishna Rallabandi. She answers in group chats, speaks through smart glasses, and runs continuously. Around her sits a layer of small components, each responsible for one promise.">
+<title>Judith — how the plugin layer works</title>
+<meta name="description" content="Engineering detail for Project Ascent: the turn lifecycle, the plugin contract, seven behavioural kinds with worked examples, the full plugin register with live load state, and the three ways the decomposition failed.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -198,9 +198,10 @@
   <div class="shell">
     <a class="wordmark" href="/judith/">Judith <span>/ Project Ascent</span></a>
     <nav>
-      <a href="#idea">The idea</a>
-      <a href="/judith/architecture/">How it works</a>
-      <a href="/judith/posts/">Field notes</a>
+      <a href="/judith/">Overview</a>
+      <a href="#turn">The turn</a>
+      <a href="#register">The components</a>
+      <a href="#failures">Where it failed</a>
       <button class="toggle" id="theme" type="button" aria-live="polite">
         <svg viewBox="0 0 24 24" aria-hidden="true" id="theme-icon"></svg>
         <span id="theme-label">Day</span>
@@ -213,96 +214,164 @@
 
   <div class="opening">
     <div class="shell">
-      <h1>Judith answers in my family's group chat.</h1>
-      <p class="standfirst">She is a personal AI agent, and she has been running without a break
-        since June 2026 — in WhatsApp threads, in my email, and through a pair of smart glasses.
-        Most assistants wait to be opened. Judith is already in the room, which turns out to be a
-        much harder problem.</p>
+      <h1>How the layer around Judith works.</h1>
+      <p class="standfirst">Engineering detail for Project Ascent, the layer wrapped around
+        <a href="/judith/">Judith</a>. The lifecycle of a single message, the ten named components
+        and what each one promises, and the three ways the design failed. Written from the source,
+        so it reads like a specification.</p>
       <p class="byline">
         <span class="running">Running now</span>
-        <span>Built and run by Sai Krishna Rallabandi</span>
+        <span>Read from the live system on 5 September 2026</span>
       </p>
     </div>
   </div>
 
-  <section id="where">
+  <section id="turn">
     <div class="shell">
-      <h2>An assistant for one person is a feature. An assistant in a room full of people is a
-        different problem.</h2>
-      <p class="say">Once an agent is in a conversation with other people in it, ordinary
-        assistant questions become questions about those people. Anyone present can try to steer
-        her. She accumulates things she was told in confidence. And an answer that is perfectly
-        correct can still be the wrong thing to say in front of the wrong person.</p>
-      <div class="surfaces">
-        <div>
-          <h3>Group threads</h3>
-          <p>She replies where more than one person can see her, and anyone in the thread can try
-            to redirect her.</p>
+      <h2>One message, end to end.</h2>
+      <p class="say">A turn is not a single call to a model. It is a sequence of stages, and a
+        component can attach to any of them. Four stages can stop or rewrite what happens; the
+        rest only watch and write down what they saw.</p>
+      <div class="turn">
+        <div class="step">
+          <div class="hook">A message arrives</div>
+          <div class="parts"><span>jataayu <em>records it</em></span></div>
         </div>
-        <div>
-          <h3>Smart glasses</h3>
-          <p>The same agent, speaking only to me. Here she is allowed to start the conversation,
-            because the audience is one person.</p>
+        <div class="step stop">
+          <div class="hook">Before it is accepted</div>
+          <div class="parts"><span class="gate">jataayu <em>may refuse it</em></span><span>smriti <em>marks the audience</em></span></div>
         </div>
-        <div>
-          <h3>Quietly, in the background</h3>
-          <p>Scheduled check-ins, mail, health signals and a job board that keep running while
-            nobody is asking her anything.</p>
+        <div class="step">
+          <div class="hook">Context is assembled</div>
+          <div class="parts"><span>smriti <em>recalls</em></span><span>avastha <em>adds how I am doing</em></span></div>
+        </div>
+        <div class="step stop">
+          <div class="hook">Before the model runs</div>
+          <div class="parts"><span class="gate">jataayu <em>may refuse it</em></span></div>
+        </div>
+        <div class="step stop">
+          <div class="hook">Before a tool acts</div>
+          <div class="parts"><span class="gate">jataayu <em>attached, never fires</em></span></div>
+        </div>
+        <div class="step">
+          <div class="hook">After a tool returns</div>
+          <div class="parts"><span>sakshi <em>witnesses</em></span><span>jataayu <em>inspects the result</em></span></div>
+        </div>
+        <div class="step">
+          <div class="hook">The turn ends</div>
+          <div class="parts"><span>smriti <em>forms memories</em></span><span>sakshi <em>closes the record</em></span><span>upaya <em>looks for a known remedy</em></span></div>
+        </div>
+        <div class="step stop">
+          <div class="hook">Before anyone sees it</div>
+          <div class="parts"><span class="gate">jataayu <em>may withhold or rewrite</em></span></div>
         </div>
       </div>
+      <p class="aside">The four marked stages are the only places anything can be stopped or
+        changed. Everything else is a record. That distinction is the whole design: a stage that
+        writes nothing down cannot be held responsible for anything later.</p>
     </div>
   </section>
 
-  <section id="idea">
+  <section id="rule">
     <div class="shell">
-      <h2>Every part of her keeps exactly one promise.</h2>
-      <p class="say">The interesting part of Judith is not the model. It is the layer around it:
-        a set of small, separate components, each responsible for one thing and nothing else. One
-        decides whether an action is safe to take. One decides what is worth remembering. One
-        decides whether what she is about to say is fit to be seen by a person.</p>
-      <p class="say">They are kept deliberately small, because a promise that small can be
-        checked. When something goes wrong, the answer should be a particular component that made
-        a particular decision — not a shrug and "the model got it wrong."</p>
-      <p class="say">The names are Sanskrit, and each one is the promise: <em>jataayu</em>, the
-        bird that fought to protect someone in flight, is the guard. <em>Smriti</em>, memory, is
-        what she keeps. <em>Sakshi</em>, the witness, writes down what happened.
-        <em>Drishti</em>, sight, is how I see what she did.</p>
+      <h2>Each component keeps exactly one promise.</h2>
+      <p class="say">The promise is narrow on purpose — small enough that when it breaks, the break
+        can be named, tested and undone without disturbing anything else. What that buys is
+        <strong>attribution</strong>. When something goes wrong, the answer should be a particular
+        stage that made a particular decision, not "the model didn't work."</p>
       <div class="reading">
-        <div><b>21</b><span>components around the model, each with a single responsibility</span></div>
-        <div><b>77,919</b><span>steps recorded across 57 days of continuous operation</span></div>
-        <div><b>65</b><span>times the last check caught something before it reached a person</span></div>
+        <div><b>77,919</b><span>recorded steps across 57 days of continuous operation</span></div>
+        <div><b>41.9%</b><span>of browser calls failed, against a 2.12% average that describes no actual tool</span></div>
+        <div><b>55</b><span>shell commands that failed and were recorded as successes anyway</span></div>
       </div>
+      <p class="aside">The first two numbers are the case for the rule: an average across every
+        tool describes none of them, and splitting by the component that owns each call is what
+        makes a failure rate mean anything. The third is the case against trusting it too far.
+        Those 55 commands returned <code>command not found</code> and were still logged as
+        successful, because what gets recorded is whether the tool wrapper raised an error, not
+        whether the command did what it was asked. Roughly a thousand more carry a missing file or
+        a stack trace in the same shape.</p>
+      <p class="aside">So the honest version of the claim is narrower than the one I set out to
+        make: <strong>one promise per component buys attribution at the stages that write a
+        decision down, and only for the failures that stage's own idea of success can
+        see.</strong></p>
     </div>
   </section>
 
-  <section id="honest">
+  <section id="register">
     <div class="shell">
-      <h2>The part I did not expect.</h2>
-      <p class="say">Splitting a system into small promises is supposed to make it easier to tell
-        what broke. Mostly it does. But building it this way also taught me three things I would
-        not have guessed, and they are the reason I keep writing this down.</p>
-      <p class="say">A promise can be carefully designed, correctly written, deployed, and still
-        <strong>never actually take effect</strong> — because two components were configured
-        separately and each did exactly what it was told. A promise can quietly stop being kept
-        while every alarm still reports that everything is fine. And a promise nobody wrote a
-        record of cannot be shown to have been kept at all.</p>
-      <p class="say">None of that is visible in an architecture diagram. It only shows up if you
-        go and read what the running system actually did, which is most of what this project has
-        turned out to be.</p>
-      <p class="aside"><a href="/judith/architecture/">The engineering detail is on its own
-        page</a> — the lifecycle of a single message, what a component has to declare, and the
-        full list with what is genuinely running. It is written from the source and reads like a
-        specification, which is the point of keeping it separate.</p>
+      <h2>The ten named components, and whether they are actually running.</h2>
+      <p class="say">Being installed is not the same as being loaded. A component has to be on a
+        scanned path, on the permitted list, <em>and</em> switched on. Miss any one and it sits on
+        disk doing nothing, with no warning printed anywhere. The states below were read from the
+        running system rather than from its documentation, which disagrees.</p>
+      <div class="register">
+        <table>
+          <caption>Eight of ten are live. The last two are the interesting ones.</caption>
+          <thead>
+            <tr><th scope="col">Name</th><th scope="col">Means</th><th scope="col">The promise it keeps</th><th scope="col">State</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="name">jataayu</td><td class="role">the guardian bird</td><td>Stop the dangerous action rather than the alarming sentence.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">smriti</td><td class="role">memory</td><td>Every remembered fact knows where it came from.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">sakshi</td><td class="role">the witness</td><td>Every tool, model and turn leaves a row behind.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">avastha</td><td class="role">state</td><td>How I am doing reaches the prompt.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">drishti</td><td class="role">sight</td><td>Every run can be looked at, with its reason for failing.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">kavacha</td><td class="role">armour</td><td>Where I am maps to how careful she should be.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">sangraha</td><td class="role">the collection</td><td>News, filings and market data come in read-only.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">upaya</td><td class="role">the remedy</td><td>A repeat error resolves to the fix that worked last time.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">sarathi</td><td class="role">the charioteer</td><td>A request is sorted into a lane and passed on.</td><td><span class="state idle">switched off</span></td></tr>
+            <tr><td class="name">disha</td><td class="role">direction</td><td>A kind of task resolves to one provider and model.</td><td><span class="state absent">never loaded</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="aside">Smriti is the largest of them: 6,175 facts across 13 separate namespaces,
+        each able to be replaced by a better version or quarantined when it looks wrong, with
+        1,093 recorded links between a fact and the one that superseded it. Memories are formed at
+        the end of a turn, not during it.</p>
     </div>
   </section>
 
-  <section id="glasses">
+  <section id="failures">
     <div class="shell">
-      <h2>The same agent, in a room of one.</h2>
-      <p class="say">On the glasses Judith is allowed to speak first, because only one person can
-        hear her. Everything else is unchanged: gather the context, decide whether this moment is
-        worth interrupting, and send the answer only to the person entitled to it. The rule that
-        governs a group thread is the same rule. The room is what changed.</p>
+      <h2>Three ways the design failed.</h2>
+      <p class="say">Where a component keeps a record, the rule does what it promised. The last
+        check before anything reaches a person caught <strong>65 leaks</strong> — 44 raw data
+        structures and 21 pieces of internal machinery. But the failures are the more useful half
+        of the result, and none of them was anticipated.</p>
+
+      <div class="failure">
+        <h3>Separating a promise out does not put it into effect.</h3>
+        <p>The check that decides whether a tool is allowed to act has recorded nothing at all.
+          Not one decision. The 544 entries in its ledger were written by a different part of
+          jataayu upstream, which is itself set to observe-only — and because that part never
+          marks a turn as suspect, the check downstream sees nothing worth examining and returns
+          before it writes anything. Two pieces, each configured separately, each behaving exactly
+          as told. Between them, a gate that appears in every diagram and has never once run.</p>
+      </div>
+
+      <div class="failure">
+        <h3>It does not keep the promise alive.</h3>
+        <p>Disha sits on disk, byte-for-byte identical to its source, and has never once been
+          loaded, because it was left off the permitted list. Worse is what happened to the alarm.
+          The drift checker is correct: run it now and it reports the mismatch and exits with an
+          error. But the thing that was supposed to run it every thirty minutes never calls it —
+          the wiring described in its own header comment does not exist. The health log has been
+          printing <code>0 problems | all OK</code> every half hour, next to a fault that has stood
+          since the first of September.</p>
+      </div>
+
+      <div class="failure">
+        <h3>It does not measure the promise.</h3>
+        <p>Several components keep no record at all. Their promises cannot be shown to have held
+          or broken, which means that for those parts of the system the architecture cannot answer
+          the one question it was built to answer.</p>
+      </div>
+
+      <p class="aside">Drawn from 57 days of recorded operation: 77,919 steps, 37 completed
+        self-improvement cycles, 2,026 messages she started herself, and a 6,175-fact memory.
+        Every figure here is regenerated from the live system by a single command, which is the
+        only reason I trust the unflattering ones.</p>
     </div>
   </section>
 
@@ -310,11 +379,10 @@
 
 <footer>
   <div class="shell">
-    <p>Judith and Project Ascent are built and run by Sai Krishna Rallabandi. Companion to the
-      AIEWF 2026 talk <em>Wearing the Agent</em>.</p>
+    <p>Judith and Project Ascent are built and run by Sai Krishna Rallabandi.</p>
     <div class="links">
+      <a href="/judith/">Overview</a>
       <a href="/">Portfolio</a>
-      <a href="/judith/architecture/">How it works</a>
       <a href="/judith/posts/">Field notes</a>
       <a href="https://github.com/saikrishnarallabandi">GitHub</a>
     </div>
