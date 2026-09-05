@@ -281,7 +281,7 @@
         </div>
         <div class="step stop">
           <div class="hook">before_tool_call</div>
-          <div class="parts"><span class="gate">effect-boundary <em>shadow only</em></span></div>
+          <div class="parts"><span class="gate">effect-boundary <em>attached, never fires</em></span></div>
         </div>
         <div class="step">
           <div class="hook">after_tool_call</div>
@@ -315,12 +315,20 @@
         <em>sakshi</em> is the witness, <em>drishti</em> is sight. Each name is the invariant.</p>
       <div class="reading">
         <div><b>77,919</b><span>recorded steps across 57 days of continuous operation</span></div>
-        <div><b>2.12%</b><span>of tool calls failed — an average that describes no actual tool</span></div>
-        <div><b>0% → 42%</b><span>the real spread, from 22,310 shell commands to 348 browser calls</span></div>
+        <div><b>41.9%</b><span>of browser calls failed, against a 2.12% average that describes no actual tool</span></div>
+        <div><b>55</b><span>shell commands that failed and were recorded as successes anyway</span></div>
       </div>
-      <p class="aside">The middle number is the point. Taken alone it is useless. Split by the
-        component that owns each call, the same data separates into one tool that has never failed
-        and another that fails two times in five.</p>
+      <p class="aside">The first two numbers are the case for the rule: an average across every
+        tool describes none of them, and splitting by the component that owns each call is what
+        makes a failure rate mean anything. The third number is the case against trusting it too
+        far. Those 55 commands returned <code>command not found</code> and were still logged as
+        successful, because what the recorder captures is whether the tool adapter raised an
+        error, not whether the command did what it was asked. Roughly a thousand more calls carry
+        a missing file or a stack trace in the same shape.</p>
+      <p class="aside">So the honest version of the claim is narrower than the one I set out to
+        make: <strong>one invariant per plugin buys attribution at the stages that write a
+        decision down, and only for the failures that stage's own idea of success can
+        see.</strong></p>
     </div>
   </section>
 
@@ -500,18 +508,23 @@
 
       <div class="failure">
         <h3>Separating a promise out does not put it into effect.</h3>
-        <p>The check that decides whether a tool is allowed to act is designed, written, deployed
-          and running — in observe-only mode. All 544 of its recorded decisions were rehearsals.
-          The protection the architecture appears to offer is not the protection actually in
-          force, and nothing in the diagram says so.</p>
+        <p>The check that decides whether a tool is allowed to act has recorded nothing at all.
+          Not one decision. The 544 entries in its ledger were written by a different module
+          upstream, which is itself set to observe-only — and because that module never marks a
+          turn as suspect, the check downstream sees nothing worth examining and returns before it
+          writes anything. Two components, each configured separately, each behaving exactly as
+          told. Between them, a gate that appears in every diagram and has never once run.</p>
       </div>
 
       <div class="failure">
         <h3>It does not keep the promise alive.</h3>
-        <p>One plugin is sitting on disk, identical to its source, listed as healthy by the tool
-          that checks for tampering — and has never once been loaded, because it was left off the
-          permitted list. The checker was only ever asking whether the file had changed, not
-          whether anyone was running it.</p>
+        <p>One plugin sits on disk, byte-for-byte identical to its source, and has never once been
+          loaded, because it was left off the permitted list. Worse is what happened to the alarm.
+          The drift checker is correct: run it now and it reports the mismatch and exits with an
+          error. But the thing that was supposed to run it every thirty minutes never calls it —
+          the wiring described in its own header comment does not exist. The health log has been
+          printing <code>0 problems | all OK</code> every half hour, next to a fault that has stood
+          since the first of September.</p>
       </div>
 
       <div class="failure">
