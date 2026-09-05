@@ -204,8 +204,8 @@
     </div>
     <div class="hero-proof" aria-label="Project Ascent by the numbers">
       <div class="proof"><b>21 plugins · 19 live</b><span>Each owns one invariant, narrow enough to name, test, and revert on its own.</span></div>
-      <div class="proof"><b>52 days instrumented</b><span>70,267 execution spans, 33 closed self-improvement cycles, a 6,175-fact memory store.</span></div>
-      <div class="proof"><b>attribution, where it works</b><span>Per-tool failure separates from 0.0% over 20,760 calls to 50.5% over 275. The 2.13% aggregate describes nothing.</span></div>
+      <div class="proof"><b>57 days instrumented</b><span>77,919 execution spans, 37 closed self-improvement cycles, a 6,175-fact memory store.</span></div>
+      <div class="proof"><b>attribution, where it works</b><span>Per-tool failure separates from 0.0% over 22,310 exec calls to 42.0% over 348 browser calls. The 2.12% aggregate describes nothing.</span></div>
     </div>
   </div>
   <div class="scrollhint">SCROLL</div>
@@ -482,12 +482,12 @@
   <div class="wrap">
     <div class="kicker">// what the decomposition did not buy</div>
     <h2 class="h2">The rule pays off where a plugin writes a ledger.<br>It fails in three ways I did not anticipate.</h2>
-    <p class="lead">Where a plugin records what it did, attribution is real: per-tool failure rates separate from <b>0.0% over 20,760 calls</b> to <b>50.5% over 275</b>, against a 2.13% aggregate that describes no actual component. Last-mile rewrites localised <b>60 structural leaks</b> that would otherwise have reached a human channel. The failures are the more useful result.</p>
+    <p class="lead">Where a plugin records what it did, attribution is real: per-tool failure rates separate from <b>0.0% over 22,310 exec calls</b> to <b>42.0% over 348 browser calls</b>, against a 2.12% tool aggregate that describes no actual component. Last-mile rewrites localised <b>65 structural leaks</b> — 44 raw JSON, 21 internal metadata — that would otherwise have reached a human channel. The failures are the more useful result.</p>
     <div class="caveats">
       <div class="caveat">
         <div class="n">failure 01</div>
         <h3>Isolating an invariant does not deploy it.</h3>
-        <p>Jataayu's effect boundary is designed, implemented, and running — in <code class="inl">shadow</code>. All 376 effect events are shadow-mode. The guarantee the architecture advertises is not the one in force.</p>
+        <p>Jataayu's effect boundary is designed, implemented, and running — in <code class="inl">shadow</code>. All 544 effect events are shadow-mode. The guarantee the architecture advertises is not the one in force.</p>
       </div>
       <div class="caveat">
         <div class="n">failure 02</div>
@@ -500,7 +500,7 @@
         <p>Several plugins emit no telemetry at all. Their invariants cannot be falsified, which means the architecture cannot tell you whether they ever held.</p>
       </div>
     </div>
-    <p class="srcref" style="margin-top:26px">Numbers from 52 days of execution traces (70,267 spans), 33 closed self-improvement cycles, 1,906 proactive messages, a 6,175-fact memory store, and 21 live plugins. Every figure is re-derivable from the live stores with one command.</p>
+    <p class="srcref" style="margin-top:26px">Numbers from 57 days of execution traces (77,919 spans), 37 closed self-improvement cycles, 2,026 proactive messages, a 6,175-fact memory store, and 21 plugins of which 19 are loaded. Every figure is re-derivable from the live stores with one command.</p>
   </div>
 </section>
 
