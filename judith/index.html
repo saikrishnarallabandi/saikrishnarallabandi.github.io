@@ -116,6 +116,11 @@
     .surfaces div:first-child{border-top:0}
   }
 
+  /* ---------- the talk ---------- */
+  .video{margin-top:2.4rem;position:relative;aspect-ratio:16/9;width:100%;
+    border:1px solid var(--rule);background:var(--sunk)}
+  .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+
   /* ---------- component cards ---------- */
   /* Borders on the cells, not a gap over a coloured grid — a partial last row
      must leave empty space, not a painted block. */
@@ -216,6 +221,7 @@
   <div class="shell">
     <a class="wordmark" href="/judith/">Judith</a>
     <nav>
+      <a href="#talk">The talk</a>
       <a href="#plugins">Plugins</a>
       <a href="/judith/architecture/">How it works</a>
       <a href="/judith/posts/">Field notes</a>
@@ -238,6 +244,24 @@
       </p>
     </div>
   </div>
+
+  <section id="talk">
+    <div class="shell">
+      <h2>The talk</h2>
+      <p class="say"><em>Wearing the Agent: From Group Chats to Glasses</em>, at the AI Engineer
+        World's Fair 2026.</p>
+      <div class="video">
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/s67bE2Ur3bY?autoplay=1&amp;mute=1&amp;playsinline=1&amp;rel=0"
+          title="Wearing the Agent: From Group Chats to Glasses — AI Engineer World&#39;s Fair 2026"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen></iframe>
+      </div>
+      <p class="aside">It starts muted, because browsers will not autoplay sound.
+        <a href="https://youtu.be/s67bE2Ur3bY">Watch it on YouTube</a> instead if you would rather.</p>
+    </div>
+  </section>
 
   <section id="where">
     <div class="shell">
@@ -342,7 +366,7 @@
 <footer>
   <div class="shell">
     <p>Judith is built and run by Sai Krishna Rallabandi. Companion to the AIEWF 2026 talk
-      <em>Wearing the Agent</em>.</p>
+      <a href="https://youtu.be/s67bE2Ur3bY"><em>Wearing the Agent</em></a>.</p>
     <div class="links">
       <a href="/">Portfolio</a>
       <a href="/judith/architecture/">How it works</a>
