@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Qwen3.5&#x27;s Gated DeltaNet layers convert into Kimi Delta Attention with no residual and no training tokens. The full weight mapping, the rank-16 construction that makes it work, why the reference implementation cannot receive your weights, how to verify an identity across two kernels, and whether the added expressivity does anything.">
+<title>Putting Kimi Delta Attention into a Qwen model</title>
+<meta property="og:title" content="Putting Kimi Delta Attention into a Qwen model">
+<meta property="og:description" content="An exact GDN to KDA conversion of Qwen3.5 — the recipe, the five traps that cost us real time, and the measurement saying the new expressivity is still unused.">
+<style>
+  :root{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB;
+    --quote:#2A2E38;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,"Cascadia Code",monospace;
+    --sans:"Helvetica Neue",Helvetica,"Segoe UI",system-ui,Arial,sans-serif;
+    --serif:Charter,"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --measure:60rem;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0C0E13; --surface:#13161D;
+      --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+      --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C;
+      --quote:#D6D9E2;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F6F8; --surface:#FFFFFF;
+    --ink:#15171C; --muted:#565C68; --faint:#8A909C; --hair:#E3E6EB;
+    --accent:#544AE0; --accent-ink:#443AC6; --accent-soft:#ECEBFB; --quote:#2A2E38;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C0E13; --surface:#13161D;
+    --ink:#E9ECF2; --muted:#98A0AE; --faint:#69707E; --hair:#232834;
+    --accent:#8E88FF; --accent-ink:#ADA8FF; --accent-soft:#191A2C; --quote:#D6D9E2;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%; overflow-x:hidden}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--serif);
+    font-size:1.19rem; line-height:1.72; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    overflow-wrap:break-word; word-break:break-word;}
+  .wrap{max-width:var(--measure); margin:0 auto; padding:0 24px}
+  a{color:var(--accent-ink); text-decoration:none; border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent);}
+  a:hover{border-bottom-color:var(--accent)}
+  a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+  /* ---------- hero ---------- */
+  header.hero{border-bottom:1px solid var(--hair)}
+  .hero-in{max-width:var(--measure); margin:0 auto; padding:clamp(56px,10vw,104px) 24px clamp(30px,5vw,48px)}
+  .kicker{font-family:var(--mono); font-size:.74rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--accent-ink); display:flex; align-items:center; gap:12px; margin:0 0 26px}
+  .kicker .ring{width:22px; height:22px; flex:none}
+  .kicker .ring circle{fill:none; stroke:var(--accent); stroke-width:2.4; stroke-linecap:round;
+    stroke-dasharray:52; stroke-dashoffset:14; transform-origin:center;}
+  @media (prefers-reduced-motion:no-preference){
+    .kicker .ring circle{animation:spin 4.5s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  }
+  h1{font-family:var(--sans); font-weight:800; letter-spacing:-.03em; line-height:.98;
+    font-size:clamp(2.4rem,8vw,5.2rem); margin:0 0 22px; text-wrap:balance; overflow-wrap:break-word;}
+  .dek{font-family:var(--serif); font-style:italic; font-size:clamp(1.2rem,2.6vw,1.5rem);
+    line-height:1.42; color:var(--muted); margin:0; max-width:42ch; text-wrap:pretty;}
+  .byline{font-family:var(--mono); font-size:.76rem; letter-spacing:.04em; color:var(--faint);
+    margin:30px 0 0; padding-top:20px; border-top:1px solid var(--hair);}
+
+  /* ---------- article ---------- */
+  article{padding:clamp(36px,6vw,64px) 0 20px}
+  article > .wrap > p{margin:0 0 1.35em; text-wrap:pretty}
+  .lead{font-size:1.32rem; line-height:1.62; color:var(--ink)}
+  .lead::first-letter{initial-letter:2.2; font-family:var(--sans); font-weight:800;
+    color:var(--accent); margin-right:.08em; -webkit-initial-letter:2.2;}
+  strong{font-weight:700; color:var(--ink)}
+  em{font-style:italic}
+
+  h2{font-family:var(--sans); font-weight:750; letter-spacing:-.02em; line-height:1.1;
+    font-size:clamp(1.5rem,4vw,2rem); margin:2.4em 0 .1em; text-wrap:balance;}
+  .sec-kick{font-family:var(--mono); font-size:.72rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 .5em; display:flex; align-items:center; gap:9px;}
+  .sec-kick::before{content:"↻"; font-size:1.05em; line-height:1; color:var(--accent);}
+  h2 + p{margin-top:.5em}
+
+  ul.body{list-style:none; margin:0 0 1.5em; padding:0; display:flex; flex-direction:column; gap:.7em}
+  ul.body li{position:relative; padding-left:1.6em}
+  ul.body li::before{content:""; position:absolute; left:0; top:.62em; width:.6em; height:.6em;
+    border:2px solid var(--accent); border-radius:50%;}
+  ul.body li strong{color:var(--ink)}
+
+  blockquote{margin:1.8em 0; padding:.1em 0 .1em 1.3em; border-left:3px solid var(--accent);
+    font-family:var(--sans); font-weight:600; font-style:normal; font-size:clamp(1.45rem,3.2vw,1.9rem);
+    line-height:1.28; letter-spacing:-.015em; color:var(--quote); text-wrap:balance;}
+
+  hr.rule{border:0; height:1px; background:var(--hair); margin:2.6em 0;}
+
+  /* result table */
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0; border:1px solid var(--hair); border-radius:13px; background:var(--surface);}
+  table.cap{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:1rem; line-height:1.42; min-width:30rem;}
+  table.cap th, table.cap td{text-align:left; padding:12px 16px; vertical-align:middle; border-bottom:1px solid var(--hair);}
+  table.cap thead th{font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent-ink); font-weight:700; background:var(--accent-soft);}
+  table.cap tbody tr:last-child td{border-bottom:none;}
+  table.cap td:first-child{font-weight:650; color:var(--ink); white-space:nowrap;}
+  table.cap .big{font-family:var(--mono); font-size:1.15em; font-weight:700;}
+  table.cap .win{color:var(--accent-ink);}
+  table.cap tbody tr.me td{background:var(--accent-soft);}
+  table.cap .num{font-family:var(--mono);}
+
+  /* mechanism / result callout */
+  .mech{background:var(--surface); border:1px solid var(--hair); border-left:3px solid var(--accent);
+    border-radius:11px; padding:16px 20px; margin:1.7em 0; font-family:var(--sans);
+    font-size:.99rem; line-height:1.56; color:var(--ink);}
+  .mech .lbl{font-family:var(--mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 .55em; display:block;}
+  .mech p{margin:0 0 .65em} .mech p:last-child{margin:0}
+  .mech code{font-family:var(--mono); font-size:.85em; background:var(--accent-soft);
+    color:var(--accent-ink); padding:.06em .38em; border-radius:4px;}
+
+  /* code sample */
+  pre.code{overflow-x:auto; margin:1.5em 0; padding:18px 20px; border:1px solid var(--hair);
+    border-radius:13px; background:var(--surface); font-family:var(--mono); font-size:.9rem;
+    line-height:1.6; color:var(--ink);}
+  pre.code .c{color:var(--faint)}
+
+  footer{border-top:1px solid var(--hair); margin-top:clamp(48px,7vw,80px)}
+  .foot-in{max-width:var(--measure); margin:0 auto; padding:32px 24px 60px;
+    font-family:var(--mono); font-size:.78rem; letter-spacing:.02em; color:var(--faint); line-height:1.7;}
+  .foot-in a{color:var(--accent-ink)}
+
+  @media (max-width:560px){
+    .wrap, .hero-in, .foot-in{padding-left:18px; padding-right:18px}
+    .hero-in{padding-top:52px; padding-bottom:28px}
+    body{font-size:1.1rem; line-height:1.66}
+    .lead{font-size:1.16rem}
+    .lead::first-letter{-webkit-initial-letter:2; initial-letter:2}
+    .dek{font-size:1.15rem}
+    blockquote{font-size:1.28rem; padding-left:.9em}
+    .mech{padding:15px 16px; font-size:.96rem}
+    table.cap{font-size:.94rem}
+  }
+
+  /* display maths -- hand-set, no CDN */
+  .eq{margin:1.7em 0; padding:20px 22px; border:1px solid var(--hair); border-radius:12px;
+    background:var(--surface); overflow-x:auto;}
+  .eqrow{display:grid; grid-template-columns:auto 1fr; gap:4px 16px; align-items:baseline;
+    padding:8px 0;}
+  .eqrow + .eqrow{border-top:1px solid var(--hair); margin-top:4px;}
+  .eqtag{font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent-ink); padding-top:.35em;}
+  .eqbody{font-family:var(--serif); font-size:1.16rem; line-height:1.9; white-space:nowrap;}
+  .eqbody i{font-style:italic}
+  .eqnote{grid-column:2; font-family:var(--mono); font-size:.72rem; color:var(--faint);
+    letter-spacing:.02em;}
+  .eqbody .hl{font-style:normal; color:var(--accent-ink); font-weight:600;
+    background:var(--accent-soft); border-radius:4px; padding:.05em .28em;}
+  .m{font-family:var(--serif); font-style:italic; white-space:nowrap;}
+
+  /* Section labels. The template sets h2{margin-top:2.4em}, which lands BETWEEN the kicker
+     and the heading it labels -- 77px of it -- while only 15px separated the kicker from the
+     paragraph above, so every label read as an orphan trailing the previous section. The
+     winning rule is `article > .wrap > p`, so this has to out-specify it, not just follow it. */
+  article > .wrap > p.sec-kick{font-size:.84rem; letter-spacing:.12em; margin:3.2em 0 .3em;}
+  .sec-kick + h2{margin-top:0;}
+
+  /* figure */
+  .fig{margin:1.9em 0; padding:0;}
+  .fig svg{width:100%; height:auto; display:block;}
+  .fig .ftag{font-family:var(--mono); font-size:13px; letter-spacing:.14em; fill:var(--accent-ink);}
+  .fig .fsub{font-family:var(--sans); font-size:14px; font-weight:650; fill:var(--ink);}
+  .fig .fnote,.fig .fax-l{font-family:var(--mono); font-size:11px; fill:var(--faint);}
+  .fig .fax{stroke:var(--hair); stroke-width:1;}
+  .fig .fdiv{stroke:var(--hair); stroke-width:1; stroke-dasharray:3 5;}
+  .fig .fline{fill:none; stroke:var(--accent); stroke-width:1.6; stroke-opacity:.55;}
+  .fig .fline.solo{stroke-width:3; stroke-opacity:1;}
+  .fig figcaption{font-family:var(--sans); font-size:.92rem; line-height:1.55; color:var(--muted);
+    margin-top:1.1em; padding-left:14px; border-left:2px solid var(--hair);}
+  @media (max-width:640px){ .fig figcaption{font-size:.86rem} }
+
+  /* Section labels. The template sets h2{margin-top:2.4em}, which lands BETWEEN the kicker
+     and the heading it labels -- 77px of it -- while only 15px separated the kicker from the
+     paragraph above. Every label therefore read as an orphan trailing the previous section
+     instead of introducing the next one. Move the space above the label, close the gap under
+     it, and size it to be read rather than squinted at. */
+  .sec-kick{font-size:.84rem; letter-spacing:.12em; margin:3.2em 0 .3em;}
+  .sec-kick + h2{margin-top:0;}
+  @media (max-width:640px){ .eqbody{font-size:1rem} }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <p class="kicker">
+      <svg class="ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
+      Linear attention · Architecture conversion
+    </p>
+    <h1>Putting Kimi Delta Attention into a Qwen model</h1>
+    <p class="dek">Gated DeltaNet is Kimi Delta Attention with one knob held still — so the swap costs no distillation and no training tokens. The recipe, five traps, and what it turns out to be worth.</p>
+    <p class="byline">From building <a href="../">Judith</a> &middot; Sai Krishna Rallabandi &middot; 2 August 2026</p>
+  </div>
+</header>
+
+<article>
+  <div class="wrap">
+
+    <p class="lead">Swapping a model's attention mechanism normally costs you something. You replace the mixer,
+    copy across whatever happens to fit, and then spend billions of tokens distilling to win back
+    the capability you just destroyed. Every conversion paper of the last two years —
+    <a href="https://arxiv.org/abs/2103.13076">T2R</a>, <a href="https://arxiv.org/abs/2405.06640">SUPRA</a>,
+    <a href="https://arxiv.org/abs/2410.10254">LoLCATs</a>,
+    <a href="https://arxiv.org/abs/2408.15237">Mamba-in-Llama</a>,
+    <a href="https://arxiv.org/abs/2408.10189">MOHAWK</a>, <a href="https://arxiv.org/abs/2502.14458">Llamba</a> — is a
+    variation on how much you lose and how cheaply you can buy it back.</p>
+    <p>There is one swap where you lose nothing at all. If your model uses <a href="https://arxiv.org/abs/2412.06464"><strong>Gated DeltaNet</strong></a>, you
+    can convert it to <a href="https://arxiv.org/abs/2510.26692"><strong>Kimi Delta Attention</strong></a> with no
+    distillation, no training tokens, and no residual error — because GDN is not a different mixer from KDA. It is KDA with one knob held
+    still.</p>
+    <p>Qwen3.5's hybrids are GDN. So you can take Qwen3.5-4B-Instruct and produce a Kimi Delta
+    Attention model that provably computes the same function, in about the time it takes to load
+    the weights twice.</p>
+    <p>We did it on four models. Here is the recipe, the five traps we fell into, and — at the end —
+    the part nobody tells you, which is what the conversion is actually worth once you have it.</p>
+    <p class="sec-kick">The premise</p>
+        <h2>One knob apart</h2>
+    <figure class="fig">
+    <svg viewBox="0 0 736 284" role="img" aria-label="Gated DeltaNet decays every channel of a head at a single rate, giving one forgetting curve. Kimi Delta Attention gives each channel its own rate, giving eight.">
+      <text x="28" y="14" class="ftag">GDN</text>
+      <text x="28" y="36" class="fsub">one decay rate per head</text>
+      <rect x="28" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.55"/>
+      <rect x="64" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.55"/>
+      <rect x="100" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.55"/>
+      <rect x="136" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.55"/>
+      <rect x="172" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.55"/>
+      <rect x="208" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.55"/>
+      <rect x="244" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.55"/>
+      <rect x="280" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.55"/>
+      <text x="28" y="100" class="fnote">one α for all 8 channels</text>
+      <line x1="28" y1="260" x2="328" y2="260" class="fax"/>
+      <line x1="28" y1="132" x2="28" y2="260" class="fax"/>
+      <path d="M28.0,132.0 L31.3,138.0 L34.7,143.8 L38.0,149.3 L41.3,154.5 L44.7,159.5 L48.0,164.2 L51.3,168.8 L54.7,173.1 L58.0,177.2 L61.3,181.1 L64.7,184.8 L68.0,188.4 L71.3,191.8 L74.7,195.0 L78.0,198.1 L81.3,201.0 L84.7,203.8 L88.0,206.4 L91.3,209.0 L94.7,211.4 L98.0,213.7 L101.3,215.8 L104.7,217.9 L108.0,219.9 L111.3,221.8 L114.7,223.6 L118.0,225.3 L121.3,227.0 L124.7,228.5 L128.0,230.0 L131.3,231.4 L134.7,232.8 L138.0,234.1 L141.3,235.3 L144.7,236.5 L148.0,237.6 L151.3,238.6 L154.7,239.6 L158.0,240.6 L161.3,241.5 L164.7,242.4 L168.0,243.2 L171.3,244.0 L174.7,244.8 L178.0,245.5 L181.3,246.2 L184.7,246.8 L188.0,247.4 L191.3,248.0 L194.7,248.6 L198.0,249.1 L201.3,249.7 L204.7,250.1 L208.0,250.6 L211.3,251.1 L214.7,251.5 L218.0,251.9 L221.3,252.3 L224.7,252.6 L228.0,253.0 L231.3,253.3 L234.7,253.6 L238.0,253.9 L241.3,254.2 L244.7,254.5 L248.0,254.7 L251.3,255.0 L254.7,255.2 L258.0,255.5 L261.3,255.7 L264.7,255.9 L268.0,256.1 L271.3,256.3 L274.7,256.4 L278.0,256.6 L281.3,256.8 L284.7,256.9 L288.0,257.1 L291.3,257.2 L294.7,257.3 L298.0,257.5 L301.3,257.6 L304.7,257.7 L308.0,257.8 L311.3,257.9 L314.7,258.0 L318.0,258.1 L321.3,258.2 L324.7,258.3 L328.0,258.4" class="fline solo"/>
+      <text x="21" y="136" class="fax-l" text-anchor="end">1</text>
+      <text x="21" y="264" class="fax-l" text-anchor="end">0</text>
+      <text x="28" y="278" class="fax-l">one forgetting curve</text>
+      <text x="328" y="278" class="fax-l" text-anchor="end">tokens ago →</text>
+      <text x="410" y="14" class="ftag">KDA</text>
+      <text x="410" y="36" class="fsub">one decay rate per channel</text>
+      <rect x="410" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.30"/>
+      <rect x="446" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.52"/>
+      <rect x="482" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.68"/>
+      <rect x="518" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.78"/>
+      <rect x="554" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.85"/>
+      <rect x="590" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.89"/>
+      <rect x="626" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.93"/>
+      <rect x="662" y="52" width="32" height="30" rx="4" fill="var(--accent)" fill-opacity="0.95"/>
+      <text x="410" y="100" class="fnote">a different α in every channel</text>
+      <line x1="410" y1="260" x2="710" y2="260" class="fax"/>
+      <line x1="410" y1="132" x2="410" y2="260" class="fax"/>
+      <path d="M410.0,132.0 L413.3,157.2 L416.7,177.4 L420.0,193.6 L423.3,206.7 L426.7,217.2 L430.0,225.6 L433.3,232.4 L436.7,237.8 L440.0,242.2 L443.3,245.7 L446.7,248.5 L450.0,250.8 L453.3,252.6 L456.7,254.0 L460.0,255.2 L463.3,256.2 L466.7,256.9 L470.0,257.5 L473.3,258.0 L476.7,258.4 L480.0,258.7 L483.3,259.0 L486.7,259.2 L490.0,259.3 L493.3,259.5 L496.7,259.6 L500.0,259.7 L503.3,259.7 L506.7,259.8 L510.0,259.8 L513.3,259.9 L516.7,259.9 L520.0,259.9 L523.3,259.9 L526.7,259.9 L530.0,260.0 L533.3,260.0 L536.7,260.0 L540.0,260.0 L543.3,260.0 L546.7,260.0 L550.0,260.0 L553.3,260.0 L556.7,260.0 L560.0,260.0 L563.3,260.0 L566.7,260.0 L570.0,260.0 L573.3,260.0 L576.7,260.0 L580.0,260.0 L583.3,260.0 L586.7,260.0 L590.0,260.0 L593.3,260.0 L596.7,260.0 L600.0,260.0 L603.3,260.0 L606.7,260.0 L610.0,260.0 L613.3,260.0 L616.7,260.0 L620.0,260.0 L623.3,260.0 L626.7,260.0 L630.0,260.0 L633.3,260.0 L636.7,260.0 L640.0,260.0 L643.3,260.0 L646.7,260.0 L650.0,260.0 L653.3,260.0 L656.7,260.0 L660.0,260.0 L663.3,260.0 L666.7,260.0 L670.0,260.0 L673.3,260.0 L676.7,260.0 L680.0,260.0 L683.3,260.0 L686.7,260.0 L690.0,260.0 L693.3,260.0 L696.7,260.0 L700.0,260.0 L703.3,260.0 L706.7,260.0 L710.0,260.0" class="fline"/>
+      <path d="M410.0,132.0 L413.3,148.8 L416.7,163.4 L420.0,176.0 L423.3,187.0 L426.7,196.6 L430.0,204.9 L433.3,212.1 L436.7,218.4 L440.0,223.8 L443.3,228.6 L446.7,232.7 L450.0,236.3 L453.3,239.4 L456.7,242.1 L460.0,244.4 L463.3,246.5 L466.7,248.2 L470.0,249.8 L473.3,251.1 L476.7,252.3 L480.0,253.3 L483.3,254.2 L486.7,254.9 L490.0,255.6 L493.3,256.2 L496.7,256.7 L500.0,257.1 L503.3,257.5 L506.7,257.8 L510.0,258.1 L513.3,258.4 L516.7,258.6 L520.0,258.8 L523.3,258.9 L526.7,259.1 L530.0,259.2 L533.3,259.3 L536.7,259.4 L540.0,259.5 L543.3,259.5 L546.7,259.6 L550.0,259.6 L553.3,259.7 L556.7,259.7 L560.0,259.8 L563.3,259.8 L566.7,259.8 L570.0,259.8 L573.3,259.9 L576.7,259.9 L580.0,259.9 L583.3,259.9 L586.7,259.9 L590.0,259.9 L593.3,259.9 L596.7,260.0 L600.0,260.0 L603.3,260.0 L606.7,260.0 L610.0,260.0 L613.3,260.0 L616.7,260.0 L620.0,260.0 L623.3,260.0 L626.7,260.0 L630.0,260.0 L633.3,260.0 L636.7,260.0 L640.0,260.0 L643.3,260.0 L646.7,260.0 L650.0,260.0 L653.3,260.0 L656.7,260.0 L660.0,260.0 L663.3,260.0 L666.7,260.0 L670.0,260.0 L673.3,260.0 L676.7,260.0 L680.0,260.0 L683.3,260.0 L686.7,260.0 L690.0,260.0 L693.3,260.0 L696.7,260.0 L700.0,260.0 L703.3,260.0 L706.7,260.0 L710.0,260.0" class="fline"/>
+      <path d="M410.0,132.0 L413.3,142.5 L416.7,152.1 L420.0,160.9 L423.3,169.0 L426.7,176.4 L430.0,183.2 L433.3,189.5 L436.7,195.3 L440.0,200.6 L443.3,205.4 L446.7,209.9 L450.0,214.0 L453.3,217.7 L456.7,221.2 L460.0,224.4 L463.3,227.3 L466.7,229.9 L470.0,232.4 L473.3,234.6 L476.7,236.7 L480.0,238.6 L483.3,240.4 L486.7,242.0 L490.0,243.4 L493.3,244.8 L496.7,246.0 L500.0,247.2 L503.3,248.2 L506.7,249.2 L510.0,250.1 L513.3,250.9 L516.7,251.6 L520.0,252.3 L523.3,252.9 L526.7,253.5 L530.0,254.0 L533.3,254.5 L536.7,255.0 L540.0,255.4 L543.3,255.8 L546.7,256.1 L550.0,256.4 L553.3,256.7 L556.7,257.0 L560.0,257.2 L563.3,257.5 L566.7,257.7 L570.0,257.9 L573.3,258.0 L576.7,258.2 L580.0,258.3 L583.3,258.5 L586.7,258.6 L590.0,258.7 L593.3,258.8 L596.7,258.9 L600.0,259.0 L603.3,259.1 L606.7,259.2 L610.0,259.2 L613.3,259.3 L616.7,259.4 L620.0,259.4 L623.3,259.5 L626.7,259.5 L630.0,259.5 L633.3,259.6 L636.7,259.6 L640.0,259.6 L643.3,259.7 L646.7,259.7 L650.0,259.7 L653.3,259.7 L656.7,259.8 L660.0,259.8 L663.3,259.8 L666.7,259.8 L670.0,259.8 L673.3,259.8 L676.7,259.9 L680.0,259.9 L683.3,259.9 L686.7,259.9 L690.0,259.9 L693.3,259.9 L696.7,259.9 L700.0,259.9 L703.3,259.9 L706.7,259.9 L710.0,259.9" class="fline"/>
+      <path d="M410.0,132.0 L413.3,138.5 L416.7,144.6 L420.0,150.5 L423.3,156.0 L426.7,161.3 L430.0,166.3 L433.3,171.0 L436.7,175.5 L440.0,179.8 L443.3,183.9 L446.7,187.7 L450.0,191.4 L453.3,194.9 L456.7,198.2 L460.0,201.3 L463.3,204.3 L466.7,207.1 L470.0,209.8 L473.3,212.3 L476.7,214.7 L480.0,217.0 L483.3,219.2 L486.7,221.3 L490.0,223.2 L493.3,225.1 L496.7,226.9 L500.0,228.5 L503.3,230.1 L506.7,231.6 L510.0,233.1 L513.3,234.4 L516.7,235.7 L520.0,237.0 L523.3,238.1 L526.7,239.2 L530.0,240.3 L533.3,241.3 L536.7,242.2 L540.0,243.1 L543.3,244.0 L546.7,244.8 L550.0,245.6 L553.3,246.3 L556.7,247.0 L560.0,247.7 L563.3,248.3 L566.7,248.9 L570.0,249.4 L573.3,250.0 L576.7,250.5 L580.0,251.0 L583.3,251.4 L586.7,251.9 L590.0,252.3 L593.3,252.7 L596.7,253.0 L600.0,253.4 L603.3,253.7 L606.7,254.0 L610.0,254.3 L613.3,254.6 L616.7,254.9 L620.0,255.2 L623.3,255.4 L626.7,255.6 L630.0,255.9 L633.3,256.1 L636.7,256.3 L640.0,256.5 L643.3,256.6 L646.7,256.8 L650.0,257.0 L653.3,257.1 L656.7,257.3 L660.0,257.4 L663.3,257.5 L666.7,257.7 L670.0,257.8 L673.3,257.9 L676.7,258.0 L680.0,258.1 L683.3,258.2 L686.7,258.3 L690.0,258.4 L693.3,258.5 L696.7,258.5 L700.0,258.6 L703.3,258.7 L706.7,258.7 L710.0,258.8" class="fline"/>
+      <path d="M410.0,132.0 L413.3,136.1 L416.7,140.1 L420.0,144.0 L423.3,147.7 L426.7,151.4 L430.0,154.9 L433.3,158.3 L436.7,161.5 L440.0,164.7 L443.3,167.8 L446.7,170.8 L450.0,173.6 L453.3,176.4 L456.7,179.1 L460.0,181.7 L463.3,184.3 L466.7,186.7 L470.0,189.1 L473.3,191.4 L476.7,193.6 L480.0,195.7 L483.3,197.8 L486.7,199.8 L490.0,201.7 L493.3,203.6 L496.7,205.4 L500.0,207.2 L503.3,208.9 L506.7,210.5 L510.0,212.1 L513.3,213.7 L516.7,215.2 L520.0,216.6 L523.3,218.0 L526.7,219.4 L530.0,220.7 L533.3,222.0 L536.7,223.2 L540.0,224.4 L543.3,225.5 L546.7,226.6 L550.0,227.7 L553.3,228.8 L556.7,229.8 L560.0,230.7 L563.3,231.7 L566.7,232.6 L570.0,233.5 L573.3,234.3 L576.7,235.2 L580.0,236.0 L583.3,236.7 L586.7,237.5 L590.0,238.2 L593.3,238.9 L596.7,239.6 L600.0,240.3 L603.3,240.9 L606.7,241.5 L610.0,242.1 L613.3,242.7 L616.7,243.2 L620.0,243.8 L623.3,244.3 L626.7,244.8 L630.0,245.3 L633.3,245.8 L636.7,246.2 L640.0,246.7 L643.3,247.1 L646.7,247.5 L650.0,247.9 L653.3,248.3 L656.7,248.7 L660.0,249.1 L663.3,249.4 L666.7,249.8 L670.0,250.1 L673.3,250.4 L676.7,250.7 L680.0,251.0 L683.3,251.3 L686.7,251.6 L690.0,251.9 L693.3,252.1 L696.7,252.4 L700.0,252.6 L703.3,252.9 L706.7,253.1 L710.0,253.3" class="fline"/>
+      <path d="M410.0,132.0 L413.3,134.4 L416.7,136.8 L420.0,139.1 L423.3,141.3 L426.7,143.6 L430.0,145.7 L433.3,147.9 L436.7,150.0 L440.0,152.1 L443.3,154.1 L446.7,156.1 L450.0,158.0 L453.3,159.9 L456.7,161.8 L460.0,163.6 L463.3,165.5 L466.7,167.2 L470.0,169.0 L473.3,170.7 L476.7,172.3 L480.0,174.0 L483.3,175.6 L486.7,177.2 L490.0,178.7 L493.3,180.3 L496.7,181.8 L500.0,183.2 L503.3,184.7 L506.7,186.1 L510.0,187.5 L513.3,188.8 L516.7,190.2 L520.0,191.5 L523.3,192.8 L526.7,194.0 L530.0,195.3 L533.3,196.5 L536.7,197.7 L540.0,198.8 L543.3,200.0 L546.7,201.1 L550.0,202.2 L553.3,203.3 L556.7,204.4 L560.0,205.4 L563.3,206.4 L566.7,207.4 L570.0,208.4 L573.3,209.4 L576.7,210.3 L580.0,211.3 L583.3,212.2 L586.7,213.1 L590.0,214.0 L593.3,214.8 L596.7,215.7 L600.0,216.5 L603.3,217.3 L606.7,218.1 L610.0,218.9 L613.3,219.7 L616.7,220.4 L620.0,221.2 L623.3,221.9 L626.7,222.6 L630.0,223.3 L633.3,224.0 L636.7,224.7 L640.0,225.3 L643.3,226.0 L646.7,226.6 L650.0,227.3 L653.3,227.9 L656.7,228.5 L660.0,229.1 L663.3,229.6 L666.7,230.2 L670.0,230.8 L673.3,231.3 L676.7,231.9 L680.0,232.4 L683.3,232.9 L686.7,233.4 L690.0,233.9 L693.3,234.4 L696.7,234.9 L700.0,235.3 L703.3,235.8 L706.7,236.3 L710.0,236.7" class="fline"/>
+      <path d="M410.0,132.0 L413.3,133.2 L416.7,134.4 L420.0,135.6 L423.3,136.7 L426.7,137.9 L430.0,139.0 L433.3,140.2 L436.7,141.3 L440.0,142.4 L443.3,143.5 L446.7,144.6 L450.0,145.7 L453.3,146.7 L456.7,147.8 L460.0,148.8 L463.3,149.9 L466.7,150.9 L470.0,151.9 L473.3,152.9 L476.7,153.9 L480.0,154.9 L483.3,155.9 L486.7,156.9 L490.0,157.8 L493.3,158.8 L496.7,159.8 L500.0,160.7 L503.3,161.6 L506.7,162.5 L510.0,163.5 L513.3,164.4 L516.7,165.2 L520.0,166.1 L523.3,167.0 L526.7,167.9 L530.0,168.7 L533.3,169.6 L536.7,170.4 L540.0,171.3 L543.3,172.1 L546.7,172.9 L550.0,173.7 L553.3,174.6 L556.7,175.4 L560.0,176.1 L563.3,176.9 L566.7,177.7 L570.0,178.5 L573.3,179.2 L576.7,180.0 L580.0,180.7 L583.3,181.5 L586.7,182.2 L590.0,182.9 L593.3,183.7 L596.7,184.4 L600.0,185.1 L603.3,185.8 L606.7,186.5 L610.0,187.2 L613.3,187.9 L616.7,188.5 L620.0,189.2 L623.3,189.9 L626.7,190.5 L630.0,191.2 L633.3,191.8 L636.7,192.4 L640.0,193.1 L643.3,193.7 L646.7,194.3 L650.0,194.9 L653.3,195.6 L656.7,196.2 L660.0,196.8 L663.3,197.3 L666.7,197.9 L670.0,198.5 L673.3,199.1 L676.7,199.7 L680.0,200.2 L683.3,200.8 L686.7,201.3 L690.0,201.9 L693.3,202.4 L696.7,203.0 L700.0,203.5 L703.3,204.0 L706.7,204.5 L710.0,205.1" class="fline"/>
+      <path d="M410.0,132.0 L413.3,132.4 L416.7,132.9 L420.0,133.3 L423.3,133.7 L426.7,134.1 L430.0,134.5 L433.3,135.0 L436.7,135.4 L440.0,135.8 L443.3,136.2 L446.7,136.6 L450.0,137.0 L453.3,137.4 L456.7,137.9 L460.0,138.3 L463.3,138.7 L466.7,139.1 L470.0,139.5 L473.3,139.9 L476.7,140.3 L480.0,140.7 L483.3,141.1 L486.7,141.5 L490.0,141.9 L493.3,142.3 L496.7,142.7 L500.0,143.0 L503.3,143.4 L506.7,143.8 L510.0,144.2 L513.3,144.6 L516.7,145.0 L520.0,145.4 L523.3,145.7 L526.7,146.1 L530.0,146.5 L533.3,146.9 L536.7,147.3 L540.0,147.6 L543.3,148.0 L546.7,148.4 L550.0,148.8 L553.3,149.1 L556.7,149.5 L560.0,149.9 L563.3,150.2 L566.7,150.6 L570.0,151.0 L573.3,151.3 L576.7,151.7 L580.0,152.1 L583.3,152.4 L586.7,152.8 L590.0,153.1 L593.3,153.5 L596.7,153.8 L600.0,154.2 L603.3,154.6 L606.7,154.9 L610.0,155.3 L613.3,155.6 L616.7,156.0 L620.0,156.3 L623.3,156.6 L626.7,157.0 L630.0,157.3 L633.3,157.7 L636.7,158.0 L640.0,158.4 L643.3,158.7 L646.7,159.0 L650.0,159.4 L653.3,159.7 L656.7,160.0 L660.0,160.4 L663.3,160.7 L666.7,161.0 L670.0,161.4 L673.3,161.7 L676.7,162.0 L680.0,162.4 L683.3,162.7 L686.7,163.0 L690.0,163.3 L693.3,163.7 L696.7,164.0 L700.0,164.3 L703.3,164.6 L706.7,164.9 L710.0,165.2" class="fline"/>
+      <text x="403" y="136" class="fax-l" text-anchor="end">1</text>
+      <text x="403" y="264" class="fax-l" text-anchor="end">0</text>
+      <text x="410" y="278" class="fax-l">eight forgetting curves</text>
+      <text x="710" y="278" class="fax-l" text-anchor="end">tokens ago →</text>
+      <line x1="379" y1="0" x2="379" y2="258" class="fdiv"/>
+    </svg>
+    <figcaption>Inside a single head. Gated DeltaNet scales the whole recurrent state by one number,
+    so every channel forgets on the same schedule. Kimi Delta Attention gives each channel its own,
+    so one head can hold a short horizon and a long one at once. <b>The conversion sets every
+    channel equal</b> — the right-hand panel starts out as the left-hand one, and only training
+    can pull them apart.</figcaption>
+    </figure>
+    
+    <div class="eq">
+      <div class="eqrow">
+        <span class="eqtag">GDN</span>
+        <span class="eqbody"><i>S</i><sub>t</sub> = <em class="hl">α<sub>t</sub></em> (<i>I</i> − β<sub>t</sub><i>k</i><sub>t</sub><i>k</i><sub>t</sub><sup>⊤</sup>) <i>S</i><sub>t−1</sub> + β<sub>t</sub><i>k</i><sub>t</sub><i>v</i><sub>t</sub><sup>⊤</sup></span>
+        <span class="eqnote">α<sub>t</sub> ∈ ℝ &nbsp;·&nbsp; one scalar per head</span>
+      </div>
+      <div class="eqrow">
+        <span class="eqtag">KDA</span>
+        <span class="eqbody"><i>S</i><sub>t</sub> = (<em class="hl">Diag(α<sub>t</sub>)</em> − β<sub>t</sub><i>k</i><sub>t</sub><i>k</i><sub>t</sub><sup>⊤</sup><em class="hl">Diag(α<sub>t</sub>)</em>) <i>S</i><sub>t−1</sub> + β<sub>t</sub><i>k</i><sub>t</sub><i>v</i><sub>t</sub><sup>⊤</sup></span>
+        <span class="eqnote">α<sub>t</sub> ∈ ℝ<sup>d<sub>k</sub></sup> &nbsp;·&nbsp; one value per channel</span>
+      </div>
+    </div>
+    
+    <p>That is the entire difference. GDN decays its whole state by a single scalar per head; KDA
+    decays each channel of the state at its own rate. Hold every channel of <code style="font-family:var(--mono);font-size:.88em">Diag(α_t)</code> equal
+    and the second line collapses into the first. The Kimi Linear paper puts it the same way —
+    KDA "refines GDN's scalar decay by introducing a fine-grained diagonalized gate", in the manner
+    of <a href="https://arxiv.org/abs/2312.06635">gated linear attention</a>.</p>
+    <p>The generalisation is <em>strict</em>, and that is the whole trick. Your source model doesn't need
+    approximating into the target's parameter space. It already lives there, at one specific
+    degenerate point. The only question is whether you can land on that point exactly.</p>
+    <p>Qwen3.5 makes the offer concrete: the 0.8B has 18 of its 24 layers as GDN, the 4B has 24 of
+    32, with full softmax attention interleaved every fourth layer. Those linear layers are
+    sitting there waiting.</p>
+    <p class="sec-kick">Why bother</p>
+        <h2>What you actually get</h2>
+    <p>Let's kill the obvious wrong reason first. <strong>The conversion buys you no speed.</strong> Linear
+    attention decodes in constant state and constant time per token — but if your base model is
+    already a GDN hybrid, you already have that. GDN→KDA changes the shape of the decay, not the
+    cost of the recurrence. We had to withdraw an efficiency claim we'd made before checking
+    this, and it's the first thing anyone assumes.</p>
+    <p>What you get instead is worth more:</p>
+    <p><strong>An instruction-tuned linear-attention model for the cost of a script.</strong> Post-trained weights
+    convert exactly like pretrained ones. On the <a href="https://gorilla.cs.berkeley.edu/leaderboard.html">Berkeley Function Calling
+    Leaderboard</a>, our converted 4B matched its
+    instruction-tuned source to within <em>one item in 1,240</em>. No distillation run, no data mixture,
+    no drift.</p>
+    <p><strong>A starting point you can verify.</strong> Almost no architecture change gives you a reference
+    answer. This one does: the converted model must reproduce its source, so any harness you
+    point at both must report zero difference. If it doesn't, your harness is broken — and it
+    says so at the one moment when there's no real difference for a bug to hide behind.</p>
+    <p><strong>Strictly more expressivity, initialised at a provably inert value.</strong> The added per-channel
+    freedom starts pinned at exactly zero utilisation. So anything you find in those parameters
+    later <em>was learned</em>. Hold that thought; it's where this post ends.</p>
+    <p class="sec-kick">The mapping</p>
+        <h2>The swap</h2>
+    <p>Every parameter of <code style="font-family:var(--mono);font-size:.88em">Qwen3_5GatedDeltaNet</code> lands in <code style="font-family:var(--mono);font-size:.88em">KimiDeltaAttention</code> by a copy, a
+    contiguous split, or a broadcast. There are exactly two exceptions.</p>
+    <div style="overflow-x:auto"><table class="cap">
+    <thead>
+    <tr>
+    <th>teacher</th>
+    <th>student</th>
+    <th>how</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">in_proj_qkv</code> (6144, 1024)</td>
+    <td><code style="font-family:var(--mono);font-size:.88em">q/k/v_proj</code></td>
+    <td>row split</td>
+    </tr>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">conv1d</code> (6144, 1, 4)</td>
+    <td>three <code style="font-family:var(--mono);font-size:.88em">ShortConvolution</code> k=4</td>
+    <td>channel split</td>
+    </tr>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">in_proj_b</code></td>
+    <td><code style="font-family:var(--mono);font-size:.88em">b_proj</code></td>
+    <td>copy — both sigmoid downstream</td>
+    </tr>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">A_log</code> (16,)</td>
+    <td><code style="font-family:var(--mono);font-size:.88em">A_log</code> (16,)</td>
+    <td>copy</td>
+    </tr>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">dt_bias</code> (16,)</td>
+    <td><code style="font-family:var(--mono);font-size:.88em">dt_bias</code> (2048,)</td>
+    <td><code style="font-family:var(--mono);font-size:.88em">repeat_interleave</code> per head</td>
+    </tr>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">in_proj_a</code> (16, 1024)</td>
+    <td><code style="font-family:var(--mono);font-size:.88em">f_proj</code>: 1024→128→2048</td>
+    <td><strong>constructed, needs rank 16</strong></td>
+    </tr>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">out_proj</code></td>
+    <td><code style="font-family:var(--mono);font-size:.88em">o_proj</code></td>
+    <td>copy</td>
+    </tr>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">in_proj_z</code> (2048, 1024)</td>
+    <td><code style="font-family:var(--mono);font-size:.88em">g_proj</code>: 1024→128→2048</td>
+    <td><strong>breaks</strong></td>
+    </tr>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">norm</code>, silu</td>
+    <td><code style="font-family:var(--mono);font-size:.88em">o_norm</code>, sigmoid</td>
+    <td><strong>breaks</strong></td>
+    </tr>
+    </tbody>
+    </table></div>
+    <p>Before any of that, check one thing: <strong>KDA hardcodes L2-normalisation of q and k.</strong> If your
+    source model doesn't normalise in the same place, the two mixers compute different functions
+    and no weight mapping on earth repairs it. Qwen3.5 does normalise. That was the single most
+    likely fatal mismatch and it resolved favourably — but check it first on any new source,
+    because if it fails nothing else matters.</p>
+    <p class="sec-kick">The one construction</p>
+        <h2>Getting a scalar out of a bottleneck</h2>
+    <p>The one interesting construction. Your teacher drives its decay gate from a per-head scalar;
+    KDA drives its from a per-channel vector produced through a low-rank bottleneck. You need the
+    bottleneck to emit the same number in all 128 channels of a head.</p>
+    <p>With <code style="font-family:var(--mono);font-size:.88em">H = 16</code> heads and <code style="font-family:var(--mono);font-size:.88em">d_k = 128</code> channels each, the teacher computes</p>
+    <div class="eq">
+      <div class="eqrow">
+        <span class="eqbody"><i>a</i><sub>t</sub><sup>(h)</sup> = (<i>W</i><sub>a</sub><i>x</i><sub>t</sub>)<sub>h</sub> &nbsp;&nbsp;&nbsp;&nbsp; <i>g</i><sub>t</sub><sup>(h)</sup> = −e<sup>A<sub>h</sub></sup> · softplus(<i>a</i><sub>t</sub><sup>(h)</sup> + δ<sub>h</sub>)</span>
+      </div>
+    </div>
+    
+    <p>and KDA computes the same expression per channel with the gate input factored as
+    <span class="m">P<sub>2</sub>P<sub>1</sub>x<sub>t</sub></span>. Equality for all <em>t</em> needs
+    <span class="m">(P<sub>2</sub>P<sub>1</sub>x<sub>t</sub>)<sup>(h,c)</sup> = a<sub>t</sub><sup>(h)</sup></span>
+    for every channel <em>c</em>. Two matrices do it:</p>
+    <pre class="code">kda.f_proj[0].weight.zero_()
+kda.f_proj[0].weight[:num_heads].copy_(gdn.in_proj_a.weight)   # P1: a_t into the first H coords
+sel = torch.zeros_like(kda.f_proj[1].weight)                   # P2: one-hot broadcast
+for h in range(num_heads):
+    sel[h*head_k_dim:(h+1)*head_k_dim, h] = 1.0
+kda.f_proj[1].weight.copy_(sel)
+kda.dt_bias.copy_(gdn.dt_bias.repeat_interleave(head_k_dim))
+</pre>
+    <p><code style="font-family:var(--mono);font-size:.88em">P1</code> parks the teacher's projection in the leading 16 coordinates and zeroes the rest; <code style="font-family:var(--mono);font-size:.88em">P2</code>
+    fans coordinate <em>h</em> out to all 128 channels of head <em>h</em>. The feasibility condition is a rank
+    one: you need rank ≤ 16, the bottleneck gives you 128. It fits with room to spare.</p>
+    <p>Remember that sentence. It is precisely why the <em>other</em> bottleneck in the layer does not
+    survive the same argument.</p>
+    <p class="sec-kick">Trap 1</p>
+        <h2>Trap 1: the reference implementation can't take your weights</h2>
+    <p><a href="https://github.com/fla-org/flash-linear-attention">flash-linear-attention</a> is where a KDA
+    layer comes from if you don't write one yourself. It isn't a third-party clone, either — the
+    KDA layer is by Songlin Yang, Yu Zhang and Zhiyuan Li, and Yu Zhang leads the Kimi Linear
+    author list. This is the architecture's own authors' code.</p>
+    <p>And you cannot inherit into it unmodified.</p>
+    <p>FLA factors the <strong>output</strong> gate through a bottleneck: <code style="font-family:var(--mono);font-size:.88em">Linear(1024→128) → Linear(128→2048)</code>.
+    Your teacher's <code style="font-family:var(--mono);font-size:.88em">in_proj_z</code> is a single <code style="font-family:var(--mono);font-size:.88em">Linear(1024→2048)</code>. Same shape at both ends, wildly
+    different capacity in the middle — and unlike the decay gate, there is no rank deficiency here
+    to exploit. It's just a trained 2048×1024 matrix.</p>
+    <p>How bad? Truncating it to rank 128 throws away 65–78% of the matrix in weight space. That
+    overstates the damage — real hidden states are anisotropic, and on actual activations plain
+    truncation costs 23–52%, a data-fitted map only 14–32%. But it doesn't rescue anything: a
+    single truncated layer moves the logits <strong>31–403× further than kernel noise</strong>, and the sweep
+    has no knee. At rank 768 — three quarters of full rank — the worst layer is still 139× out.</p>
+    <p>The lesson isn't "FLA compresses a fragile matrix." Truncate <code style="font-family:var(--mono);font-size:.88em">out_proj</code> instead, same rank,
+    same layer, and it's slightly <em>worse</em>. Rank 128 is simply far too small for any 1024-wide
+    matrix in this model, and the output gate happens to be the one the library factors. For a
+    KDA model trained from scratch — the case FLA is written for — that bottleneck is a perfectly
+    sensible parameter saving.</p>
+    <blockquote>
+    <p>A layer that is correct as a trainable module can be unusable as an initialisation target,
+    and the difference is invisible until you check the rank of what you're copying in.</p>
+    </blockquote>
+    <p>The fix is two overrides in a subclass: widen <code style="font-family:var(--mono);font-size:.88em">g_proj</code> to a single full-rank <code style="font-family:var(--mono);font-size:.88em">Linear</code>, and
+    change <code style="font-family:var(--mono);font-size:.88em">o_norm</code>'s activation from FLA's hardcoded <code style="font-family:var(--mono);font-size:.88em">sigmoid</code> to your teacher's <code style="font-family:var(--mono);font-size:.88em">silu</code>. Widening
+    costs 30M parameters against a stock-FLA student and <em>nothing</em> against the teacher, because
+    it is exactly the teacher's own matrix. The price you do pay is that you now carry a subclass:
+    pin FLA, and diff <code style="font-family:var(--mono);font-size:.88em">fla/layers/kda.py</code> on every bump. An upstream change to <code style="font-family:var(--mono);font-size:.88em">g_proj</code> or to the
+    forward's kwarg handling breaks your inheritance silently.</p>
+    <p class="sec-kick">Trap 2</p>
+        <h2>Trap 2: there is no tolerance you can pick</h2>
+    <p>You will want to assert <code style="font-family:var(--mono);font-size:.88em">max |Δlogits| == 0</code>. Don't. On this conversion that test doesn't
+    merely fail to discriminate — it returns the wrong verdict.</p>
+    <p>The teacher runs <code style="font-family:var(--mono);font-size:.88em">chunk_gated_delta_rule</code>, the student runs <code style="font-family:var(--mono);font-size:.88em">chunk_kda</code>. Different Triton
+    kernels, different reduction order, and floating-point addition is not associative. A nonzero
+    disagreement is guaranteed <em>before</em> correctness even enters the picture. Our verified,
+    provably-correct conversion sits at 3.1 × 10⁻². Every constant a careful person picks in
+    advance — 10⁻⁶, 10⁻⁴, a generous 10⁻³ — rejects it. And the natural response to that failure
+    is to loosen the constant until the light turns green, which is indistinguishable from having
+    had no test at all.</p>
+    <p>You can't derive the right number either. It isn't machine epsilon. It depends on reduction
+    order, sequence length, how deep the stack is, the data — and it shifts by 8× between float32
+    and bfloat16.</p>
+    <p><strong>So measure it.</strong> Run the teacher against its own pure-torch fallback: identical mathematics
+    by an unrelated arithmetic path, so whatever they disagree by contains no semantic component
+    whatsoever. That is the smallest difference your comparison can resolve. Now the question
+    stops being "is the student identical to the teacher?" and becomes:</p>
+    <blockquote>
+    <p>Is the student closer to the teacher than the teacher is to itself?</p>
+    </blockquote>
+    <p>Ours: floor 4.05 × 10⁻², student 3.11 × 10⁻². <strong>A ratio of 0.77.</strong> Swapping the entire mixer
+    moved the logits less than re-implementing the same arithmetic did.</p>
+    <p>Report the ratio, never the raw delta. In bfloat16 the deviation is 12× larger, which reads
+    alarming and means nothing — the floor rises by the same factor and the ratio only drifts from
+    0.77 to 1.20. The general form of this is worth stealing for any port, rewrite or kernel
+    swap: <strong>when you compare two implementations of the same computation, the null hypothesis is
+    not zero. It is the disagreement between two implementations you already believe are
+    equivalent.</strong></p>
+    <p class="sec-kick">Trap 3</p>
+        <h2>Trap 3: your test will pass anyway</h2>
+    <p>Nearly any bug in a conversion produces a model that still runs, still emits plausible logits,
+    and still exits zero. So agreement alone proves nothing. Inject deliberate faults and demand
+    each one be loudly visible.</p>
+    <div style="overflow-x:auto"><table class="cap">
+    <thead>
+    <tr>
+    <th>deliberate bug</th>
+    <th>how far out</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td>rank-128 output gate — i.e. stock FLA</td>
+    <td><strong>507× floor</strong></td>
+    </tr>
+    <tr>
+    <td><code style="font-family:var(--mono);font-size:.88em">repeat</code> instead of <code style="font-family:var(--mono);font-size:.88em">repeat_interleave</code></td>
+    <td><strong>679×</strong></td>
+    </tr>
+    <tr>
+    <td>head/channel indices swapped in the selector</td>
+    <td><strong>360×</strong></td>
+    </tr>
+    <tr>
+    <td>one of 16 heads' gate zeroed</td>
+    <td><strong>52×</strong></td>
+    </tr>
+    <tr>
+    <td>the same, in one layer only</td>
+    <td>0.96× — <em>silent</em></td>
+    </tr>
+    </tbody>
+    </table></div>
+    <p>Those middle two matter most, because they are invisible to every cheap check: shapes match,
+    parameter counts match, nothing raises, and the model trains happily. Only a numerical
+    comparison against a known-correct reference catches an index-layout inversion.</p>
+    <p>Two things to steal from that table. First, <strong>the first control we wrote didn't fire</strong>, and
+    the tempting reading was "the instrument is broken" or "the conversion is subtly wrong." The
+    correct reading was "the control is too weak" — one head in one layer of eighteen is a fault
+    genuinely at the noise scale. Calibrating your controls isn't preparation for the experiment;
+    it <em>is</em> part of the experiment. Second, that last row is your sensitivity limit, and you
+    should publish it: below about 1× floor this comparison is blind, which means single-layer
+    ablations sit inside the blind spot.</p>
+    <p>The same disease shows up one level later, in the test for your <em>exported</em> model. The obvious
+    test is a round trip — build the class, save, reload, assert the tensors match. We wrote it.
+    Ten green assertions. It passed while the class was quietly building a vision tower it should
+    never have had.</p>
+    <p>Of course it did. <strong>Save-and-reload is self-consistent for any class, correct or not.</strong> The
+    export loads the state dict of construction A into an instance of construction B, so the test
+    has to build <em>both</em> and compare their key sets. Test the pair, not the round trip.</p>
+    <p class="sec-kick">Trap 4</p>
+        <h2>Trap 4: four quiet ones</h2>
+    <p><strong>Serialise the gate tensors in fp32.</strong> In bf16, the representable step at <code style="font-family:var(--mono);font-size:.88em">dt_bias</code>'s
+    magnitude is 1.49 × 10⁻¹ — larger than any movement a short run produces. Your gate analysis
+    then reads a clean, confident, entirely fabricated zero. This destroyed one of our
+    measurements at <em>save</em> time rather than at train time, which is the worst possible place for
+    it.</p>
+    <p><strong>Keep fp32 master weights.</strong> Same failure one level up: <code style="font-family:var(--mono);font-size:.88em">dt_bias</code> sits exactly where a bf16
+    update falls below one unit in the last place. 8-bit Adam moments are fine — they're running
+    statistics, not parameters — but the masters are not optional.</p>
+    <p><strong>Know which model you actually loaded.</strong> Qwen3.5-4B ships as a vision-language checkpoint:
+    <code style="font-family:var(--mono);font-size:.88em">architectures: ["Qwen3_5ForConditionalGeneration"]</code>, a <code style="font-family:var(--mono);font-size:.88em">vision_config</code>, a video preprocessor.
+    But <code style="font-family:var(--mono);font-size:.88em">AutoModelForCausalLM</code> resolves to <code style="font-family:var(--mono);font-size:.88em">Qwen3_5ForCausalLM</code>, whose config class is the <em>text</em>
+    config, and the vision tower is dropped at load. So the thing you are converting is the text
+    tower — your parameter counts must exclude the tower, and any class you write to hold the
+    result has to subclass the text config. Getting this wrong late cost us a strict load failing
+    on 879 missing and 546 unexpected keys.</p>
+    <p><strong>Derive the parameter assertion from the config; never hardcode it.</strong> The 0.8B and 4B differ
+    in hidden size <em>and</em> in value-head count — the 4B uses grouped value attention, 32 value heads
+    against 16 key heads, so <code style="font-family:var(--mono);font-size:.88em">in_proj_qkv</code> splits 2048/2048/4096 rather than into equal thirds. A
+    constant that's right for one is wrong for the other by 3×, and it reads as a conversion
+    defect rather than a stale assertion. The 4B is also the model that genuinely <em>tests</em> the
+    mapping: at 0.8B key dim equals value dim, so code that confuses them produces identical
+    output.</p>
+    <p class="sec-kick">Trap 5</p>
+        <h2>Trap 5: a converted model is not a model</h2>
+    <p>This one is structural and it bit hardest. Conversion is surgery on a live object — you swap
+    each <code style="font-family:var(--mono);font-size:.88em">linear_attn</code> block and leave the <em>config</em> untouched. So <code style="font-family:var(--mono);font-size:.88em">save_pretrained</code> writes KDA
+    tensors under a config that still declares Gated DeltaNet, and <code style="font-family:var(--mono);font-size:.88em">from_pretrained</code> reads that
+    config, builds GDN modules, and mismatches every added tensor.</p>
+    <p>Which means: your checkpoints are bare state dicts only your own training script can
+    instantiate. vLLM and SGLang dispatch on <code style="font-family:var(--mono);font-size:.88em">config.architectures</code>, and no registered
+    architecture describes a Qwen3.5 hybrid whose linear layers are KDA, so every rollout and
+    every eval crawls through HF <code style="font-family:var(--mono);font-size:.88em">generate</code> one batch at a time. And a model that only its trainer
+    can load cannot be deployed at all — which was the point of converting it.</p>
+    <p>The fix is registration, not modelling. Declare a <code style="font-family:var(--mono);font-size:.88em">model_type</code>, and a class that <strong>builds</strong>
+    KDA layers in <code style="font-family:var(--mono);font-size:.88em">__init__</code> rather than converting into them, so the module tree exists before
+    the weights arrive:</p>
+    <pre class="code">class Qwen35KdaConfig(Qwen3_5TextConfig):        # the TEXT config — see trap 4
+    model_type = &quot;qwen3_5_kda&quot;
+
+class Qwen35KdaForCausalLM(Qwen3_5ForCausalLM):
+    config_class = Qwen35KdaConfig
+    def __init__(self, config):
+        super().__init__(config)
+        swap_to_kda(self, config)                # structure only — copies nothing
+
+AutoConfig.register(&quot;qwen3_5_kda&quot;, Qwen35KdaConfig)
+AutoModelForCausalLM.register(Qwen35KdaConfig, Qwen35KdaForCausalLM)
+</pre>
+    <p>Two traps hiding in nine lines. The swap at construction must copy <strong>no weights</strong> — under
+    <code style="font-family:var(--mono);font-size:.88em">from_pretrained</code> the GDN weights it starts from are uninitialised or on the meta device, so
+    inheriting from them copies noise or raises outright. And building the config as
+    <code style="font-family:var(--mono);font-size:.88em">KdaConfig(**source.to_dict())</code> looks right and isn't: that dict carries <code style="font-family:var(--mono);font-size:.88em">model_type</code> and
+    <code style="font-family:var(--mono);font-size:.88em">architectures</code> naming the <em>source</em>, which land as instance attributes shadowing your class
+    attributes. The saved file still looks correct, because <code style="font-family:var(--mono);font-size:.88em">save_pretrained</code> writes the class
+    attribute — so your object disagrees with the directory it produces, and nothing complains
+    until something reads <code style="font-family:var(--mono);font-size:.88em">config.model_type</code> at runtime and cheerfully routes to Gated DeltaNet.</p>
+    <p>Accept the export on <strong>exact</strong> equality, not closeness. This is the one comparison where zero
+    is the right bar, because both sides run identical kernels and there's no arithmetic noise to
+    absorb. Ours reads <code style="font-family:var(--mono);font-size:.88em">max |Δ| = 0.000e+00</code>.</p>
+    <p>One honest limit: this registers an architecture, it doesn't embed one. Whoever loads the
+    directory has to import your module first. Without it they get a loud <em>"does not recognize
+    this architecture"</em> — which is the right failure. Far better than silently building GDN layers
+    under a KDA checkpoint's name.</p>
+    <p class="sec-kick">The honest part</p>
+        <h2>So does the extra expressivity do anything?</h2>
+    <p>Here is the part we would rather report differently.</p>
+    <p>The conversion pins KDA's added freedom — per-channel variation of the decay inside a head —
+    at exactly zero. Measured: within-head channel spread is <strong>0.000 in every layer</strong>. It has to
+    be, and confirming it is a second, independent check on the conversion, arriving from a
+    different measurement than the logit comparison. It also makes the architecture's entire
+    premise cheap to falsify. Just ask: does training move it?</p>
+    <p>We gave it every chance. Four training runs differing only in how much extra learning rate the
+    gate got, then a surgical ablation — restore the gate parameters alone to their conversion
+    values, leave every other trained weight in place, re-evaluate.</p>
+    <p><strong>The parameters are reachable.</strong> Gate displacement scales 1 : 5.0 : 11.0 against a nominal
+    1 : 4 : 10 as you raise its learning rate. Training can absolutely move them.</p>
+    <p><strong>The movement does no work.</strong> Resetting the gate — undoing everything it learned — changes
+    <a href="https://arxiv.org/abs/2009.03300">MMLU</a> by under two tenths of a standard error, and not even consistently in one direction. That
+    holds in the arm where 1,661 channels had moved. The evaluation isn't blind, either: a
+    deliberately damaged control run reads <em>below</em> the 25% chance floor of a four-way multiple
+    choice, and its own gate reset is exactly 0.0000, as it must be.</p>
+    <p>Then we tried 375× the data — a 27.4M-token instruction run. Across 200 optimiser steps the
+    maximum within-head spread didn't merely stay similar, it stayed <strong>identical</strong>: 4.8828 × 10⁻⁴,
+    which is exactly 2⁻¹¹. Over the same interval the number of moved channels <em>fell</em>, from 419 to
+    409. A quantity that is genuinely being learned does not hold an exact power of two for two
+    hundred steps while its support shrinks.</p>
+    <p>So at both budgets we tested, the converted model stays functionally the Gated DeltaNet it
+    came from, wearing KDA's parameters.</p>
+    <p>We don't think that closes the question — it's one architecture, one scale, and an objective
+    that never once rewards using the gate. But it does mean the honest pitch for a GDN→KDA
+    conversion today is <em>"a free, verified, strictly more expressive starting point,"</em> not <em>"a
+    better model."</em> The expressivity is real, it's present, and so far nothing has taught it to
+    matter.</p>
+    <p>Which, if you're going to convert a model, is exactly the thing you want to know before you
+    book the GPUs.</p>
+    <p class="sec-kick">Checklist</p>
+        <h2>The short version</h2>
+    <ol>
+    <li>Check q/k L2-normalisation agreement first. If the source doesn't normalise where KDA
+       hardcodes it, stop.</li>
+    <li>Read the reference layer for bottlenecks before copying into it. Rank, not shape, decides
+       whether a projection can receive your weights.</li>
+    <li>Measure your noise floor and report ratios, never a borrowed constant. Run the check in
+       float32 — bf16 is an 8× blunter instrument.</li>
+    <li>Write negative controls that attack your specific constructions, and make each one fire.
+       A control that stays silent is a result about the control.</li>
+    <li>Register the architecture <em>before</em> you train anything, or every eval pays for a conversion
+       and nothing can serve the result.</li>
+    <li>Assert the parameter delta, derived from the config, on every single run. A conversion that
+       silently no-ops leaves you with a model that trains beautifully and is just the unconverted
+       teacher — the one failure that invalidates everything while looking exactly like success.</li>
+    </ol>
+
+  </div>
+</article>
+
+<style>
+.morelinks{max-width:720px;margin:64px auto 0;padding:0 24px}
+.morelinks-h{font-family:var(--mono);font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 18px;padding-top:28px;border-top:1px solid var(--hair)}
+.morelinks-grid{display:grid;gap:14px}
+@media(min-width:620px){.morelinks-grid{grid-template-columns:1fr 1fr}}
+.morelink{display:flex;flex-direction:column;gap:7px;padding:20px 22px;border:1px solid var(--hair);border-radius:14px;background:var(--surface);text-decoration:none;transition:border-color .15s ease,transform .15s ease}
+.morelink:hover{border-color:var(--accent);transform:translateY(-2px)}
+.morelink-k{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-weight:600}
+.morelink-t{font-family:var(--sans);font-size:1.08rem;font-weight:700;letter-spacing:-.02em;color:var(--ink);line-height:1.22}
+.morelink-d{font-family:var(--serif);font-size:.92rem;color:var(--muted);line-height:1.5}
+.morelink-go{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--accent-ink);font-weight:600;margin-top:2px}
+</style>
+<nav class="morelinks" aria-label="More posts">
+  <h2 class="morelinks-h">More from Judith</h2>
+  <div class="morelinks-grid">
+    <a class="morelink" href="closing-the-loop-the-hard-part.html">
+      <span class="morelink-k">Field notes · RSI</span>
+      <span class="morelink-t">How Do We Make It Realize Something Went Wrong?</span>
+      <span class="morelink-d">Why closing a self-improvement loop is so much harder than drawing it — the agent's problem of knowing it was wrong at all.</span>
+      <span class="morelink-go">Read →</span>
+    </a>
+  </div>
+</nav>
+
+<footer>
+  <div class="foot-in">
+    Field notes from building Judith — a deployed personal assistant — and the security tooling around it.<br>
+    Written by Sai Krishna Rallabandi · <a href="https://onrallabandiradar.substack.com/">On Rallabandi Radar (Substack)</a> · <a href="https://saikrishnarallabandi.github.io/judith">saikrishnarallabandi.github.io/judith</a>
+  </div>
+</footer>
+
+<!-- Traffic analytics — GoatCounter (privacy-friendly, cookieless) -->
+<script data-goatcounter="https://srallaba.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
