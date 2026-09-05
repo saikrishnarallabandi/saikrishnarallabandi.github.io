@@ -312,8 +312,12 @@ Call me at [REDACTED] or use my card
         </div>
         <div class="layer">
           <div class="nm">model</div>
-          <p>A learned detector for the ambiguous middle the patterns miss, and an LLM path for
-            outbound content where the risk is contextual rather than lexical.</p>
+          <p>A learned detector for the ambiguous middle the patterns miss — a LoRA adapter on
+            Qwen3.5-0.8B, published as
+            <a href="https://huggingface.co/srallaba/Jataayu.promptinjection.v0.1">Jataayu.promptinjection.v0.1</a>
+            and <a href="https://huggingface.co/spaces/srallaba/Jataayu-promptinjection-demo">runnable
+            in the browser</a>. Plus an LLM path for outbound content, where the risk is contextual
+            rather than lexical.</p>
         </div>
       </div>
     </div>
@@ -364,6 +368,18 @@ Call me at [REDACTED] or use my card
           <div class="note">Precision 0.963 with 2 false positives. Recall at that operating point
             is <strong>0.198</strong> and ROC-AUC is 0.596 — the pattern layer is precise and
             narrow, and it is not a detector on its own.</div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="fig">0.828 recall</div>
+            <div class="lab">learned detector, at a 1% false-positive budget</div>
+          </div>
+          <div class="note">On a frozen 4,101-row held-out suite. Measured the same way on the
+            same suite, Prompt-Guard-2 reaches 0.764 and ProtectAI&#39;s deberta-v3 0.787. The
+            number that matters more is over-defense: it leaves <strong>96.8%</strong> of hard
+            adversarial-benign text unflagged, where the comparison detectors produce 37 and 86
+            false positives against its 11.</div>
         </div>
 
         <div class="row">
