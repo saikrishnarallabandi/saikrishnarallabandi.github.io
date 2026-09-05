@@ -3,633 +3,583 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Judith — a group agent, and the 21 plugins around her</title>
-<meta name="description" content="Judith is a group agent by Sai Krishna Rallabandi, wrapped by Project Ascent: 21 plugins, one invariant each. The turn loop, the plugin contract, seven behavioural kinds with worked examples, the full roster with real load state, and the three ways the decomposition failed.">
+<title>Judith — a personal agent, and the 21 plugins that hold her together</title>
+<meta name="description" content="Judith is a personal AI agent that runs continuously across group chats, email and smart glasses. Project Ascent is the layer around her: 21 plugins, each owning one invariant. This page explains how it works, what it measured, and the three ways the design failed.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600;700&family=Spline+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  /* Set the theme before first paint so the page never flashes the wrong one. */
+  (function(){
+    try{
+      var t = localStorage.getItem('judith-theme');
+      if(!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day';
+      document.documentElement.setAttribute('data-theme', t);
+    }catch(e){ document.documentElement.setAttribute('data-theme','day'); }
+  })();
+</script>
 <style>
+  /* ============================================================
+     A ledger, not a console. Judith's argument is that every stage
+     writes down what it did, so the page is set as a record:
+     ruled paper, one ink, and colour reserved for state alone.
+     ============================================================ */
+  :root[data-theme="day"]{
+    --paper:#eaeee7; --raised:#f5f7f2; --sunk:#e1e6dc;
+    --rule:#ccd5c6; --rule-firm:#aab5a3;
+    --ink:#1b2420; --ink-2:#4c5852; --ink-3:#78847c;
+    --link:#1b4d89;
+    --live:#1f6b45; --shadow:#8a6512; --idle:#69736e; --absent:#a3392b;
+    --live-bg:#dfe9df; --shadow-bg:#efe6cd; --idle-bg:#e2e6e1; --absent-bg:#f2ded9;
+    --code:#f5f7f2; --tint:rgba(27,77,137,.08);
+  }
+  :root[data-theme="night"]{
+    --paper:#141a17; --raised:#1c2420; --sunk:#0f1512;
+    --rule:#2d3a33; --rule-firm:#465449;
+    --ink:#e9eee8; --ink-2:#a9b5ad; --ink-3:#7d8981;
+    --link:#8ab6ea;
+    --live:#63bd8a; --shadow:#d8ae51; --idle:#8d968f; --absent:#e3897a;
+    --live-bg:#17281f; --shadow-bg:#2a2312; --idle-bg:#1e2422; --absent-bg:#2c1a17;
+    --code:#0f1512; --tint:rgba(138,182,234,.11);
+  }
   :root{
-    --bg:#05070a; --bg2:#070b10; --panel:rgba(12,16,22,.82); --line:#1c262e; --line2:#26323c;
-    --text:#eef3f6; --muted:#8593a0; --dim:#5c6b78;
-    --gold:#e8b24a; --cyan:#57c7d6; --green:#52c97a; --red:#e0544b; --violet:#9b8cff;
-    --mono:"Spline Sans Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-    --sans:"Spline Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --serif:"Newsreader",Iowan Old Style,Georgia,serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --measure:34rem;
   }
   *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.55;
-    -webkit-font-smoothing:antialiased;overflow-x:hidden}
-  h1,h2,h3,p{margin:0}
-  a{color:inherit;text-decoration:none}
-  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:.01em}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
+    font-size:19px;line-height:1.66;font-weight:400;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,p,figure{margin:0}
+  a{color:var(--link);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--link) 34%,transparent)}
+  a:hover{border-bottom-color:var(--link)}
+  :focus-visible{outline:2px solid var(--link);outline-offset:3px;border-radius:2px}
+  ::selection{background:var(--tint)}
+  .shell{width:min(72rem,100% - 3rem);margin-inline:auto}
+  .col{max-width:var(--measure)}
+  .mono{font-family:var(--mono);font-size:.82em;font-variant-ligatures:none}
 
-  /* ---------- top bar ---------- */
-  header.bar{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:14px;
-    padding:12px 22px;background:linear-gradient(180deg,rgba(5,7,10,.92),rgba(5,7,10,0));backdrop-filter:blur(4px)}
-  .logo{font-weight:900;letter-spacing:.14em;font-size:16px}
-  .logo b{color:var(--gold)}
-  .logo .tag{color:var(--muted);font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;margin-left:8px}
-  .bar .spacer{flex:1}
-  .badge{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-    color:#9af0bf;border:1px solid #2f6b48;background:#0e2018;border-radius:999px;padding:4px 10px;display:flex;align-items:center;gap:7px}
-  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(82,201,122,.7);animation:pulse 1.8s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(82,201,122,.65)}70%{box-shadow:0 0 0 8px rgba(82,201,122,0)}100%{box-shadow:0 0 0 0 rgba(82,201,122,0)}}
-  .bar a.back{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 12px;transition:.2s}
-  .bar a.back:hover{color:var(--text);border-color:var(--line2)}
+  /* ---------- masthead ---------- */
+  .masthead{border-bottom:1px solid var(--rule-firm);background:var(--paper);
+    position:sticky;top:0;z-index:30}
+  .masthead .shell{display:flex;align-items:center;gap:1.4rem;padding:.85rem 0}
+  .wordmark{font-size:1.16rem;font-weight:600;letter-spacing:-.012em;color:var(--ink);border:0}
+  .wordmark span{color:var(--ink-3);font-weight:400}
+  .masthead nav{margin-left:auto;display:flex;align-items:center;gap:1.25rem}
+  .masthead nav a{font-size:.86rem;color:var(--ink-2);border:0}
+  .masthead nav a:hover{color:var(--link)}
+  .toggle{display:inline-flex;align-items:center;gap:.45rem;font-family:var(--mono);font-size:.7rem;
+    color:var(--ink-2);background:var(--sunk);border:1px solid var(--rule);border-radius:2px;
+    padding:.36rem .6rem;cursor:pointer;line-height:1}
+  .toggle:hover{border-color:var(--rule-firm);color:var(--ink)}
+  .toggle svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.6}
+  @media(max-width:640px){
+    .masthead .shell{flex-wrap:wrap;gap:.7rem 1rem}
+    .masthead nav{width:100%;margin-left:0;gap:1rem}
+  }
 
-  /* ---------- hero ---------- */
-  .hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
-  #spiral{position:absolute;inset:0;z-index:0;width:100%;height:100%}
-  .vignette{position:absolute;inset:0;z-index:1;pointer-events:none;
-    background:radial-gradient(115% 80% at 50% 42%,transparent 38%,rgba(3,5,8,.74) 100%)}
-  .hero-in{position:relative;z-index:2;padding:90px 22px 40px}
-  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
-  .hero h1{font-size:clamp(58px,15vw,150px);font-weight:800;letter-spacing:.04em;line-height:.92;
-    background:linear-gradient(180deg,#fff,#cdd7df 60%,#7d8995);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .hero .sub{margin:22px auto 0;max-width:640px;font-size:clamp(16px,2.4vw,20px);color:#c2ccd4}
-  .hero .sub b{color:var(--text);font-weight:600}
-  .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px}
-  .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;padding:12px 20px;border-radius:10px;
-    border:1px solid var(--line2);color:var(--text);transition:.2s;display:inline-flex;align-items:center;gap:9px}
-  .btn:hover{transform:translateY(-2px)}
-  .btn.gold{background:linear-gradient(180deg,#f0c061,#d99a2e);color:#1a1206;border-color:transparent;font-weight:700;box-shadow:0 8px 30px rgba(232,178,74,.18)}
-  .btn.ghost:hover{border-color:var(--gold);color:var(--gold)}
-  .hero-proof{margin:38px auto 0;max-width:820px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left}
-  @media(max-width:780px){.hero-proof{grid-template-columns:1fr}}
-  .proof{border:1px solid rgba(232,178,74,.38);background:linear-gradient(180deg,rgba(232,178,74,.14),rgba(12,16,22,.72));border-radius:14px;padding:14px 16px;box-shadow:0 12px 34px rgba(232,178,74,.08)}
-  .proof b{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
-  .proof span{display:block;color:#d7e1e8;font-size:13.5px;line-height:1.35}
-  .scrollhint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.2em;animation:bob 2.4s ease-in-out infinite}
-  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
+  /* ---------- opening ---------- */
+  .opening{padding:5.5rem 0 3.5rem;border-bottom:1px solid var(--rule)}
+  h1{font-size:clamp(2.3rem,5.4vw,3.9rem);line-height:1.08;font-weight:400;letter-spacing:-.021em;
+    max-width:19ch;text-wrap:balance}
+  .standfirst{margin-top:1.6rem;max-width:38rem;font-size:1.14rem;line-height:1.62;color:var(--ink-2)}
+  .standfirst strong{color:var(--ink);font-weight:500}
+  .byline{margin-top:2.1rem;display:flex;flex-wrap:wrap;gap:.5rem 1.1rem;align-items:center;
+    font-family:var(--mono);font-size:.74rem;color:var(--ink-3)}
+  .byline .running{display:inline-flex;align-items:center;gap:.4rem;color:var(--live)}
+  .byline .running::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--live)}
 
-  /* ---------- sections ---------- */
-  section{position:relative;padding:84px 0;border-top:1px solid rgba(28,38,46,.6)}
-  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
-  .h2{font-size:clamp(28px,4.4vw,40px);font-weight:800;letter-spacing:.01em;line-height:1.12}
-  .lead{margin-top:18px;max-width:700px;color:#bcc6ce;font-size:17px}
-  .lead b{color:var(--text);font-weight:600}
+  /* ---------- generic section ---------- */
+  section{padding:4.2rem 0;border-bottom:1px solid var(--rule)}
+  h2{font-size:clamp(1.65rem,3.2vw,2.3rem);line-height:1.16;font-weight:400;letter-spacing:-.016em;
+    max-width:24ch;text-wrap:balance}
+  h3{font-size:1.16rem;font-weight:500;line-height:1.35;letter-spacing:-.008em}
+  .say{margin-top:1.1rem;max-width:var(--measure);color:var(--ink-2)}
+  .say + .say{margin-top:1rem}
+  .say strong{color:var(--ink);font-weight:500}
+  .aside{margin-top:1rem;max-width:40rem;font-size:.9rem;line-height:1.62;color:var(--ink-3)}
+  .cite{margin-top:.6rem;font-family:var(--mono);font-size:.72rem;color:var(--ink-3);letter-spacing:.01em}
+  code{font-family:var(--mono);font-size:.8em;background:var(--tint);color:var(--ink);
+    padding:.1em .34em;border-radius:2px}
 
-  /* ---------- pillars ---------- */
-  .pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:36px}
-  .pill{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;transition:.2s}
-  .pill:hover{border-color:var(--line2);transform:translateY(-3px)}
-  .pill .ic{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase}
-  .pill h3{margin-top:12px;font-size:18px;font-weight:700}
-  .pill p{margin-top:8px;color:var(--muted);font-size:14.5px}
-  .research{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:34px;align-items:stretch}
-  @media(max-width:840px){.research{grid-template-columns:1fr}}
-  .research-card{background:linear-gradient(180deg,rgba(12,16,22,.92),rgba(9,12,17,.82));border:1px solid var(--line);border-radius:16px;padding:22px}
-  .research-card h3{font-size:20px;font-weight:800;color:var(--text)}
-  .research-card p{margin-top:10px;color:#aebac4;font-size:14.5px}
-  .stack{display:grid;gap:10px;margin-top:16px}
-  .stack-row{display:grid;grid-template-columns:128px 1fr;gap:12px;align-items:start;border-top:1px solid rgba(38,50,60,.65);padding-top:10px}
-  .stack-row b{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
-  .stack-row span{font-size:13.5px;color:var(--muted)}
-  .plugin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:28px}
-  @media(max-width:960px){.plugin-grid{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:560px){.plugin-grid{grid-template-columns:1fr}}
-  .plugin{background:rgba(8,12,17,.9);border:1px solid var(--line);border-radius:14px;padding:16px;min-height:138px}
-  .plugin strong{display:block;font-size:17px;color:var(--text);margin-bottom:7px}
-  .plugin em{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);font-style:normal;margin-bottom:10px}
-  .plugin p{font-size:13.5px;color:var(--muted);line-height:1.45}
-  .plugin.gold{border-color:rgba(232,178,74,.42);box-shadow:0 0 0 1px rgba(232,178,74,.08) inset}
-  .plugin.green{border-color:rgba(82,201,122,.34)}
-  .plugin.violet{border-color:rgba(155,140,255,.34)}
+  /* ---------- what she does ---------- */
+  .surfaces{margin-top:2.6rem;display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+    border-top:1px solid var(--rule-firm);border-bottom:1px solid var(--rule-firm)}
+  .surfaces div{padding:1.4rem 1.5rem 1.5rem;border-left:1px solid var(--rule)}
+  .surfaces div:first-child{border-left:0;padding-left:0}
+  .surfaces h3{font-weight:500}
+  .surfaces p{margin-top:.5rem;font-size:.95rem;line-height:1.55;color:var(--ink-2)}
+  @media(max-width:760px){
+    .surfaces{grid-template-columns:1fr}
+    .surfaces div{border-left:0;border-top:1px solid var(--rule);padding-left:0;padding-right:0}
+    .surfaces div:first-child{border-top:0}
+  }
 
-  /* ---------- plugin substrate ---------- */
-  .st{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;font-weight:700;
-    letter-spacing:.14em;text-transform:uppercase;border-radius:999px;padding:3px 8px;border:1px solid;white-space:nowrap}
-  .st::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
-  .st.live{color:#9af0bf;border-color:#2f6b48;background:#0e2018}
-  .st.shadow{color:#f0cf8b;border-color:#6b5527;background:#201a0e}
-  .st.off{color:#b6c2cc;border-color:#3a4750;background:#141a20}
-  .st.nodep{color:#f0a49d;border-color:#6b3430;background:#200f0e}
+  /* ---------- the turn: a real sequence, so it is numbered ---------- */
+  .turn{margin-top:2.6rem;counter-reset:step}
+  .step{display:grid;grid-template-columns:2.4rem 13rem 1fr;gap:1.5rem;align-items:baseline;
+    padding:.95rem 0;border-top:1px solid var(--rule)}
+  .step:first-child{border-top:1px solid var(--rule-firm)}
+  .step:last-child{border-bottom:1px solid var(--rule-firm)}
+  .step::before{counter-increment:step;content:counter(step,decimal-leading-zero);
+    font-family:var(--mono);font-size:.74rem;color:var(--ink-3)}
+  .step .hook{font-family:var(--mono);font-size:.79rem;color:var(--ink);line-height:1.5;word-break:break-word}
+  .step.stop .hook{color:var(--absent)}
+  .step .parts{display:flex;flex-wrap:wrap;gap:.35rem .5rem;font-family:var(--mono);font-size:.75rem;
+    color:var(--ink-2)}
+  .step .parts span{white-space:nowrap}
+  .step .parts em{font-style:normal;color:var(--ink-3)}
+  .step.stop .parts span.gate{color:var(--absent)}
+  @media(max-width:780px){
+    .step{grid-template-columns:2.2rem 1fr;gap:.5rem .9rem}
+    .step .parts{grid-column:2}
+  }
 
-  .tl{display:grid;gap:6px;margin-top:30px}
-  .tl-row{display:grid;grid-template-columns:206px 1fr;gap:16px;align-items:start;
-    border-left:2px solid var(--line2);padding:11px 0 11px 18px;position:relative}
-  .tl-row::before{content:"";position:absolute;left:-5px;top:18px;width:8px;height:8px;border-radius:50%;background:var(--cyan)}
-  .tl-row.gate::before{background:var(--red);box-shadow:0 0 0 4px rgba(224,84,75,.14)}
-  .tl-row b{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.02em;word-break:break-word}
-  .tl-row.gate b{color:var(--red)}
-  .tl-row .who{display:flex;flex-wrap:wrap;gap:6px}
-  .chip{font-family:var(--mono);font-size:11.5px;color:var(--muted);border:1px solid var(--line);
-    background:rgba(8,12,17,.8);border-radius:7px;padding:4px 9px}
-  .chip i{font-style:normal;color:var(--dim)}
-  .chip.off{opacity:.5;text-decoration:line-through}
-  @media(max-width:760px){.tl-row{grid-template-columns:1fr;gap:9px}}
+  /* ---------- code ---------- */
+  pre{margin:1.4rem 0 0;padding:1.15rem 1.3rem;background:var(--code);border:1px solid var(--rule);
+    border-left:2px solid var(--rule-firm);overflow-x:auto;font-family:var(--mono);font-size:.775rem;
+    line-height:1.72;color:var(--ink)}
+  pre .c{color:var(--ink-3)}
+  pre .k{color:var(--link)}
+  pre .s{color:var(--live)}
+  pre .f{color:var(--shadow)}
 
-  pre.code{overflow-x:auto;margin:16px 0 0;padding:16px 18px;border:1px solid var(--line);border-radius:12px;
-    background:rgba(3,5,8,.94);font-family:var(--mono);font-size:12.5px;line-height:1.62;color:#cfd9e1}
-  pre.code .c{color:var(--dim)}
-  pre.code .k{color:var(--violet)}
-  pre.code .s{color:var(--green)}
-  pre.code .f{color:var(--gold)}
-  .srcref{margin-top:10px;font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--dim);
-    letter-spacing:.01em;max-width:840px}
-  .srcref code.inl{font-size:.94em}
-  code.inl{font-family:var(--mono);font-size:.92em;color:var(--gold);background:rgba(232,178,74,.09);
-    border:1px solid rgba(232,178,74,.16);border-radius:5px;padding:.05em .36em}
+  /* ---------- kinds: not a sequence, so no numbers ---------- */
+  .kind{padding-top:2.3rem;margin-top:2.3rem;border-top:1px solid var(--rule)}
+  .kind:first-of-type{border-top:1px solid var(--rule-firm)}
+  .kind-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.6rem 1rem}
+  .kind-head .who{font-family:var(--mono);font-size:.73rem;color:var(--ink-3)}
 
-  .kinds{display:grid;gap:14px;margin-top:30px}
-  .kind{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}
-  .kind-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-  .kind-h h3{font-size:19px;font-weight:800}
-  .kind-h .n{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
-  .kind-h .mem{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
-  .kind > p{margin-top:9px;color:var(--muted);font-size:14.5px;max-width:780px}
+  /* ---------- the register ---------- */
+  .register{margin-top:2.4rem;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:40rem}
+  caption{text-align:left;font-size:.88rem;color:var(--ink-3);padding-bottom:.8rem}
+  th{text-align:left;font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--ink-3);
+    padding:0 1rem .6rem 0;border-bottom:1px solid var(--rule-firm)}
+  td{padding:.72rem 1rem .72rem 0;border-bottom:1px solid var(--rule);vertical-align:baseline;
+    font-size:.94rem;color:var(--ink-2)}
+  td.name{font-family:var(--mono);font-size:.8rem;color:var(--ink);white-space:nowrap}
+  td.role{font-family:var(--mono);font-size:.72rem;color:var(--ink-3);white-space:nowrap}
+  tr:last-child td{border-bottom:1px solid var(--rule-firm)}
+  .state{display:inline-block;font-family:var(--mono);font-size:.68rem;padding:.16rem .45rem;
+    border-radius:2px;white-space:nowrap}
+  .state.live{color:var(--live);background:var(--live-bg)}
+  .state.shadow{color:var(--shadow);background:var(--shadow-bg)}
+  .state.idle{color:var(--idle);background:var(--idle-bg)}
+  .state.absent{color:var(--absent);background:var(--absent-bg)}
 
-  .tbl-scroll{overflow-x:auto;margin-top:26px}
-  .roster{width:100%;border-collapse:collapse;font-size:13.5px;min-width:660px}
-  .roster th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--dim);font-weight:700;padding:0 14px 10px 0;border-bottom:1px solid var(--line2)}
-  .roster td{padding:11px 14px 11px 0;border-bottom:1px solid rgba(28,38,46,.55);color:var(--muted);vertical-align:top}
-  .roster td.nm{font-family:var(--mono);color:var(--text);font-weight:600;white-space:nowrap}
-  .roster td.kd{font-family:var(--mono);font-size:11.5px;color:var(--cyan);white-space:nowrap}
+  /* ---------- failures ---------- */
+  .failure{padding:1.6rem 0;border-top:1px solid var(--rule)}
+  .failure:first-of-type{border-top:1px solid var(--rule-firm)}
+  .failure:last-of-type{border-bottom:1px solid var(--rule-firm)}
+  .failure h3{max-width:26ch}
+  .failure p{margin-top:.55rem;max-width:44rem;font-size:.97rem;color:var(--ink-2)}
 
-  .caveat{background:linear-gradient(180deg,rgba(224,84,75,.09),rgba(12,16,22,.86));
-    border:1px solid rgba(224,84,75,.3);border-radius:16px;padding:22px}
-  .caveat .n{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#f0a49d}
-  .caveat h3{margin-top:10px;font-size:19px;font-weight:800;color:#f3b3ad}
-  .caveat p{margin-top:9px;color:#c9d3da;font-size:14.5px}
-  .caveats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}
-  @media(max-width:900px){.caveats{grid-template-columns:1fr}}
+  /* ---------- figures ---------- */
+  .reading{margin-top:2.4rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+    background:var(--rule);border:1px solid var(--rule)}
+  .reading div{background:var(--paper);padding:1.15rem 1.25rem}
+  .reading b{display:block;font-size:1.55rem;font-weight:400;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums}
+  .reading span{display:block;margin-top:.3rem;font-size:.85rem;line-height:1.5;color:var(--ink-3)}
+  @media(max-width:700px){.reading{grid-template-columns:1fr}}
 
-  /* ---------- harness: four jobs ---------- */
-  .flow{display:flex;align-items:stretch;gap:14px;margin-top:34px;flex-wrap:wrap}
-  .endcap{flex:0 0 auto;align-self:center;text-align:center;min-width:118px}
-  .endcap .lab{font-weight:800;letter-spacing:.05em;font-size:14px}
-  .endcap .cap{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.4}
-  .jobs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex:1;min-width:280px}
-  @media(max-width:920px){.jobs{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:560px){.jobs{grid-template-columns:1fr}}
-  .job{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--jc);border-radius:14px;padding:18px}
-  .job .num{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--jc);font-weight:700}
-  .job .prob{margin-top:10px;font-size:13.5px;color:#cdd6dd;border-left:2px solid var(--jc);padding-left:10px;line-height:1.4}
-  .job .verb{margin-top:14px;font-size:24px;font-weight:800;letter-spacing:.02em;color:var(--jc)}
-  .job .mod{margin-top:2px;font-family:var(--mono);font-size:12.5px;color:var(--muted);font-style:italic}
-  .job .did{margin-top:10px;font-size:13px;color:var(--muted)}
+  footer{padding:3rem 0 4rem;color:var(--ink-3);font-size:.9rem}
+  footer p{max-width:42rem}
+  footer .links{margin-top:.9rem;display:flex;flex-wrap:wrap;gap:1rem}
 
-  footer{padding:48px 0 60px;border-top:1px solid rgba(28,38,46,.6);text-align:center;color:var(--dim)}
-  footer .mono{font-size:12px}
-  footer a{color:var(--muted);border-bottom:1px solid transparent;transition:.2s}
-  footer a:hover{color:var(--gold);border-color:var(--gold)}
-  .note{margin-top:16px;font-size:12px;color:var(--dim);max-width:600px;margin-left:auto;margin-right:auto}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 
-<header class="bar">
-  <div class="logo"><b>JUDITH</b><span class="tag">a group agent</span></div>
-  <div class="spacer"></div>
-  <span class="badge"><span class="dot"></span>in production</span>
-  <a class="back" href="/judith/posts/" style="margin-right:14px">Field notes →</a>
-  <a class="back" href="/">← portfolio</a>
+<header class="masthead">
+  <div class="shell">
+    <a class="wordmark" href="/judith/">Judith <span>/ Project Ascent</span></a>
+    <nav>
+      <a href="#turn">How a turn works</a>
+      <a href="#register">The plugins</a>
+      <a href="#failures">Where it failed</a>
+      <a href="/judith/posts/">Field notes</a>
+      <button class="toggle" id="theme" type="button" aria-live="polite">
+        <svg viewBox="0 0 24 24" aria-hidden="true" id="theme-icon"></svg>
+        <span id="theme-label">Day</span>
+      </button>
+    </nav>
+  </div>
 </header>
 
-<!-- ===================== HERO ===================== -->
-<div class="hero">
-  <svg id="spiral" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
-  <div class="vignette"></div>
-  <div class="hero-in">
-    <div class="eyebrow">project ascent · guardrails under measurement</div>
-    <h1>JUDITH</h1>
-    <p class="sub">A <b>group agent in production</b>: one agent across group chats, glasses, memory, and tools — surrounded by <b>21 plugins</b>, each owning exactly one invariant, so a failure resolves to a named stage instead of "the model did not answer."</p>
-    <div class="cta">
-      <a class="btn gold" href="#ascent">How the plugins work</a>
-      <a class="btn ghost" href="#roster">All 21, with load state</a>
-      <a class="btn ghost" href="#limits">What it didn't buy</a>
-    </div>
-    <div class="hero-proof" aria-label="Project Ascent by the numbers">
-      <div class="proof"><b>21 plugins · 19 live</b><span>Each owns one invariant, narrow enough to name, test, and revert on its own.</span></div>
-      <div class="proof"><b>57 days instrumented</b><span>77,919 execution spans, 37 closed self-improvement cycles, a 6,175-fact memory store.</span></div>
-      <div class="proof"><b>attribution, where it works</b><span>Per-tool failure separates from 0.0% over 22,310 exec calls to 42.0% over 348 browser calls. The 2.12% aggregate describes nothing.</span></div>
+<main>
+
+  <div class="opening">
+    <div class="shell">
+      <h1>Judith answers in my family's group chat.</h1>
+      <p class="standfirst">She is a personal AI agent that has run continuously for one user
+        since June 2026 — across WhatsApp threads, email, a job runner and a pair of smart
+        glasses. This page is not about the model. It is about <strong>the layer wrapped around
+        her</strong>: twenty-one plugins that decide what is safe to act on, what is worth
+        remembering, and what is allowed to reach a human being.</p>
+      <p class="byline">
+        <span class="running">Running now</span>
+        <span>Read from the live system on 5 September 2026</span>
+      </p>
     </div>
   </div>
-  <div class="scrollhint">SCROLL</div>
-</div>
 
-<!-- ===================== THE SHIFT ===================== -->
-<section id="shift">
-  <div class="wrap">
-    <div class="kicker">// the shift</div>
-    <h2 class="h2">An agent for one person is a feature.<br>An agent for a group is a new social contract.</h2>
-    <p class="lead">We can build agents today — a model, a loop, a few tools; you can stand one up this afternoon. Almost every one serves <b>one person</b>. Judith serves a group: it answers in the family thread, remembers across collaborators, and speaks first on the glasses. The moment an agent joins a group, it inherits problems a personal one never had — and <b>trust becomes the whole product</b>.</p>
-  </div>
-</section>
-
-<!-- ===================== THE HARNESS ===================== -->
-<section id="harness">
-  <div class="wrap">
-    <div class="kicker">// the harness — four jobs</div>
-    <h2 class="h2">Join a group, and the harness takes on four jobs.</h2>
-    <p class="lead">The original three are still there — guard, memory, route. The paper makes the fourth unavoidable: <b>verify</b>. Judith has to know which evidence and which validator are good enough before a reply reaches the room.</p>
-    <div class="flow">
-      <div class="endcap">
-        <div class="lab">THE GROUP</div>
-        <div class="cap">many people,<br>one or many agents</div>
-      </div>
-      <div class="jobs">
-        <div class="job" style="--jc:var(--red)">
-          <div class="num">Job 1</div>
-          <div class="prob">anyone in it can <b>hijack</b> the agent</div>
-          <div class="verb">GUARD</div>
-          <div class="mod">jataayu</div>
-          <div class="did">vet actions by effect</div>
+  <section id="what">
+    <div class="shell">
+      <h2>An assistant for one person is a feature. An assistant in a room full of people is a
+        different problem.</h2>
+      <p class="say">Judith does not sit behind a chat box waiting to be opened. She is already in
+        the thread. That single change turns ordinary assistant problems into questions about
+        other people: who is allowed to steer her, whose information she is holding, and whether
+        an answer that is correct is also an answer that should be said out loud.</p>
+      <div class="surfaces">
+        <div>
+          <h3>Group threads</h3>
+          <p>She replies in WhatsApp conversations where more than one person can see her, and
+            anyone present can try to redirect her.</p>
         </div>
-        <div class="job" style="--jc:var(--green)">
-          <div class="num">Job 2</div>
-          <div class="prob">it accumulates <b>everyone's</b> memory, forever</div>
-          <div class="verb">MEMORY</div>
-          <div class="mod">smriti</div>
-          <div class="did">keep · validate · forget</div>
+        <div>
+          <h3>Smart glasses</h3>
+          <p>The same agent, speaking only to me. Here she is allowed to start the conversation,
+            because the audience is one person.</p>
         </div>
-        <div class="job" style="--jc:var(--violet)">
-          <div class="num">Job 3</div>
-          <div class="prob">one reply lands in front of <b>many circles</b></div>
-          <div class="verb">ROUTE</div>
-          <div class="mod">whatsapp-identity · surface-contract</div>
-          <div class="did">answer by who's asking</div>
-        </div>
-        <div class="job" style="--jc:var(--cyan)">
-          <div class="num">Job 4</div>
-          <div class="prob">validators fail on <b>different error types</b></div>
-          <div class="verb">VERIFY</div>
-          <div class="mod">semalign · research, not shipped</div>
-          <div class="did">claim → evidence → route → escalate</div>
+        <div>
+          <h3>Background work</h3>
+          <p>Scheduled wakes, mail, health signals and a job board that runs while nobody is
+            asking her anything.</p>
         </div>
       </div>
-      <div class="endcap">
-        <div class="lab">THE ROOM</div>
-        <div class="cap">right answer to<br>the right circle</div>
+    </div>
+  </section>
+
+  <section id="turn">
+    <div class="shell">
+      <h2>One message, end to end.</h2>
+      <p class="say">A turn is not a single call to a model. It is a sequence of stages, and a
+        plugin can attach to any of them. Four stages can stop or rewrite what happens; the rest
+        only observe and write down what they saw. Stages that return a decision run in order of
+        priority, shown after each name.</p>
+      <div class="turn">
+        <div class="step">
+          <div class="hook">message_received</div>
+          <div class="parts"><span>inbound-ledger <em>200</em></span><span>group-capture <em>50</em></span></div>
+        </div>
+        <div class="step stop">
+          <div class="hook">before_dispatch</div>
+          <div class="parts"><span class="gate">group-guard <em>100, enforcing</em></span><span>smriti <em>audience stamp</em></span></div>
+        </div>
+        <div class="step">
+          <div class="hook">before_prompt_build</div>
+          <div class="parts"><span>situation</span><span>avastha</span><span>state-injector</span><span>heartbeat-focus</span><span>smriti</span><span>surface-contract <em>95</em></span><span>whatsapp-identity <em>40</em></span></div>
+        </div>
+        <div class="step stop">
+          <div class="hook">before_agent_run</div>
+          <div class="parts"><span class="gate">jataayu <em>100, enforcing</em></span><span>taint marker <em>10</em></span><span>surface-contract <em>95</em></span></div>
+        </div>
+        <div class="step stop">
+          <div class="hook">before_tool_call</div>
+          <div class="parts"><span class="gate">effect-boundary <em>shadow only</em></span></div>
+        </div>
+        <div class="step">
+          <div class="hook">after_tool_call</div>
+          <div class="parts"><span>sakshi</span><span>tool-return</span></div>
+        </div>
+        <div class="step">
+          <div class="hook">agent_end</div>
+          <div class="parts"><span>smriti <em>forms memories</em></span><span>sakshi</span><span>jataayu <em>clears taint</em></span><span>lane-watchdog</span></div>
+        </div>
+        <div class="step stop">
+          <div class="hook">message_sending</div>
+          <div class="parts"><span class="gate">jataayu outbound <em>100, enforcing</em></span><span>surface-contract <em>80</em></span></div>
+        </div>
       </div>
+      <p class="aside">The four marked stages are the only places anything can be blocked or
+        rewritten. Everything else is a record. That distinction is the whole design: a stage that
+        writes nothing down cannot be blamed for anything later.</p>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===================== ASCENT: THE RULE ===================== -->
-<section id="ascent">
-  <div class="wrap">
-    <div class="kicker">// project ascent · the architectural rule</div>
-    <h2 class="h2">One invariant per plugin.</h2>
-    <p class="lead">Judith is not one program. She is a model surrounded by <b>21 plugins</b>, and each one owns exactly one invariant — narrow enough that a regression can be named, tested, and reverted without weakening the rest of the assistant. The payoff the rule claims is <b>attribution</b>: a user-visible failure should resolve to a decision at a named stage, not to "the model did not answer."</p>
-    <p class="lead" style="margin-top:14px">Ascent is the control plane, not the runtime. The thing that loads a plugin and calls it is the OpenClaw gateway. Ascent holds the source, deploys it with a checksum manifest, checks for drift every 30 minutes, and measures what each plugin did.</p>
-
-    <div class="tl" aria-label="Where plugins attach during one turn">
-      <div class="tl-row"><b>message_received</b><div class="who">
-        <span class="chip">jataayu/inbound-ledger <i>· 200</i></span>
-        <span class="chip">jataayu/group-capture <i>· 50</i></span></div></div>
-      <div class="tl-row gate"><b>before_dispatch</b><div class="who">
-        <span class="chip">jataayu/group-guard <i>· 100 · enforcing</i></span>
-        <span class="chip">smriti <i>· audience stamp</i></span></div></div>
-      <div class="tl-row"><b>before_prompt_build</b><div class="who">
-        <span class="chip">situation</span><span class="chip">avastha</span><span class="chip">state-injector</span>
-        <span class="chip">heartbeat-focus</span><span class="chip">smriti</span>
-        <span class="chip">whatsapp-surface-contract <i>· 95</i></span>
-        <span class="chip">whatsapp-identity <i>· 40</i></span></div></div>
-      <div class="tl-row gate"><b>before_agent_run</b><div class="who">
-        <span class="chip">jataayu gate <i>· 100 · enforcing</i></span>
-        <span class="chip">jataayu taint <i>· 10</i></span>
-        <span class="chip">whatsapp-surface-contract <i>· 95</i></span></div></div>
-      <div class="tl-row gate"><b>before_tool_call</b><div class="who">
-        <span class="chip">jataayu/effect-boundary <i>· shadow</i></span></div></div>
-      <div class="tl-row"><b>after_tool_call · tool_result_persist</b><div class="who">
-        <span class="chip">sakshi</span><span class="chip">jataayu/tool-return</span></div></div>
-      <div class="tl-row"><b>agent_end · session_end</b><div class="who">
-        <span class="chip">smriti <i>· memory formation</i></span><span class="chip">sakshi</span>
-        <span class="chip">jataayu <i>· taint clear</i></span><span class="chip">jataayu/lane-watchdog</span></div></div>
-      <div class="tl-row gate"><b>message_sending</b><div class="who">
-        <span class="chip">jataayu outbound <i>· 100 · enforcing</i></span>
-        <span class="chip">whatsapp-surface-contract <i>· 80</i></span></div></div>
+  <section id="rule">
+    <div class="shell">
+      <h2>Each plugin owns exactly one invariant.</h2>
+      <p class="say">The rule is narrow on purpose. One plugin holds one promise — small enough
+        that when it breaks, the break can be named, tested and undone without touching anything
+        else. What the rule buys is <strong>attribution</strong>. When something goes wrong, the
+        answer should be a specific stage that made a specific decision, not "the model didn't
+        work."</p>
+      <p class="say">The plugins carry Sanskrit names, which is not decoration: <em>jataayu</em> is
+        the bird that fought to protect someone in flight, <em>smriti</em> is memory,
+        <em>sakshi</em> is the witness, <em>drishti</em> is sight. Each name is the invariant.</p>
+      <div class="reading">
+        <div><b>77,919</b><span>recorded steps across 57 days of continuous operation</span></div>
+        <div><b>2.12%</b><span>of tool calls failed — an average that describes no actual tool</span></div>
+        <div><b>0% → 42%</b><span>the real spread, from 22,310 shell commands to 348 browser calls</span></div>
+      </div>
+      <p class="aside">The middle number is the point. Taken alone it is useless. Split by the
+        component that owns each call, the same data separates into one tool that has never failed
+        and another that fails two times in five.</p>
     </div>
-    <p class="srcref">Handlers that can return a decision run sequentially in descending priority. Observation-only handlers run in parallel. Red dots mark the four hooks where a plugin can block or rewrite.</p>
-  </div>
-</section>
+  </section>
 
-<!-- ===================== THE CONTRACT ===================== -->
-<section id="contract">
-  <div class="wrap">
-    <div class="kicker">// the contract</div>
-    <h2 class="h2">A plugin is a manifest and a <code class="inl">register</code> function.</h2>
-    <p class="lead">The manifest is read <b>without executing plugin code</b>, so the gateway can validate configuration and discover tool ownership before it loads anything. A missing or invalid manifest is a plugin error, not a warning.</p>
-
-    <pre class="code"><span class="c">// plugins/disha/openclaw.plugin.json — abridged</span>
+  <section id="contract">
+    <div class="shell">
+      <h2>What a plugin actually is.</h2>
+      <p class="say">Two files. A manifest that can be read <strong>without running any of the
+        plugin's code</strong>, so the system can check its configuration and find out which tools
+        it owns before loading it, and a module that exports a single setup function.</p>
+<pre><span class="c">// the manifest, abridged</span>
 {
   <span class="f">"id"</span>: <span class="s">"disha"</span>,
   <span class="f">"name"</span>: <span class="s">"Disha Model Router"</span>,
-  <span class="f">"kind"</span>: <span class="s">"routing"</span>,
   <span class="f">"activation"</span>: { <span class="f">"onStartup"</span>: <span class="k">true</span> },
-  <span class="f">"contracts"</span>: { <span class="f">"tools"</span>: [<span class="s">"disha_route"</span>, <span class="s">"disha_gate"</span>, <span class="s">"disha_state"</span>] },
-  <span class="f">"configSchema"</span>: {
-    <span class="f">"type"</span>: <span class="s">"object"</span>,
-    <span class="f">"additionalProperties"</span>: <span class="k">false</span>,
-    <span class="f">"properties"</span>: { <span class="f">"enabled"</span>: { <span class="f">"type"</span>: <span class="s">"boolean"</span>, <span class="f">"default"</span>: <span class="k">true</span> } }
-  }
+  <span class="f">"contracts"</span>: { <span class="f">"tools"</span>: [<span class="s">"disha_route"</span>, <span class="s">"disha_gate"</span>] },
+  <span class="f">"configSchema"</span>: { <span class="f">"additionalProperties"</span>: <span class="k">false</span>, … }
 }</pre>
-    <p class="srcref">Two field semantics that bite. <code class="inl">additionalProperties: false</code> means one unrecognised config key rejects the <i>entire</i> config reload — the plugin keeps running on its old config, silently. And <code class="inl">kind</code> is not a taxonomy: only <code class="inl">memory</code> and <code class="inl">context-engine</code> claim a real exclusive slot. Eleven manifests carry decorative values that do nothing.</p>
+      <p class="aside">One setting bites harder than it looks. Because unknown keys are refused,
+        a single misspelled option rejects the whole configuration reload — and the plugin keeps
+        running quietly on its previous settings rather than telling anyone.</p>
+      <p class="say" style="margin-top:2rem">Everything a plugin can do, it does through one object
+        handed to that setup function: attach to a stage, register a tool, read its own settings,
+        write to the log.</p>
+      <p class="aside">There is one genuinely dangerous trap here. Two methods on that object have
+        almost the same name, and only one of them is ever called during a conversation. Register
+        with the wrong one and the plugin loads, reports no error, appears in the inspector — and
+        is never invoked. It looks completely healthy and does nothing.</p>
+    </div>
+  </section>
 
-    <p class="lead" style="margin-top:30px">The module exports <code class="inl">register(api)</code>. Everything a plugin can do, it does through that one object: attach a lifecycle hook, register a tool, read its own config, log.</p>
-    <pre class="code"><span class="k">module</span>.exports = {
-  id: <span class="s">"disha"</span>,
-  name: <span class="s">"Disha Model Router"</span>,
-  register,
-  activate: register,   <span class="c">// beta removed `activate`; export both to load on stable and beta</span>
-};</pre>
-    <p class="srcref">The sharpest trap in the whole system: <code class="inl">api.on()</code> and <code class="inl">api.registerHook()</code> are different registries with misleading names. Only <code class="inl">api.on()</code> is invoked by the conversation path. Register with the wrong one and the plugin loads, reports no diagnostics, shows up in <code class="inl">plugins inspect</code> — and is never called.</p>
-  </div>
-</section>
-
-<!-- ===================== KINDS ===================== -->
-<section id="kinds">
-  <div class="wrap">
-    <div class="kicker">// seven behavioural kinds</div>
-    <h2 class="h2">What a plugin is allowed to do<br>is decided by which hook it takes.</h2>
-    <p class="lead">The manifest's <code class="inl">kind</code> field is decorative. The kinds that matter are behavioural — derived from what each plugin actually registers.</p>
-
-    <div class="kinds">
+  <section id="kinds">
+    <div class="shell">
+      <h2>What a plugin may do is decided by the stage it attaches to.</h2>
+      <p class="say">Seven patterns cover all twenty-one. They are not ranks or steps; they are
+        different jobs.</p>
 
       <div class="kind">
-        <div class="kind-h"><span class="n">kind 01</span><h3>Context injection</h3><span class="mem">situation · avastha · state-injector · heartbeat-focus</span></div>
-        <p>Take <code class="inl">before_prompt_build</code>, return <code class="inl">{ prependContext }</code>. The whole contract is a return value. Note what this example does <i>not</i> do: a stale digest returns nothing rather than a lie, an unidentifiable turn injects nothing rather than guessing, and the live wake path never throws.</p>
-        <pre class="code">api.<span class="f">on</span>(<span class="s">"before_prompt_build"</span>, <span class="k">async</span> (_event, ctx) =&gt; {
+        <div class="kind-head"><h3>Adding context</h3>
+          <div class="who">situation · avastha · state-injector · heartbeat-focus</div></div>
+        <p class="say">Attach before the prompt is assembled and hand back a block of text to put
+          in front of it. Read what this example refuses to do: stale information is dropped rather
+          than passed off as current, a turn it cannot attribute to a person gets nothing at all,
+          and it never throws an error into a live conversation.</p>
+<pre>api.<span class="f">on</span>(<span class="s">"before_prompt_build"</span>, <span class="k">async</span> (_event, ctx) =&gt; {
   <span class="k">try</span> {
-    <span class="c">// LIT-179: gate on the PERSON, not ctx.agentId. Once the per-person</span>
-    <span class="c">// bindings collapsed into one agent, agentId became a constant</span>
-    <span class="c">// and this gate passed for EVERY DM.</span>
-    <span class="k">if</span> (!isOwnerTurn(ctx, { rosterPath: cfg.rosterPath, expect: ownerAgentId })) <span class="k">return</span> undefined;
-    <span class="k">if</span> (isSharedOrPublicCtx(ctx)) <span class="k">return</span> undefined;
+    <span class="c">// Gate on the PERSON, not the agent id. When the per-person</span>
+    <span class="c">// bindings collapsed into one agent, that id became a constant</span>
+    <span class="c">// and this check passed for EVERY direct message.</span>
+    <span class="k">if</span> (!isOwnerTurn(ctx, { expect: ownerAgentId })) <span class="k">return</span> undefined;
+    <span class="k">if</span> (isSharedOrPublicCtx(ctx))                    <span class="k">return</span> undefined;
     <span class="k">const</span> block = readSituationBlock(filePath, staleMs, Date.now());
-    <span class="k">if</span> (!block) <span class="k">return</span> undefined;
+    <span class="k">if</span> (!block)                                     <span class="k">return</span> undefined;
     <span class="k">return</span> { prependContext: block };
   } <span class="k">catch</span> (_) {
-    <span class="k">return</span> undefined; <span class="c">// live wake path: never throw</span>
+    <span class="k">return</span> undefined; <span class="c">// live path: never throw</span>
   }
 });</pre>
-        <p class="srcref">plugins/situation/index.js:158–172</p>
+        <p class="cite">plugins/situation/index.js:158–172</p>
       </div>
 
       <div class="kind">
-        <div class="kind-h"><span class="n">kind 02</span><h3>Gate / enforcement</h3><span class="mem">jataayu + 7 submodules</span></div>
-        <p>Return a decision. <code class="inl">{ outcome: "block" }</code> stops the turn; anything else passes. The guard fails <b>open</b> on every fault — a defect in a guard must not be able to stop Judith from answering.</p>
-        <pre class="code"><span class="k">if</span> (r.risk === <span class="s">"HIGH"</span> &amp;&amp; blockOnInboundHigh) {
+        <div class="kind-head"><h3>Stopping things</h3><div class="who">jataayu, with seven submodules</div></div>
+        <p class="say">Return a verdict. Blocking ends the turn; anything else lets it continue.
+          Note the last few lines: if the guard itself breaks, it lets the message through. A fault
+          in a safety check must not be able to silence the assistant.</p>
+<pre><span class="k">if</span> (risk === <span class="s">"HIGH"</span> &amp;&amp; blockOnInboundHigh) {
   <span class="k">return</span> {
-    outcome: <span class="s">"block"</span>,
-    reason: <span class="s">`jataayu: HIGH prompt-injection risk — ${r.reason}`</span>,
-    message: <span class="s">"Blocked by the Jataayu security guard: this content"</span> +
-             <span class="s">" looks like a prompt-injection attempt."</span>,
+    outcome:  <span class="s">"block"</span>,
+    reason:   <span class="s">`HIGH prompt-injection risk — ${reason}`</span>,
+    message:  <span class="s">"Blocked by the guard: this looks like an injection attempt."</span>,
     category: <span class="s">"prompt-injection"</span>,
   };
 }
 <span class="k">return</span> { outcome: <span class="s">"pass"</span> };
-} <span class="k">catch</span> (_e) {
-  console.error(<span class="s">`[jataayu-gate] error fail-open: ${_e.message}`</span>);
+} <span class="k">catch</span> (e) {
+  console.error(<span class="s">`gate error, failing open: ${e.message}`</span>);
   <span class="k">return</span> { outcome: <span class="s">"pass"</span> };
-}
-}, { priority: <span class="k">100</span> });</pre>
-        <p class="srcref">plugins/jataayu/index.js:594–607</p>
-        <p style="margin-top:16px">The owner bypass reads <b>sender fields only</b>, never message content. Content is attacker-controlled: any external sender could paste the owner's name or number into a message and inherit a never-block bypass. The effect boundary is blunter still — it maps each tool to the effect it really has, because the library resolves unknown tools to <code class="inl">read</code>, which allows. <code class="inl">apply_patch</code> resolved to <code class="inl">read</code> though it writes files; <code class="inl">smriti_remember</code> resolved to <code class="inl">read</code> though it writes memory.</p>
+}</pre>
+        <p class="cite">plugins/jataayu/index.js:594–607</p>
+        <p class="say" style="margin-top:1.4rem">Two decisions inside this guard are worth pulling
+          out. It decides whether a message came from me by looking only at <strong>who sent
+          it</strong>, never at what the message says — otherwise anyone could paste my name into
+          a message and inherit my permissions. And it keeps an explicit list of what each tool
+          really does, because the underlying library treats anything it does not recognise as
+          harmless reading. Under that default, the command that edits files and the command that
+          writes to memory were both classified as reads.</p>
       </div>
 
       <div class="kind">
-        <div class="kind-h"><span class="n">kind 03</span><h3>Tool</h3><span class="mem">disha · gmail · health · sangraha · maestro · upaya · keenable-search · linkedin-connector</span></div>
-        <p>Register a tool, keep no policy in JavaScript. The Node module is a wire adapter that shells out to a Python core, so the CLI, cron, the tests, and the plugin all consume one implementation of the rule.</p>
-        <pre class="code">api.<span class="f">registerTool</span>({
-  name: <span class="s">"disha_route"</span>,
-  description: <span class="s">"Resolve a task shape to the Ascent-owned provider/model choice."</span>,
-  parameters: { type: <span class="s">"object"</span>, additionalProperties: <span class="k">false</span>,
-                required: [<span class="s">"shape"</span>], properties: { <span class="c">/* … */</span> } },
-  <span class="k">async</span> <span class="f">execute</span>(_toolCallId, params) {   <span class="c">// POSITIONAL — params is the 2nd arg</span>
-    <span class="k">const</span> args = [<span class="s">"resolve"</span>, String(params.shape), <span class="s">"--json"</span>];
-    <span class="k">return</span> toolResult(parseJson(<span class="k">await</span> runRoute(cfg, args)));
-  },
-});</pre>
-        <p class="srcref">plugins/disha/index.js:76–107</p>
-        <p style="margin-top:16px">Both details in that signature were real outages. Reading the first argument as the params object binds it to the tool-call id <i>string</i> — so a security guard scanned <code class="inl">""</code> and returned an unconditional "safe". And <code class="inl">execute</code> must resolve to <code class="inl">{content:[…], details}</code>; a bare object lands as <code class="inl">content: undefined</code> and dies in the provider layer. That one broke every Gmail search.</p>
+        <div class="kind-head"><h3>Offering a tool</h3>
+          <div class="who">gmail · health · sangraha · maestro · upaya · keenable · linkedin</div></div>
+        <p class="say">Register a tool and keep no rules inside it. These are thin wrappers that
+          hand the real work to a shared Python program, so the command line, the scheduled jobs,
+          the tests and the assistant all run one copy of the logic instead of four that drift
+          apart.</p>
       </div>
 
       <div class="kind">
-        <div class="kind-h"><span class="n">kind 04</span><h3>Observer</h3><span class="mem">sakshi · lane-watchdog · inbound-ledger</span></div>
-        <p>Take hooks, return nothing, write a ledger. Observers are why attribution works at all: per-tool failure rates only separate because someone wrote the row. Where a plugin emits no ledger, its invariant is unfalsifiable.</p>
+        <div class="kind-head"><h3>Keeping records</h3><div class="who">sakshi · lane-watchdog · inbound-ledger</div></div>
+        <p class="say">Attach, return nothing, write a row. This is the least glamorous kind and
+          the one everything else depends on: the failure rates above exist only because these
+          plugins wrote them down. Where a plugin keeps no record, its promise cannot be checked
+          at all.</p>
       </div>
 
       <div class="kind">
-        <div class="kind-h"><span class="n">kind 05</span><h3>Router / delegation</h3><span class="mem">sarathi <span class="st off">disabled</span></span></div>
-        <p>Claim a turn and re-dispatch it to a sub-session. Registered at priority 10 — deliberately <i>low</i>, so the security gates at 100 settle first. Hooks are first-claim-wins, so a prompt Jataayu would block must never reach the delegator.</p>
+        <div class="kind-head"><h3>Handing off</h3><div class="who">sarathi, currently switched off</div></div>
+        <p class="say">Take a turn and pass it to a separate session. It is deliberately given a
+          low priority so the safety checks settle first — whoever claims a turn first keeps it,
+          and a message the guard would have refused must never reach the part that delegates.</p>
       </div>
 
       <div class="kind">
-        <div class="kind-h"><span class="n">kind 06</span><h3>HTTP surface</h3><span class="mem">drishti</span></div>
-        <p>Register a route under gateway auth instead of a tool. Drishti is the jobs board — every run, why it failed, and a re-run button.</p>
+        <div class="kind-head"><h3>Serving a page</h3><div class="who">drishti</div></div>
+        <p class="say">Offer a web route instead of a tool. Drishti is the job board: every run,
+          why it failed, and a button to run it again.</p>
       </div>
 
       <div class="kind">
-        <div class="kind-h"><span class="n">kind 07</span><h3>Memory plane</h3><span class="mem">smriti</span></div>
-        <p>The one kind that claims a real exclusive manifest slot. Atomic facts with provenance, superseding, and quarantine: 6,175 memories, 1,093 lineage edges, 13 namespaces. Formation runs on <code class="inl">agent_end</code>.</p>
-      </div>
-
-    </div>
-
-    <div class="caveat" style="margin-top:22px">
-      <div class="n">a load-order quirk worth knowing</div>
-      <h3>Five plugins register a tool they do not need.</h3>
-      <p>A hooks-only plugin historically never appeared in the gateway's loaded set. So <code class="inl">situation</code>, <code class="inl">avastha</code>, <code class="inl">state-injector</code>, <code class="inl">heartbeat-focus</code>, and <code class="inl">sakshi</code> each expose a read-only inspection tool purely to make the load deterministic. The injection is the hook, not the tool. Two plugins — the WhatsApp identity and surface-contract pair — register zero tools and declare <code class="inl">contracts.hooks</code> instead, and load fine, so the workaround is not universally required.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== ROSTER ===================== -->
-<section id="roster">
-  <div class="wrap">
-    <div class="kicker">// the roster · verified against live config</div>
-    <h2 class="h2">21 plugins. 19 of them are actually running.</h2>
-    <p class="lead">Load state is a three-way conjunction: the plugin must be on a scanned path, on the allowlist, <i>and</i> have an enabled entry. Missing from any one is fatal and silent. The badges below were read from the running gateway's configuration, not from the documentation.</p>
-    <div class="tbl-scroll">
-      <table class="roster">
-        <thead><tr><th>plugin</th><th>kind</th><th>invariant it owns</th><th>state</th></tr></thead>
-        <tbody>
-          <tr><td class="nm">jataayu</td><td class="kd">gate</td><td>Block the dangerous action, not the scary string — inbound injection, outbound leak, effect boundary.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">smriti</td><td class="kd">memory</td><td>A remembered fact carries its provenance, and can be superseded or quarantined.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">sakshi</td><td class="kd">observer</td><td>Every tool, model, and turn leaves a trace row.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">situation</td><td class="kd">context</td><td>Ambient state is fresh, or it is not injected at all.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">avastha</td><td class="kd">context</td><td>The owner's emotional state reaches the wake prompt.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">state-injector</td><td class="kd">context</td><td>The agent knows what it already sent out of band.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">heartbeat-focus</td><td class="kd">context</td><td>Heartbeat wakes are allocated across topics by quota, not by whim.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">whatsapp-identity</td><td class="kd">hooks</td><td>A group turn is attributed to the person who spoke.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">whatsapp-surface-contract</td><td class="kd">hooks</td><td>What reaches a human channel is rendered, bounded, and free of internal metadata.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">whatsapp-context</td><td class="kd">tool</td><td>Quote context survives delegation to a sub-turn.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">maestro</td><td class="kd">tool</td><td>Work is a job on a board, not an untracked side effect.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">drishti</td><td class="kd">http</td><td>Every run is inspectable, with its failure reason and a re-run.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">upaya</td><td class="kd">tool</td><td>A recurring error resolves to its known remedy.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">sangraha</td><td class="kd">tool</td><td>News, filings, and capital flows enter read-only.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">gmail</td><td class="kd">tool</td><td>Mail is searchable and readable, never writable.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">health</td><td class="kd">tool</td><td>Health signals inform urgency without exposing raw personal data.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">kavacha</td><td class="kd">guard</td><td>Presence maps to a risk posture. Source lives in a separate repo.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">keenable-search</td><td class="kd">tool</td><td>External lookup goes through one narrow surface.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">linkedin-connector</td><td class="kd">tool</td><td>OAuth status and identity, nothing more.</td><td><span class="st live">live</span></td></tr>
-          <tr><td class="nm">sarathi</td><td class="kd">router</td><td>A prompt is classified to a persona lane and delegated.</td><td><span class="st off">disabled</span></td></tr>
-          <tr><td class="nm">disha</td><td class="kd">tool</td><td>A task shape resolves to one provider and model.</td><td><span class="st nodep">not loaded</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="srcref">Also deployed: three retired plugins the deploy script refuses to ship, and ten thin Python adapters for a second agent on a different runtime, which reuse the same shared cores by import instead of by subprocess.</p>
-  </div>
-</section>
-
-<!-- ===================== LIMITS ===================== -->
-<section id="limits">
-  <div class="wrap">
-    <div class="kicker">// what the decomposition did not buy</div>
-    <h2 class="h2">The rule pays off where a plugin writes a ledger.<br>It fails in three ways I did not anticipate.</h2>
-    <p class="lead">Where a plugin records what it did, attribution is real: per-tool failure rates separate from <b>0.0% over 22,310 exec calls</b> to <b>42.0% over 348 browser calls</b>, against a 2.12% tool aggregate that describes no actual component. Last-mile rewrites localised <b>65 structural leaks</b> — 44 raw JSON, 21 internal metadata — that would otherwise have reached a human channel. The failures are the more useful result.</p>
-    <div class="caveats">
-      <div class="caveat">
-        <div class="n">failure 01</div>
-        <h3>Isolating an invariant does not deploy it.</h3>
-        <p>Jataayu's effect boundary is designed, implemented, and running — in <code class="inl">shadow</code>. All 544 effect events are shadow-mode. The guarantee the architecture advertises is not the one in force.</p>
-      </div>
-      <div class="caveat">
-        <div class="n">failure 02</div>
-        <h3>It does not keep it alive.</h3>
-        <p>A component can pass its tests while inert. Disha is byte-clean on disk and absent from every load gate, so the drift verifier reports it healthy while the gateway ignores it entirely.</p>
-      </div>
-      <div class="caveat">
-        <div class="n">failure 03</div>
-        <h3>It does not measure it.</h3>
-        <p>Several plugins emit no telemetry at all. Their invariants cannot be falsified, which means the architecture cannot tell you whether they ever held.</p>
+        <div class="kind-head"><h3>Holding memory</h3><div class="who">smriti</div></div>
+        <p class="say">Facts, each with a record of where it came from, which can be replaced by a
+          better version or quarantined when it looks wrong. Currently 6,175 facts across 13
+          separate namespaces, with 1,093 recorded links between a fact and the one that replaced
+          it. Memories are formed at the end of a turn, not during it.</p>
       </div>
     </div>
-    <p class="srcref" style="margin-top:26px">Numbers from 57 days of execution traces (77,919 spans), 37 closed self-improvement cycles, 2,026 proactive messages, a 6,175-fact memory store, and 21 plugins of which 19 are loaded. Every figure is re-derivable from the live stores with one command.</p>
-  </div>
-</section>
+  </section>
 
-<!-- ===================== RESEARCH ===================== -->
-<section id="research">
-  <div class="wrap">
-    <div class="kicker">// semalign · research framing</div>
-    <h2 class="h2">The next problem is not “does the agent answer?”<br>It is “which validator should be trusted here?”</h2>
-    <p class="lead">PROBE decomposes hallucination detection into claim decomposition, evidence finding, evidence evaluation, and localization. FRANQ separates factuality from faithfulness to retrieved evidence. EAEV, HaMI, HalluGuard, and related work show that detectors specialize. RouteGuard adds the warning: complementarity is not enough unless routing realizes the gain.</p>
-    <div class="research">
-      <div class="research-card">
-        <h3>Judith becomes the system under test.</h3>
-        <p>Project Ascent turns the plugin stack into a measurable assurance loop: every risky answer is evidence, every validator has a failure profile, and escalation is a policy decision rather than a vibe.</p>
-        <div class="stack">
-          <div class="stack-row"><b>decompose</b><span>Break answers into claims before judging the whole response.</span></div>
-          <div class="stack-row"><b>retrieve</b><span>Score whether the right evidence was found, not only whether a judge sounded confident.</span></div>
-          <div class="stack-row"><b>specialize</b><span>Route entity, temporal, numerical, citation, and semantic-drift risks to the validator that actually sees them.</span></div>
-          <div class="stack-row"><b>measure</b><span>Track overlap, conditional recovery, oracle upper bound, realized router gain, cost, latency, and label-noise sensitivity.</span></div>
-        </div>
-      </div>
-      <div class="research-card">
-        <h3>The research bet.</h3>
-        <p>SemAlign's opening is structured error specialization across heterogeneous validators. The contribution is not “one more hallucination detector”; it is the specialization matrix, conditional-recovery map, and cost-aware router that turns a fleet of imperfect validators into a reliable group-agent harness.</p>
+  <section id="register">
+    <div class="shell">
+      <h2>All twenty-one, and whether they are actually running.</h2>
+      <p class="say">Being installed is not the same as being loaded. A plugin has to be on a
+        scanned path, on the permitted list, <em>and</em> switched on. Miss any one and it sits on
+        disk doing nothing, with no warning printed anywhere. The states below were read from the
+        running system rather than from its documentation, which disagrees.</p>
+      <div class="register">
+        <table>
+          <caption>Nineteen of twenty-one are live. The last two are the interesting ones.</caption>
+          <thead>
+            <tr><th scope="col">Plugin</th><th scope="col">Kind</th><th scope="col">The promise it keeps</th><th scope="col">State</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="name">jataayu</td><td class="role">guard</td><td>Stop the dangerous action rather than the alarming sentence.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">smriti</td><td class="role">memory</td><td>Every remembered fact knows where it came from.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">sakshi</td><td class="role">record</td><td>Every tool, model and turn leaves a row behind.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">situation</td><td class="role">context</td><td>Ambient information is current, or it is not used.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">avastha</td><td class="role">context</td><td>How I am doing reaches the prompt.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">state-injector</td><td class="role">context</td><td>She knows what she already sent elsewhere.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">heartbeat-focus</td><td class="role">context</td><td>Scheduled wakes are shared out by quota, not by whim.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">whatsapp-identity</td><td class="role">context</td><td>A reply in a group is attributed to whoever spoke.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">surface-contract</td><td class="role">guard</td><td>What reaches a person is readable, bounded, and free of internal machinery.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">whatsapp-context</td><td class="role">tool</td><td>A quoted message survives being handed to another turn.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">maestro</td><td class="role">tool</td><td>Work is a job on a board, not an invisible side effect.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">drishti</td><td class="role">page</td><td>Every run can be looked at, with its reason for failing.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">upaya</td><td class="role">tool</td><td>A repeat error resolves to the fix that worked last time.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">sangraha</td><td class="role">tool</td><td>News, filings and market data come in read-only.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">gmail</td><td class="role">tool</td><td>Mail can be searched and read, never written.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">health</td><td class="role">tool</td><td>Health signals can affect urgency without being repeated.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">kavacha</td><td class="role">guard</td><td>Where I am maps to how careful she should be.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">keenable-search</td><td class="role">tool</td><td>Outside lookups go through one narrow door.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">linkedin-connector</td><td class="role">tool</td><td>Sign-in status and identity, nothing further.</td><td><span class="state live">live</span></td></tr>
+            <tr><td class="name">sarathi</td><td class="role">handoff</td><td>A request is sorted into a lane and passed on.</td><td><span class="state idle">switched off</span></td></tr>
+            <tr><td class="name">disha</td><td class="role">tool</td><td>A kind of task resolves to one provider and model.</td><td><span class="state absent">never loaded</span></td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===================== GLASSES ===================== -->
-<section id="glasses">
-  <div class="wrap">
-    <div class="kicker">// in your glasses · all day</div>
-    <h2 class="h2">She sees what I see — and speaks first.</h2>
-    <p class="lead">On the glasses, Judith rides along, watches the scene, and <b>speaks first</b> only when it matters — hands-free, and the answer is for me alone. Same agent as the group threads; a different room, with a different rule for who's allowed to hear.</p>
-    <div class="pillars">
-      <div class="pill"><div class="ic">speak first</div><h3>Proactive, not chatty</h3><p>It only opens its mouth when the moment earns it — a marginal road, a signal worth surfacing.</p></div>
-      <div class="pill"><div class="ic">see</div><h3>Through her eyes</h3><p>Continuous point-of-view; she reads the scene and fuses what she already knows about the day.</p></div>
-      <div class="pill"><div class="ic">only I hear it</div><h3>Routed to one circle</h3><p>The glasses answer lands with me and no one else — the same routing job the harness does everywhere.</p></div>
+  <section id="failures">
+    <div class="shell">
+      <h2>Three ways the design failed.</h2>
+      <p class="say">Where a plugin keeps a record, the rule does what it promised. Last-mile
+        checks caught <strong>65 leaks</strong> — 44 raw data structures and 21 pieces of internal
+        machinery — that would otherwise have been sent to a person. But the failures are the more
+        useful half of the result, and none of them was anticipated.</p>
+
+      <div class="failure">
+        <h3>Separating a promise out does not put it into effect.</h3>
+        <p>The check that decides whether a tool is allowed to act is designed, written, deployed
+          and running — in observe-only mode. All 544 of its recorded decisions were rehearsals.
+          The protection the architecture appears to offer is not the protection actually in
+          force, and nothing in the diagram says so.</p>
+      </div>
+
+      <div class="failure">
+        <h3>It does not keep the promise alive.</h3>
+        <p>One plugin is sitting on disk, identical to its source, listed as healthy by the tool
+          that checks for tampering — and has never once been loaded, because it was left off the
+          permitted list. The checker was only ever asking whether the file had changed, not
+          whether anyone was running it.</p>
+      </div>
+
+      <div class="failure">
+        <h3>It does not measure the promise.</h3>
+        <p>Several plugins keep no record at all. Their promises cannot be shown to have held or
+          broken, which means that for those parts of the system the architecture cannot answer
+          the one question it was built to answer.</p>
+      </div>
+
+      <p class="aside">Drawn from 57 days of recorded operation: 77,919 steps, 37 completed
+        self-improvement cycles, 2,026 messages she started herself, and a 6,175-fact memory.
+        Every figure here is regenerated from the live system by a single command, which is the
+        only reason I trust the unflattering ones.</p>
     </div>
-  </div>
-</section>
+  </section>
+
+  <section id="glasses">
+    <div class="shell">
+      <h2>The same agent, in a room of one.</h2>
+      <p class="say">On the glasses Judith is allowed to speak first, because only one person can
+        hear her. Everything else is unchanged: gather the context, decide whether this moment is
+        worth interrupting, and send the answer only to the person entitled to it. The rule that
+        governs a group thread is the same rule; the room is what changed.</p>
+    </div>
+  </section>
+
+</main>
 
 <footer>
-  <div class="wrap">
-    <div class="mono">JUDITH — a group agent by Sai Krishna Rallabandi</div>
-    <div style="margin-top:14px">
-      <a href="/">portfolio</a> &nbsp;·&nbsp;
-      <a href="https://github.com/saikrishnarallabandi">github</a>
+  <div class="shell">
+    <p>Judith and Project Ascent are built and run by Sai Krishna Rallabandi. Companion to the
+      AIEWF 2026 talk <em>Wearing the Agent</em>.</p>
+    <div class="links">
+      <a href="/">Portfolio</a>
+      <a href="/judith/posts/">Field notes</a>
+      <a href="https://github.com/saikrishnarallabandi">GitHub</a>
     </div>
-    <p class="note">Companion to the AIEWF 2026 talk <i>Wearing the Agent</i>. Updated with the SemAlign hallucination-detection literature review: claim/evidence decomposition, validator specialization, and cost-aware escalation are now first-class parts of the harness.</p>
   </div>
 </footer>
 
 <script>
-/* ---- decorative Fermat-spiral starfield, lifted in spirit from the live console ---- */
 (function(){
-  const svg = document.getElementById('spiral');
-  const NS = 'http://www.w3.org/2000/svg';
-  const CX = 500, CY = 470, GOLD = '#e8b24a';
-  const PALETTE = ['#57c7d6','#e8b24a','#9b8cff','#52c97a','#57c7d6','#e8b24a'];
-  const g = document.createElementNS(NS,'g'); svg.appendChild(g);
+  var root = document.documentElement,
+      btn  = document.getElementById('theme'),
+      lab  = document.getElementById('theme-label'),
+      icon = document.getElementById('theme-icon');
 
-  // faint concentric rings
-  for(let r=90;r<=540;r+=90){
-    const c=document.createElementNS(NS,'circle');
-    c.setAttribute('cx',CX);c.setAttribute('cy',CY);c.setAttribute('r',r);
-    c.setAttribute('fill','none');c.setAttribute('stroke','rgba(120,140,158,.08)');
-    c.setAttribute('stroke-width','1');
-    if(r%180===0){c.setAttribute('stroke-dasharray','2 9');c.setAttribute('stroke','rgba(120,140,158,.11)');}
-    g.appendChild(c);
+  var SUN  = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.4v2.3M12 19.3v2.3M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.4 12h2.3M19.3 12h2.3M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>',
+      MOON = '<path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2z"/>';
+
+  function paint(t){
+    root.setAttribute('data-theme', t);
+    var day = t === 'day';
+    icon.innerHTML = day ? SUN : MOON;
+    lab.textContent = day ? 'Day' : 'Night';
+    btn.setAttribute('aria-label', day ? 'Switch to night' : 'Switch to day');
   }
 
-  // spiral nodes (golden angle)
-  const N=120, GA=Math.PI*(3-Math.sqrt(5)), spread=44;
-  const ring=document.createElementNS(NS,'g'); g.appendChild(ring);
-  const nodes=[];
-  for(let i=1;i<=N;i++){
-    const r=spread*Math.sqrt(i), a=i*GA;
-    const x=CX+r*Math.cos(a), y=CY+r*Math.sin(a);
-    if(r>560) continue;
-    const col=PALETTE[i%PALETTE.length];
-    const dot=document.createElementNS(NS,'circle');
-    const rad=Math.max(1.1, 3.4-r/240);
-    dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.setAttribute('r',rad);
-    dot.setAttribute('fill',col);
-    dot.setAttribute('opacity', (0.18+0.62*(1-r/560)).toFixed(2));
-    ring.appendChild(dot); nodes.push({dot,base:+dot.getAttribute('opacity'),ph:Math.random()*6.28});
-    // thin connecting thread to a near neighbor
-    if(i>1 && i%2===0){
-      const p=nodes[Math.max(0,nodes.length-3)];
-      if(p){const ln=document.createElementNS(NS,'line');
-        ln.setAttribute('x1',x);ln.setAttribute('y1',y);
-        ln.setAttribute('x2',+p.dot.getAttribute('cx'));ln.setAttribute('y2',+p.dot.getAttribute('cy'));
-        ln.setAttribute('stroke',col);ln.setAttribute('stroke-width','0.6');
-        ln.setAttribute('opacity','0.10');ring.insertBefore(ln,ring.firstChild);}
-    }
-  }
+  paint(root.getAttribute('data-theme') || 'day');
 
-  // central hub
-  const halo=document.createElementNS(NS,'circle');
-  halo.setAttribute('cx',CX);halo.setAttribute('cy',CY);halo.setAttribute('r',16);
-  halo.setAttribute('fill','none');halo.setAttribute('stroke',GOLD);halo.setAttribute('stroke-width','1.2');
-  halo.setAttribute('opacity','.5');g.appendChild(halo);
-  const hub=document.createElementNS(NS,'circle');
-  hub.setAttribute('cx',CX);hub.setAttribute('cy',CY);hub.setAttribute('r',7);
-  hub.setAttribute('fill',GOLD);g.appendChild(hub);
-
-  let t=0, rot=0;
-  function frame(){
-    t+=0.016; rot+=0.018;
-    ring.setAttribute('transform',`rotate(${rot} ${CX} ${CY})`);
-    const hr=7+Math.sin(t*1.6)*1.6;
-    hub.setAttribute('r',hr.toFixed(2));
-    hub.setAttribute('filter','');
-    halo.setAttribute('r',(16+Math.sin(t*1.6)*4).toFixed(2));
-    halo.setAttribute('opacity',(0.32+0.2*Math.abs(Math.sin(t*1.6))).toFixed(2));
-    for(const n of nodes){
-      n.dot.setAttribute('opacity',(n.base*(0.6+0.4*Math.sin(t*1.2+n.ph))).toFixed(2));
-    }
-    requestAnimationFrame(frame);
-  }
-  // glow on hub via SVG filter
-  const defs=document.createElementNS(NS,'defs');
-  defs.innerHTML='<filter id="glow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
-  svg.insertBefore(defs,svg.firstChild);
-  hub.setAttribute('filter','url(#glow)');
-  requestAnimationFrame(frame);
+  btn.addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'day' ? 'night' : 'day';
+    paint(next);
+    try{ localStorage.setItem('judith-theme', next); }catch(e){}
+  });
 })();
 </script>
+
 <!-- Traffic analytics — GoatCounter (privacy-friendly, cookieless) -->
 <script data-goatcounter="https://srallaba.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
