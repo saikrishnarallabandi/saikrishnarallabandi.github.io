@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Judith — a group agent with a validation harness</title>
-<meta name="description" content="Judith is a group agent by Sai Krishna Rallabandi — one agent across the people and channels I already use, in my glasses all day, and wrapped by Project Ascent: a validation harness for guardrails, memory, routing, evidence, and escalation.">
+<title>Judith — a group agent, and the 21 plugins around her</title>
+<meta name="description" content="Judith is a group agent by Sai Krishna Rallabandi, wrapped by Project Ascent: 21 plugins, one invariant each. The turn loop, the plugin contract, seven behavioural kinds with worked examples, the full roster with real load state, and the three ways the decomposition failed.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600;700&family=Spline+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -98,6 +98,65 @@
   .plugin.green{border-color:rgba(82,201,122,.34)}
   .plugin.violet{border-color:rgba(155,140,255,.34)}
 
+  /* ---------- plugin substrate ---------- */
+  .st{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;font-weight:700;
+    letter-spacing:.14em;text-transform:uppercase;border-radius:999px;padding:3px 8px;border:1px solid;white-space:nowrap}
+  .st::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+  .st.live{color:#9af0bf;border-color:#2f6b48;background:#0e2018}
+  .st.shadow{color:#f0cf8b;border-color:#6b5527;background:#201a0e}
+  .st.off{color:#b6c2cc;border-color:#3a4750;background:#141a20}
+  .st.nodep{color:#f0a49d;border-color:#6b3430;background:#200f0e}
+
+  .tl{display:grid;gap:6px;margin-top:30px}
+  .tl-row{display:grid;grid-template-columns:206px 1fr;gap:16px;align-items:start;
+    border-left:2px solid var(--line2);padding:11px 0 11px 18px;position:relative}
+  .tl-row::before{content:"";position:absolute;left:-5px;top:18px;width:8px;height:8px;border-radius:50%;background:var(--cyan)}
+  .tl-row.gate::before{background:var(--red);box-shadow:0 0 0 4px rgba(224,84,75,.14)}
+  .tl-row b{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.02em;word-break:break-word}
+  .tl-row.gate b{color:var(--red)}
+  .tl-row .who{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-family:var(--mono);font-size:11.5px;color:var(--muted);border:1px solid var(--line);
+    background:rgba(8,12,17,.8);border-radius:7px;padding:4px 9px}
+  .chip i{font-style:normal;color:var(--dim)}
+  .chip.off{opacity:.5;text-decoration:line-through}
+  @media(max-width:760px){.tl-row{grid-template-columns:1fr;gap:9px}}
+
+  pre.code{overflow-x:auto;margin:16px 0 0;padding:16px 18px;border:1px solid var(--line);border-radius:12px;
+    background:rgba(3,5,8,.94);font-family:var(--mono);font-size:12.5px;line-height:1.62;color:#cfd9e1}
+  pre.code .c{color:var(--dim)}
+  pre.code .k{color:var(--violet)}
+  pre.code .s{color:var(--green)}
+  pre.code .f{color:var(--gold)}
+  .srcref{margin-top:10px;font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--dim);
+    letter-spacing:.01em;max-width:840px}
+  .srcref code.inl{font-size:.94em}
+  code.inl{font-family:var(--mono);font-size:.92em;color:var(--gold);background:rgba(232,178,74,.09);
+    border:1px solid rgba(232,178,74,.16);border-radius:5px;padding:.05em .36em}
+
+  .kinds{display:grid;gap:14px;margin-top:30px}
+  .kind{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}
+  .kind-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .kind-h h3{font-size:19px;font-weight:800}
+  .kind-h .n{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+  .kind-h .mem{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+  .kind > p{margin-top:9px;color:var(--muted);font-size:14.5px;max-width:780px}
+
+  .tbl-scroll{overflow-x:auto;margin-top:26px}
+  .roster{width:100%;border-collapse:collapse;font-size:13.5px;min-width:660px}
+  .roster th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--dim);font-weight:700;padding:0 14px 10px 0;border-bottom:1px solid var(--line2)}
+  .roster td{padding:11px 14px 11px 0;border-bottom:1px solid rgba(28,38,46,.55);color:var(--muted);vertical-align:top}
+  .roster td.nm{font-family:var(--mono);color:var(--text);font-weight:600;white-space:nowrap}
+  .roster td.kd{font-family:var(--mono);font-size:11.5px;color:var(--cyan);white-space:nowrap}
+
+  .caveat{background:linear-gradient(180deg,rgba(224,84,75,.09),rgba(12,16,22,.86));
+    border:1px solid rgba(224,84,75,.3);border-radius:16px;padding:22px}
+  .caveat .n{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#f0a49d}
+  .caveat h3{margin-top:10px;font-size:19px;font-weight:800;color:#f3b3ad}
+  .caveat p{margin-top:9px;color:#c9d3da;font-size:14.5px}
+  .caveats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}
+  @media(max-width:900px){.caveats{grid-template-columns:1fr}}
+
   /* ---------- harness: four jobs ---------- */
   .flow{display:flex;align-items:stretch;gap:14px;margin-top:34px;flex-wrap:wrap}
   .endcap{flex:0 0 auto;align-self:center;text-align:center;min-width:118px}
@@ -137,16 +196,16 @@
   <div class="hero-in">
     <div class="eyebrow">project ascent · guardrails under measurement</div>
     <h1>JUDITH</h1>
-    <p class="sub">A <b>validated group agent</b>: one agent across group chats, glasses, memory, and tools — with Project Ascent as a plugin control plane: guard, recall, observe, route, verify, monitor, and adapt.</p>
+    <p class="sub">A <b>group agent in production</b>: one agent across group chats, glasses, memory, and tools — surrounded by <b>21 plugins</b>, each owning exactly one invariant, so a failure resolves to a named stage instead of "the model did not answer."</p>
     <div class="cta">
-      <a class="btn gold" href="#ascent">See the Ascent layer</a>
-      <a class="btn ghost" href="#harness">Guard · Memory · Route</a>
-      <a class="btn ghost" href="#glasses">In the glasses</a>
+      <a class="btn gold" href="#ascent">How the plugins work</a>
+      <a class="btn ghost" href="#roster">All 21, with load state</a>
+      <a class="btn ghost" href="#limits">What it didn't buy</a>
     </div>
-    <div class="hero-proof" aria-label="Project Ascent research framing">
-      <div class="proof"><b>claim → evidence</b><span>Answers are decomposed into verifiable claims instead of judged as a blob.</span></div>
-      <div class="proof"><b>validator routing</b><span>Citation, semantic, entity, temporal, and compact detectors are specialists, not interchangeable judges.</span></div>
-      <div class="proof"><b>measured escalation</b><span>Disagreement, cost, and confidence decide when Judith answers, abstains, or asks for a stronger check.</span></div>
+    <div class="hero-proof" aria-label="Project Ascent by the numbers">
+      <div class="proof"><b>21 plugins · 19 live</b><span>Each owns one invariant, narrow enough to name, test, and revert on its own.</span></div>
+      <div class="proof"><b>52 days instrumented</b><span>70,267 execution spans, 33 closed self-improvement cycles, a 6,175-fact memory store.</span></div>
+      <div class="proof"><b>attribution, where it works</b><span>Per-tool failure separates from 0.0% over 20,760 calls to 50.5% over 275. The 2.13% aggregate describes nothing.</span></div>
     </div>
   </div>
   <div class="scrollhint">SCROLL</div>
@@ -191,14 +250,14 @@
           <div class="num">Job 3</div>
           <div class="prob">one reply lands in front of <b>many circles</b></div>
           <div class="verb">ROUTE</div>
-          <div class="mod">seema</div>
+          <div class="mod">whatsapp-identity · surface-contract</div>
           <div class="did">answer by who's asking</div>
         </div>
         <div class="job" style="--jc:var(--cyan)">
           <div class="num">Job 4</div>
           <div class="prob">validators fail on <b>different error types</b></div>
           <div class="verb">VERIFY</div>
-          <div class="mod">ascent · semalign</div>
+          <div class="mod">semalign · research, not shipped</div>
           <div class="did">claim → evidence → route → escalate</div>
         </div>
       </div>
@@ -210,26 +269,238 @@
   </div>
 </section>
 
-<!-- ===================== ASCENT ===================== -->
+<!-- ===================== ASCENT: THE RULE ===================== -->
 <section id="ascent">
   <div class="wrap">
-    <div class="kicker">// project ascent · plugin control plane</div>
-    <h2 class="h2">The paper's point is bigger than one guardrail.<br>Judith already has the pieces of a validator operating system.</h2>
-    <p class="lead">Recent hallucination-detection work says reliability comes from structured verification: claims, evidence, detector specialization, abstention, benchmark-noise checks, and routing. In Judith, those are not a paragraph of theory — they map onto a real plugin stack around the agent.</p>
-    <div class="plugin-grid" aria-label="Project Ascent plugins">
-      <div class="plugin gold"><em>security</em><strong>Jataayu</strong><p>Effect-based inbound and outbound guardrails: block the dangerous action, not the scary string.</p></div>
-      <div class="plugin gold"><em>memory</em><strong>Smriti</strong><p>Atomic, provenance-backed recall with consolidation and forgetting, so group memory can be trusted.</p></div>
-      <div class="plugin gold"><em>routing</em><strong>Disha + Sarathi</strong><p>Model and persona routing: pick the right lane, keep foreground chat responsive, escalate heavy work.</p></div>
-      <div class="plugin gold"><em>verification</em><strong>SemAlign</strong><p>Validator specialization: citation, semantic integrity, entity, temporal, numeric, and learned detectors.</p></div>
-      <div class="plugin green"><em>observability</em><strong>Sakshi</strong><p>Witness every tool, model, and turn so failures become measurable evidence rather than anecdotes.</p></div>
-      <div class="plugin green"><em>liveness</em><strong>Upaya</strong><p>Find dark, stuck, or failing surfaces across the fleet and connect recurring defects to known remedies.</p></div>
-      <div class="plugin green"><em>state</em><strong>Situation + Avastha</strong><p>Fresh ambient context — calendar, presence, health, mood, and response guidance — with stale-state discipline.</p></div>
-      <div class="plugin green"><em>surfaces</em><strong>WhatsApp stack</strong><p>Identity, quote context, and final visible rendering so group replies are attributed, clean, and safe.</p></div>
-      <div class="plugin violet"><em>context</em><strong>Sangraha</strong><p>News, filings, markets, capital flows, and insight memory as read-only evidence channels.</p></div>
-      <div class="plugin violet"><em>personal signals</em><strong>Gmail + Health</strong><p>Private read-only signals that can inform urgency without leaking raw personal data.</p></div>
-      <div class="plugin violet"><em>control plane</em><strong>Maestro + Drishti</strong><p>Jobs, steering, run status, and failure review: the agent's work becomes inspectable.</p></div>
-      <div class="plugin violet"><em>search</em><strong>Keenable + LinkedIn</strong><p>External lookup connectors for evidence gathering and opportunity sensing through narrow tool surfaces.</p></div>
+    <div class="kicker">// project ascent · the architectural rule</div>
+    <h2 class="h2">One invariant per plugin.</h2>
+    <p class="lead">Judith is not one program. She is a model surrounded by <b>21 plugins</b>, and each one owns exactly one invariant — narrow enough that a regression can be named, tested, and reverted without weakening the rest of the assistant. The payoff the rule claims is <b>attribution</b>: a user-visible failure should resolve to a decision at a named stage, not to "the model did not answer."</p>
+    <p class="lead" style="margin-top:14px">Ascent is the control plane, not the runtime. The thing that loads a plugin and calls it is the OpenClaw gateway. Ascent holds the source, deploys it with a checksum manifest, checks for drift every 30 minutes, and measures what each plugin did.</p>
+
+    <div class="tl" aria-label="Where plugins attach during one turn">
+      <div class="tl-row"><b>message_received</b><div class="who">
+        <span class="chip">jataayu/inbound-ledger <i>· 200</i></span>
+        <span class="chip">jataayu/group-capture <i>· 50</i></span></div></div>
+      <div class="tl-row gate"><b>before_dispatch</b><div class="who">
+        <span class="chip">jataayu/group-guard <i>· 100 · enforcing</i></span>
+        <span class="chip">smriti <i>· audience stamp</i></span></div></div>
+      <div class="tl-row"><b>before_prompt_build</b><div class="who">
+        <span class="chip">situation</span><span class="chip">avastha</span><span class="chip">state-injector</span>
+        <span class="chip">heartbeat-focus</span><span class="chip">smriti</span>
+        <span class="chip">whatsapp-surface-contract <i>· 95</i></span>
+        <span class="chip">whatsapp-identity <i>· 40</i></span></div></div>
+      <div class="tl-row gate"><b>before_agent_run</b><div class="who">
+        <span class="chip">jataayu gate <i>· 100 · enforcing</i></span>
+        <span class="chip">jataayu taint <i>· 10</i></span>
+        <span class="chip">whatsapp-surface-contract <i>· 95</i></span></div></div>
+      <div class="tl-row gate"><b>before_tool_call</b><div class="who">
+        <span class="chip">jataayu/effect-boundary <i>· shadow</i></span></div></div>
+      <div class="tl-row"><b>after_tool_call · tool_result_persist</b><div class="who">
+        <span class="chip">sakshi</span><span class="chip">jataayu/tool-return</span></div></div>
+      <div class="tl-row"><b>agent_end · session_end</b><div class="who">
+        <span class="chip">smriti <i>· memory formation</i></span><span class="chip">sakshi</span>
+        <span class="chip">jataayu <i>· taint clear</i></span><span class="chip">jataayu/lane-watchdog</span></div></div>
+      <div class="tl-row gate"><b>message_sending</b><div class="who">
+        <span class="chip">jataayu outbound <i>· 100 · enforcing</i></span>
+        <span class="chip">whatsapp-surface-contract <i>· 80</i></span></div></div>
     </div>
+    <p class="srcref">Handlers that can return a decision run sequentially in descending priority. Observation-only handlers run in parallel. Red dots mark the four hooks where a plugin can block or rewrite.</p>
+  </div>
+</section>
+
+<!-- ===================== THE CONTRACT ===================== -->
+<section id="contract">
+  <div class="wrap">
+    <div class="kicker">// the contract</div>
+    <h2 class="h2">A plugin is a manifest and a <code class="inl">register</code> function.</h2>
+    <p class="lead">The manifest is read <b>without executing plugin code</b>, so the gateway can validate configuration and discover tool ownership before it loads anything. A missing or invalid manifest is a plugin error, not a warning.</p>
+
+    <pre class="code"><span class="c">// plugins/disha/openclaw.plugin.json — abridged</span>
+{
+  <span class="f">"id"</span>: <span class="s">"disha"</span>,
+  <span class="f">"name"</span>: <span class="s">"Disha Model Router"</span>,
+  <span class="f">"kind"</span>: <span class="s">"routing"</span>,
+  <span class="f">"activation"</span>: { <span class="f">"onStartup"</span>: <span class="k">true</span> },
+  <span class="f">"contracts"</span>: { <span class="f">"tools"</span>: [<span class="s">"disha_route"</span>, <span class="s">"disha_gate"</span>, <span class="s">"disha_state"</span>] },
+  <span class="f">"configSchema"</span>: {
+    <span class="f">"type"</span>: <span class="s">"object"</span>,
+    <span class="f">"additionalProperties"</span>: <span class="k">false</span>,
+    <span class="f">"properties"</span>: { <span class="f">"enabled"</span>: { <span class="f">"type"</span>: <span class="s">"boolean"</span>, <span class="f">"default"</span>: <span class="k">true</span> } }
+  }
+}</pre>
+    <p class="srcref">Two field semantics that bite. <code class="inl">additionalProperties: false</code> means one unrecognised config key rejects the <i>entire</i> config reload — the plugin keeps running on its old config, silently. And <code class="inl">kind</code> is not a taxonomy: only <code class="inl">memory</code> and <code class="inl">context-engine</code> claim a real exclusive slot. Eleven manifests carry decorative values that do nothing.</p>
+
+    <p class="lead" style="margin-top:30px">The module exports <code class="inl">register(api)</code>. Everything a plugin can do, it does through that one object: attach a lifecycle hook, register a tool, read its own config, log.</p>
+    <pre class="code"><span class="k">module</span>.exports = {
+  id: <span class="s">"disha"</span>,
+  name: <span class="s">"Disha Model Router"</span>,
+  register,
+  activate: register,   <span class="c">// beta removed `activate`; export both to load on stable and beta</span>
+};</pre>
+    <p class="srcref">The sharpest trap in the whole system: <code class="inl">api.on()</code> and <code class="inl">api.registerHook()</code> are different registries with misleading names. Only <code class="inl">api.on()</code> is invoked by the conversation path. Register with the wrong one and the plugin loads, reports no diagnostics, shows up in <code class="inl">plugins inspect</code> — and is never called.</p>
+  </div>
+</section>
+
+<!-- ===================== KINDS ===================== -->
+<section id="kinds">
+  <div class="wrap">
+    <div class="kicker">// seven behavioural kinds</div>
+    <h2 class="h2">What a plugin is allowed to do<br>is decided by which hook it takes.</h2>
+    <p class="lead">The manifest's <code class="inl">kind</code> field is decorative. The kinds that matter are behavioural — derived from what each plugin actually registers.</p>
+
+    <div class="kinds">
+
+      <div class="kind">
+        <div class="kind-h"><span class="n">kind 01</span><h3>Context injection</h3><span class="mem">situation · avastha · state-injector · heartbeat-focus</span></div>
+        <p>Take <code class="inl">before_prompt_build</code>, return <code class="inl">{ prependContext }</code>. The whole contract is a return value. Note what this example does <i>not</i> do: a stale digest returns nothing rather than a lie, an unidentifiable turn injects nothing rather than guessing, and the live wake path never throws.</p>
+        <pre class="code">api.<span class="f">on</span>(<span class="s">"before_prompt_build"</span>, <span class="k">async</span> (_event, ctx) =&gt; {
+  <span class="k">try</span> {
+    <span class="c">// LIT-179: gate on the PERSON, not ctx.agentId. Once the per-person</span>
+    <span class="c">// bindings collapsed into one agent, agentId became a constant</span>
+    <span class="c">// and this gate passed for EVERY DM.</span>
+    <span class="k">if</span> (!isOwnerTurn(ctx, { rosterPath: cfg.rosterPath, expect: ownerAgentId })) <span class="k">return</span> undefined;
+    <span class="k">if</span> (isSharedOrPublicCtx(ctx)) <span class="k">return</span> undefined;
+    <span class="k">const</span> block = readSituationBlock(filePath, staleMs, Date.now());
+    <span class="k">if</span> (!block) <span class="k">return</span> undefined;
+    <span class="k">return</span> { prependContext: block };
+  } <span class="k">catch</span> (_) {
+    <span class="k">return</span> undefined; <span class="c">// live wake path: never throw</span>
+  }
+});</pre>
+        <p class="srcref">plugins/situation/index.js:158–172</p>
+      </div>
+
+      <div class="kind">
+        <div class="kind-h"><span class="n">kind 02</span><h3>Gate / enforcement</h3><span class="mem">jataayu + 7 submodules</span></div>
+        <p>Return a decision. <code class="inl">{ outcome: "block" }</code> stops the turn; anything else passes. The guard fails <b>open</b> on every fault — a defect in a guard must not be able to stop Judith from answering.</p>
+        <pre class="code"><span class="k">if</span> (r.risk === <span class="s">"HIGH"</span> &amp;&amp; blockOnInboundHigh) {
+  <span class="k">return</span> {
+    outcome: <span class="s">"block"</span>,
+    reason: <span class="s">`jataayu: HIGH prompt-injection risk — ${r.reason}`</span>,
+    message: <span class="s">"Blocked by the Jataayu security guard: this content"</span> +
+             <span class="s">" looks like a prompt-injection attempt."</span>,
+    category: <span class="s">"prompt-injection"</span>,
+  };
+}
+<span class="k">return</span> { outcome: <span class="s">"pass"</span> };
+} <span class="k">catch</span> (_e) {
+  console.error(<span class="s">`[jataayu-gate] error fail-open: ${_e.message}`</span>);
+  <span class="k">return</span> { outcome: <span class="s">"pass"</span> };
+}
+}, { priority: <span class="k">100</span> });</pre>
+        <p class="srcref">plugins/jataayu/index.js:594–607</p>
+        <p style="margin-top:16px">The owner bypass reads <b>sender fields only</b>, never message content. Content is attacker-controlled: any external sender could paste the owner's name or number into a message and inherit a never-block bypass. The effect boundary is blunter still — it maps each tool to the effect it really has, because the library resolves unknown tools to <code class="inl">read</code>, which allows. <code class="inl">apply_patch</code> resolved to <code class="inl">read</code> though it writes files; <code class="inl">smriti_remember</code> resolved to <code class="inl">read</code> though it writes memory.</p>
+      </div>
+
+      <div class="kind">
+        <div class="kind-h"><span class="n">kind 03</span><h3>Tool</h3><span class="mem">disha · gmail · health · sangraha · maestro · upaya · keenable-search · linkedin-connector</span></div>
+        <p>Register a tool, keep no policy in JavaScript. The Node module is a wire adapter that shells out to a Python core, so the CLI, cron, the tests, and the plugin all consume one implementation of the rule.</p>
+        <pre class="code">api.<span class="f">registerTool</span>({
+  name: <span class="s">"disha_route"</span>,
+  description: <span class="s">"Resolve a task shape to the Ascent-owned provider/model choice."</span>,
+  parameters: { type: <span class="s">"object"</span>, additionalProperties: <span class="k">false</span>,
+                required: [<span class="s">"shape"</span>], properties: { <span class="c">/* … */</span> } },
+  <span class="k">async</span> <span class="f">execute</span>(_toolCallId, params) {   <span class="c">// POSITIONAL — params is the 2nd arg</span>
+    <span class="k">const</span> args = [<span class="s">"resolve"</span>, String(params.shape), <span class="s">"--json"</span>];
+    <span class="k">return</span> toolResult(parseJson(<span class="k">await</span> runRoute(cfg, args)));
+  },
+});</pre>
+        <p class="srcref">plugins/disha/index.js:76–107</p>
+        <p style="margin-top:16px">Both details in that signature were real outages. Reading the first argument as the params object binds it to the tool-call id <i>string</i> — so a security guard scanned <code class="inl">""</code> and returned an unconditional "safe". And <code class="inl">execute</code> must resolve to <code class="inl">{content:[…], details}</code>; a bare object lands as <code class="inl">content: undefined</code> and dies in the provider layer. That one broke every Gmail search.</p>
+      </div>
+
+      <div class="kind">
+        <div class="kind-h"><span class="n">kind 04</span><h3>Observer</h3><span class="mem">sakshi · lane-watchdog · inbound-ledger</span></div>
+        <p>Take hooks, return nothing, write a ledger. Observers are why attribution works at all: per-tool failure rates only separate because someone wrote the row. Where a plugin emits no ledger, its invariant is unfalsifiable.</p>
+      </div>
+
+      <div class="kind">
+        <div class="kind-h"><span class="n">kind 05</span><h3>Router / delegation</h3><span class="mem">sarathi <span class="st off">disabled</span></span></div>
+        <p>Claim a turn and re-dispatch it to a sub-session. Registered at priority 10 — deliberately <i>low</i>, so the security gates at 100 settle first. Hooks are first-claim-wins, so a prompt Jataayu would block must never reach the delegator.</p>
+      </div>
+
+      <div class="kind">
+        <div class="kind-h"><span class="n">kind 06</span><h3>HTTP surface</h3><span class="mem">drishti</span></div>
+        <p>Register a route under gateway auth instead of a tool. Drishti is the jobs board — every run, why it failed, and a re-run button.</p>
+      </div>
+
+      <div class="kind">
+        <div class="kind-h"><span class="n">kind 07</span><h3>Memory plane</h3><span class="mem">smriti</span></div>
+        <p>The one kind that claims a real exclusive manifest slot. Atomic facts with provenance, superseding, and quarantine: 6,175 memories, 1,093 lineage edges, 13 namespaces. Formation runs on <code class="inl">agent_end</code>.</p>
+      </div>
+
+    </div>
+
+    <div class="caveat" style="margin-top:22px">
+      <div class="n">a load-order quirk worth knowing</div>
+      <h3>Five plugins register a tool they do not need.</h3>
+      <p>A hooks-only plugin historically never appeared in the gateway's loaded set. So <code class="inl">situation</code>, <code class="inl">avastha</code>, <code class="inl">state-injector</code>, <code class="inl">heartbeat-focus</code>, and <code class="inl">sakshi</code> each expose a read-only inspection tool purely to make the load deterministic. The injection is the hook, not the tool. Two plugins — the WhatsApp identity and surface-contract pair — register zero tools and declare <code class="inl">contracts.hooks</code> instead, and load fine, so the workaround is not universally required.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ROSTER ===================== -->
+<section id="roster">
+  <div class="wrap">
+    <div class="kicker">// the roster · verified against live config</div>
+    <h2 class="h2">21 plugins. 19 of them are actually running.</h2>
+    <p class="lead">Load state is a three-way conjunction: the plugin must be on a scanned path, on the allowlist, <i>and</i> have an enabled entry. Missing from any one is fatal and silent. The badges below were read from the running gateway's configuration, not from the documentation.</p>
+    <div class="tbl-scroll">
+      <table class="roster">
+        <thead><tr><th>plugin</th><th>kind</th><th>invariant it owns</th><th>state</th></tr></thead>
+        <tbody>
+          <tr><td class="nm">jataayu</td><td class="kd">gate</td><td>Block the dangerous action, not the scary string — inbound injection, outbound leak, effect boundary.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">smriti</td><td class="kd">memory</td><td>A remembered fact carries its provenance, and can be superseded or quarantined.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">sakshi</td><td class="kd">observer</td><td>Every tool, model, and turn leaves a trace row.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">situation</td><td class="kd">context</td><td>Ambient state is fresh, or it is not injected at all.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">avastha</td><td class="kd">context</td><td>The owner's emotional state reaches the wake prompt.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">state-injector</td><td class="kd">context</td><td>The agent knows what it already sent out of band.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">heartbeat-focus</td><td class="kd">context</td><td>Heartbeat wakes are allocated across topics by quota, not by whim.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">whatsapp-identity</td><td class="kd">hooks</td><td>A group turn is attributed to the person who spoke.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">whatsapp-surface-contract</td><td class="kd">hooks</td><td>What reaches a human channel is rendered, bounded, and free of internal metadata.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">whatsapp-context</td><td class="kd">tool</td><td>Quote context survives delegation to a sub-turn.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">maestro</td><td class="kd">tool</td><td>Work is a job on a board, not an untracked side effect.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">drishti</td><td class="kd">http</td><td>Every run is inspectable, with its failure reason and a re-run.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">upaya</td><td class="kd">tool</td><td>A recurring error resolves to its known remedy.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">sangraha</td><td class="kd">tool</td><td>News, filings, and capital flows enter read-only.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">gmail</td><td class="kd">tool</td><td>Mail is searchable and readable, never writable.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">health</td><td class="kd">tool</td><td>Health signals inform urgency without exposing raw personal data.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">kavacha</td><td class="kd">guard</td><td>Presence maps to a risk posture. Source lives in a separate repo.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">keenable-search</td><td class="kd">tool</td><td>External lookup goes through one narrow surface.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">linkedin-connector</td><td class="kd">tool</td><td>OAuth status and identity, nothing more.</td><td><span class="st live">live</span></td></tr>
+          <tr><td class="nm">sarathi</td><td class="kd">router</td><td>A prompt is classified to a persona lane and delegated.</td><td><span class="st off">disabled</span></td></tr>
+          <tr><td class="nm">disha</td><td class="kd">tool</td><td>A task shape resolves to one provider and model.</td><td><span class="st nodep">not loaded</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="srcref">Also deployed: three retired plugins the deploy script refuses to ship, and ten thin Python adapters for a second agent on a different runtime, which reuse the same shared cores by import instead of by subprocess.</p>
+  </div>
+</section>
+
+<!-- ===================== LIMITS ===================== -->
+<section id="limits">
+  <div class="wrap">
+    <div class="kicker">// what the decomposition did not buy</div>
+    <h2 class="h2">The rule pays off where a plugin writes a ledger.<br>It fails in three ways I did not anticipate.</h2>
+    <p class="lead">Where a plugin records what it did, attribution is real: per-tool failure rates separate from <b>0.0% over 20,760 calls</b> to <b>50.5% over 275</b>, against a 2.13% aggregate that describes no actual component. Last-mile rewrites localised <b>60 structural leaks</b> that would otherwise have reached a human channel. The failures are the more useful result.</p>
+    <div class="caveats">
+      <div class="caveat">
+        <div class="n">failure 01</div>
+        <h3>Isolating an invariant does not deploy it.</h3>
+        <p>Jataayu's effect boundary is designed, implemented, and running — in <code class="inl">shadow</code>. All 376 effect events are shadow-mode. The guarantee the architecture advertises is not the one in force.</p>
+      </div>
+      <div class="caveat">
+        <div class="n">failure 02</div>
+        <h3>It does not keep it alive.</h3>
+        <p>A component can pass its tests while inert. Disha is byte-clean on disk and absent from every load gate, so the drift verifier reports it healthy while the gateway ignores it entirely.</p>
+      </div>
+      <div class="caveat">
+        <div class="n">failure 03</div>
+        <h3>It does not measure it.</h3>
+        <p>Several plugins emit no telemetry at all. Their invariants cannot be falsified, which means the architecture cannot tell you whether they ever held.</p>
+      </div>
+    </div>
+    <p class="srcref" style="margin-top:26px">Numbers from 52 days of execution traces (70,267 spans), 33 closed self-improvement cycles, 1,906 proactive messages, a 6,175-fact memory store, and 21 live plugins. Every figure is re-derivable from the live stores with one command.</p>
   </div>
 </section>
 
