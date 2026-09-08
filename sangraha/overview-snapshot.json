@@ -1,0 +1,95 @@
+{
+  "checked_at": "2026-09-08T22:13:16.624638+00:00",
+  "records": 1133087,
+  "news_records": 1123946,
+  "stories": 78676,
+  "story_activity": {
+    "active": 702,
+    "dormant": 1549,
+    "merged": 760,
+    "retired": 75665
+  },
+  "narrative_activity": {
+    "active": 20,
+    "retired": 745
+  },
+  "written_narratives": 765,
+  "candidate_activity": {
+    "active": 52,
+    "retired": 405
+  },
+  "candidates": 457,
+  "example": {
+    "narrative": {
+      "title": "EU actors are responding to Chinese competitive pressure with consultations, procurement proposals, and job-loss warnings",
+      "thesis": "EU officials are consulting corporate leaders about the costs of decoupling from China while the EU considers procurement rules aimed at excluding Chinese suppliers. An industry body also warns that Chinese competition could cause substantial EU manufacturing job losses in the remainder of 2026.",
+      "falsifier": "EU officials abandon the consultations, procurement proposals do not concern Chinese suppliers, and the reported manufacturing job-loss warning is withdrawn or shown to concern a different competitive pressure.",
+      "member_count": 3
+    },
+    "stories": [
+      {
+        "title": "EU Trade Chief Engages CEOs on China Decoupling Costs",
+        "hypothesis": "The EU trade chief is initiating direct consultations with corporate leaders to quantify the economic feasibility of decoupling from China, signaling a shift from policy rhetoric to practical cost assessment for European businesses.",
+        "label": "Business consultations",
+        "sources": [
+          {
+            "title": "EU trade chief to meet CEOs over China strategy - politico.eu",
+            "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOaWtudVNmS3RIb25nVW5rRjdiNTIyYm1xX2t5Z3dMNzliZW9YdDA5eFpmVEdNUXlQS0lRckMwbW1hN1JkcEtQdGRzZllBZHVfRldzV3ZMYzRDU1hXeTc1RTUwRmRKVlR4UFl0SXh5empPQU1uOWYxR2pCU3VSZnJBRmo2Nk5PRXVWZHp5MlFKbFlGb0wzVm55bXFnTQ?oc=5",
+            "source": "Politico"
+          },
+          {
+            "title": "EU trade chief will ask CEOs how much decoupling from China they can afford - The Next Web",
+            "url": "https://news.google.com/rss/articles/CBMie0FVX3lxTE5nQm9CbC1aTXBSR1doNDZFNGZKYkJiR1V6OVU3YjRsSnJib2FsX2s0bS0wSnc1RkVtTEZfa0J2Vmt4QmFuMXF4d1YwMDNRWV8xczhRQnF0U09LSTBGSDBMeWFjVUYtVmlZVkhWVUFobmhLVk5oUEt4cFlxYw?oc=5",
+            "source": "The Next Web"
+          }
+        ]
+      },
+      {
+        "title": "EU Proposes Anti-China Public Procurement Rules",
+        "hypothesis": "The European Union is formalizing 'Buy European' procurement policies to explicitly exclude Chinese suppliers from public contracts, signaling a strategic decoupling in infrastructure and technology sectors. This regulatory shift aims to protect European industries from state-subsidized competition, potentially increasing costs for EU projects but strengthening domestic supply chains.",
+        "label": "Procurement proposals",
+        "sources": [
+          {
+            "title": "EU to table ‘Buy European’ public procurement rules to push out China - Financial Times",
+            "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNaXQ3QlRIUVVWMFNsQ0M1b2ZyRDJrdG9rUWx6bU1LWmpkNzgtZE5BdUsxbXRqS2Z6dG5oVFlXcEhKS1hBd1pmTmlkT0pnaFcwNDRWYzVoUkJIWGVfeXBwWWliM1d4TWpWa2ZHZ1VneXhueHpWaFZ4NV91SURuYjlJck9qaHY?oc=5",
+            "source": "Financial Times"
+          },
+          {
+            "title": "Brussels floats EU anti-China procurement rules - euractiv.com",
+            "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQWnp1NGJzM0U1RVlYY0tpNDYzWUptbGxEX2R2OGs5MlNOa1dBdXlOSV94aUlYc0pMZDRkVnd6S2FuRnBqaVhBUzJ3TXlPbFJZSlF2VXBiZFhjbWV0MlFKV2FGZm1tRFloZ2Q4cDE1VlZZUlpPVjZ1bDZ3U0E5dGo0UmJsVUw?oc=5",
+            "source": "Euractiv"
+          }
+        ]
+      },
+      {
+        "title": "EU Manufacturing Faces 300k Job Cuts Amid Chinese Competition",
+        "hypothesis": "Eurometal warns that Chinese component manufacturers are 'colonising' EU supply chains, leading to 300,000 projected manufacturing job losses in the remainder of 2026. This narrative highlights a structural trade imbalance and industrial policy failure rather than a specific corporate event, suggesting broader macroeconomic headwinds for European industrial sectors.",
+        "label": "Industry warning",
+        "sources": [
+          {
+            "title": "EU faces 300,000 factory job cuts as China ‘colonises’ supply chains, industry warns",
+            "url": "https://www.theguardian.com/business/2026/sep/06/eu-factory-job-cuts-china-colonises-supply-chains-industry-warns",
+            "source": "The Guardian"
+          },
+          {
+            "title": "Eurometal forecasts 300,000 industrial job cuts in the EU - UA.NEWS",
+            "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxPSE8tV0J4emlWYTlINFo4OG1XQkxOOEt0MkJrSE4yOXp5TVUybVZPS19aRVRIbi1YTjhCRFlXRzU1b0kzcUlkZmNYdFVLNjdIVkNEU2RFU3dpcG1XaVhrLU02N2pxOG5Ic2czcV9CbE9pWXJmQWt0MEcyeFQ1cnFQZmx1WlRpQXZJUXhXMURLaw?oc=5",
+            "source": "UA.News"
+          }
+        ]
+      }
+    ],
+    "explanation": "The reports describe three responses to competitive pressure from China: asking businesses about costs, considering procurement restrictions, and warning about job losses. These are different developments. The narrative connects them without claiming that they have one proven cause."
+  },
+  "revision": {
+    "at": 1788845356870,
+    "before": "The sources show China using armed trainer jets over contested waters while expanding a flight-test facility and refining a stealth-drone design. They establish concurrent operational and development activity, but not its cause or broader strategic effect.",
+    "after": "The sources document Chinese aircraft encounters involving Japan and the Philippines over contested waters alongside expansion of a flight-test facility for next-generation military aircraft. They do not establish why these activities occurred or their broader strategic effect.",
+    "reason": "The proposed narrative is specific and supported by three independent developments: a Japan-China aircraft encounter, a China-Philippines aircraft encounter, and construction at the Lop Nur flight-test facility. The two sources for the Japan incident repeat one occurrence and count as one development. The evidence supports concurrent Chinese military aviation activity, but not its cause or broader strategic effect.",
+    "explanation": "The revision names the Japan and Philippines encounters separately and removes the stealth-drone detail. It keeps the claim descriptive, without assigning a motive or strategic effect.",
+    "provenance": {
+      "job_id": 1444,
+      "narrative_id": 1418
+    }
+  }
+}
