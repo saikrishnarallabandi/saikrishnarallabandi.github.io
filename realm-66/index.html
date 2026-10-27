@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Agent Benchmarks Don't Tell You — REALM @ EMNLP 2026</title>
+<meta name="description" content="Recoverability and credit assignment in agentic retrieval evaluation: a four-stage protocol showing the headline agent-over-RAG gain is jointly determined by the benchmark and by which agent component is load-bearing.">
+<style>
+  :root { --ink:#1a1a1a; --muted:#5a5a5a; --line:#e3e3e3; --accent:#7a1f1f; --bg:#fdfdfc; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font-family: Georgia, 'Times New Roman', serif; line-height:1.55; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 22px 80px; }
+  .venue { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+           font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 34px; line-height: 1.2; margin: 10px 0 14px; font-weight: normal; }
+  .authors { font-size: 18px; margin: 0 0 4px; }
+  .affil { color: var(--muted); font-size: 15px; margin: 0 0 26px; }
+  .links { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; margin: 0 0 34px; }
+  .links a { display:inline-block; margin-right:10px; padding:6px 14px; border:1px solid var(--ink);
+             border-radius: 999px; color:var(--ink); text-decoration:none; }
+  .links a:hover { background:var(--ink); color:#fff; }
+  h2 { font-size: 22px; margin: 40px 0 10px; font-weight: normal; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  p { margin: 10px 0; font-size: 17px; }
+  .tldr { background:#f4f1ea; border-left: 3px solid var(--accent); padding: 14px 18px; margin: 22px 0; }
+  .tldr p { margin: 4px 0; }
+  .stats { display:flex; flex-wrap:wrap; gap: 26px 40px; margin: 22px 0 6px;
+           font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; }
+  .stat .n { font-size: 30px; display:block; }
+  .stat .l { font-size: 13px; color: var(--muted); max-width: 200px; display:block; }
+  ol.stages li, ul li { font-size: 17px; margin: 8px 0; }
+  code, pre { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13.5px; }
+  pre { background:#f4f1ea; padding: 14px 16px; overflow-x:auto; border-radius: 6px; line-height:1.45; }
+  .foot { margin-top: 56px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+
+<p class="venue">REALM Workshop · EMNLP 2026 · Poster (REALM-66)</p>
+<h1>What Agent Benchmarks Don&rsquo;t Tell You: Recoverability and Credit Assignment in Agentic Retrieval Evaluation</h1>
+<p class="authors">Sai Krishna Rallabandi, Parag Pravin Dakle, Preethi Raghavan</p>
+<p class="affil">Fidelity Investments</p>
+
+<p class="links">
+  <a href="paper.pdf">Paper (PDF)</a>
+  <a href="poster.pdf">Poster (PDF)</a>
+  <a href="video.mp4">5-min video</a>
+  <a href="https://realm-workshop.github.io/accepted_papers/">REALM accepted papers</a>
+</p>
+
+<div class="tldr">
+  <p><strong>The headline number is not a property of the agent.</strong> The standard report &mdash;
+  how much a tool-using agent beats one-shot RAG on a benchmark &mdash; is jointly determined by a property
+  of the benchmark and by which sub-component of the agent happens to be load-bearing. We give a
+  four-stage protocol that separates the two, and apply it to ~6,000 logged agent episodes over
+  seven corpora and three reader families.</p>
+</div>
+
+<h2>Two confounds a single number absorbs</h2>
+<p><strong>Benchmark selection determines the verdict.</strong> Whether extra retrieval can help at all is a
+property of the task, fixed before any system is run. If the first retrieval misses gold evidence but
+that evidence is still reachable, more retrieval has a target; if it is not reachable, no amount of
+agency helps. The usual proxies &mdash; &ldquo;multi-hop,&rdquo; &ldquo;hard,&rdquo; the raw coverage gap &mdash; do not separate
+the two cases.</p>
+<p><strong>The gain is credited to the wrong component.</strong> An agent changes at least two things at once
+relative to a one-shot pipeline: it retrieves more than once, and it chooses what to do next. A positive
+delta is conventionally attributed to <em>agency</em> &mdash; but a fixed, choice-free loop that only re-queries
+may capture the same gain.</p>
+
+<h2>The four-stage protocol</h2>
+<ol class="stages">
+  <li><strong>Characterize before you measure.</strong> Compute an LLM-free <em>recoverability</em> profile for
+  each benchmark before observing any outcome: of the gold evidence the first retrieval misses, what
+  fraction is reachable by query <em>reformulation</em> (R<sub>ref</sub>), what fraction only by <em>structural
+  navigation</em> (R<sub>nav</sub>), and what fraction by neither (absent-from-query). Stratify reporting by
+  regime, not by difficulty label.</li>
+  <li><strong>Assign credit with an ablation ladder.</strong> Report three arms, not two: one-shot RAG (R1),
+  a choice-free fixed-iterative loop (R2), and the full agent (R3). The statistic is the gap-closing
+  fraction &gamma; = (R2 &minus; R1)/(R3 &minus; R1) &mdash; the share of the agent&rsquo;s advantage that iteration
+  alone already delivers. Only the residual 1 &minus; &gamma; is evidence for agency.</li>
+  <li><strong>Validity checks that can flip a verdict.</strong> Pre-registered equivalence testing (TOST)
+  for &ldquo;no difference&rdquo; claims, multi-reader replication, metric-artifact audits, and cross-family judge
+  re-grading.</li>
+  <li><strong>Price the horizon.</strong> Report quality against retrieval calls, tokens, and latency on a
+  Pareto plane &mdash; the agent&rsquo;s advantage and its expense grow together.</li>
+</ol>
+
+<h2>What the protocol finds</h2>
+<div class="stats">
+  <div class="stat"><span class="n">&minus;0.21 to +0.30</span><span class="l">range of the headline agent gain
+  across corpora, same harness, same readers &mdash; the finding is the change of sign</span></div>
+  <div class="stat"><span class="n">65&ndash;96%</span><span class="l">of the agent&rsquo;s gain on
+  reformulation-recoverable corpora is captured by the choice-free loop (&gamma;)</span></div>
+  <div class="stat"><span class="n">+0.15</span><span class="l">residual agency gain on the longest-horizon,
+  navigation-recoverable corpus (ConditionalQA), under every reader, after iteration saturates by round 2</span></div>
+  <div class="stat"><span class="n">~6,000</span><span class="l">logged agent episodes, 7 corpora, 3 reader
+  families (Claude Sonnet, GPT, open Qwen)</span></div>
+</div>
+<p><strong>The counterexample is the point.</strong> ObliQA&rsquo;s high-gap subsets miss 65&ndash;68% of gold evidence &mdash;
+as much as the recoverable Wikipedia subsets &mdash; and the agent gains nothing there, because those misses
+are absent-from-query: no query reformulation can name them. A coverage-only characterization predicts
++0.18 for these points; the measured value is &asymp; 0. Meanwhile the recoverability profile, computed
+before any outcome was observed, predicts the sign and rough magnitude of the agent advantage out of
+sample (Spearman &rho; = 0.79 over the non-ObliQA subsets).</p>
+<p>And the protocol does not collapse into a blanket negative about agents: on ConditionalQA, where
+missing evidence must be navigated through document structure rather than rediscovered by a better
+query, iteration saturates by round 2 and full agency keeps its residual under every reader. An
+evaluation protocol that can only produce negative results about agency would not be useful. This one
+localizes where agency actually pays. The paper closes with a reporting checklist (&sect;9) so the
+measurements become a discipline rather than an anecdote.</p>
+
+<h2>Abstract</h2>
+<p>Agent quality on long-horizon tasks is usually reported as a single number: the aggregate gain of a
+tool-using agent over a non-agentic baseline on a benchmark. We argue that this number is not a property
+of the agent. It is jointly determined by a property of the benchmark and by which sub-component of the
+agent happens to be load-bearing, and reporting it alone makes agent quality look benchmark-dependent
+and irreproducible. We propose a four-stage evaluation protocol that separates the two. Stage 1
+characterizes the benchmark before any outcome is observed, using an LLM-free diagnostic we call
+recoverability: whether evidence missed on the first retrieval is still reachable from what the system
+has already seen, and if so whether it is reachable by reformulation or only by structural navigation.
+Stage 2 assigns credit with an ablation ladder &mdash; one-shot RAG, a choice-free fixed-iterative loop, and
+a full agent &mdash; that localizes any measured gain to iteration or to open-ended agency. Stages 3 and 4 add
+the validity checks and cost accounting that change verdicts in practice. Applying the protocol to
+about 6,000 logged agent episodes over seven corpora and three reader families, we find that the
+headline agent gain ranges from &minus;0.21 to +0.30 (each corpus in its native metric) purely as a function
+of the recoverability regime, and that on reformulation-recoverable corpora 65&ndash;96% of the gain normally
+credited to agency is recovered by the choice-free loop. Agency earns its cost only on the
+longest-horizon, navigation-recoverable corpus, where iteration saturates by round 2 and leaves a
++0.15 residual under every reader. The protocol turns each of these into a measurement rather than an
+anecdote.</p>
+
+<h2>BibTeX</h2>
+<pre>@inproceedings{rallabandi2026what,
+  title     = {What Agent Benchmarks Don't Tell You: Recoverability and
+               Credit Assignment in Agentic Retrieval Evaluation},
+  author    = {Rallabandi, Sai Krishna and Dakle, Parag Pravin and
+               Raghavan, Preethi},
+  booktitle = {Proceedings of the REALM Workshop at EMNLP 2026},
+  year      = {2026}
+}</pre>
+
+<p class="foot">REALM Workshop (W25) at EMNLP 2026, Budapest &mdash; poster sessions Thu Oct 29,
+10:30&ndash;11:30 and 15:30&ndash;16:30. Paper ID REALM-66. Code, probes, scoring scripts and generations
+to be released.</p>
+
+</main>
+</body>
+</html>
